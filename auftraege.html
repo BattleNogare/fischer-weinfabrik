@@ -11,136 +11,733 @@
       --bg:#0b0d10;
       --bg2:#0f1217;
       --card:#11151c;
+      --card2:#0f131a;
       --text:#e7eaf0;
       --muted:#a8b0bf;
-      --border: rgba(255,255,255,.10);
-      --shadow: 0 16px 50px rgba(0,0,0,.45);
+      --border: rgba(255,255,255,.08);
+      --shadow: 0 12px 34px rgba(0,0,0,.42);
       --accent:#e11d48;
-      --radius: 18px;
+      --focus: 0 0 0 3px rgba(225,29,72,.25);
+      --radius: 14px;
     }
+
     body{
       margin:0;
       font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
-      color: var(--text);
       background:
-        radial-gradient(1200px 600px at 20% 0%, rgba(225,29,72,.22), transparent 55%),
-        radial-gradient(900px 500px at 80% 20%, rgba(225,29,72,.12), transparent 50%),
+        radial-gradient(1200px 600px at 20% 0%, rgba(225,29,72,.20), transparent 55%),
+        radial-gradient(900px 500px at 80% 20%, rgba(225,29,72,.10), transparent 50%),
         linear-gradient(180deg, var(--bg), var(--bg2));
-    }
-    .wrap{
-      width: 92%;
-      max-width: 1400px;
-      margin: 22px auto 40px;
-    }
-    .shell{
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      background: rgba(17,21,28,.65);
-      box-shadow: var(--shadow);
-      overflow: hidden;
-      backdrop-filter: blur(10px);
-    }
-    .shell-header{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:14px;
-      padding: 14px 16px;
-      border-bottom: 1px solid var(--border);
-    }
-    .brand{
-      display:flex; align-items:center; gap:12px;
-    }
-    .brand img{
-      width: 36px; height: 36px;
-      border-radius: 10px;
-      border: 1px solid var(--border);
-      background: rgba(0,0,0,.2);
-      padding: 6px;
-    }
-    .brand h1{
-      margin:0;
-      font-size: 16px;
-      letter-spacing:.2px;
-      line-height:1.1;
-    }
-    .brand .sub{
-      margin:2px 0 0;
-      font-size: 12px;
-      color: var(--muted);
-    }
-    .pill{
-      font-size: 12px;
-      color: var(--muted);
-      padding: 8px 10px;
-      border-radius: 999px;
-      border: 1px solid var(--border);
-      background: rgba(0,0,0,.15);
+      color: var(--text);
     }
 
-    /* iframe wrapper */
-    .frame-wrap{
-      position: relative;
-      background: transparent;
+    .app{ width:85%; max-width:1300px; margin:22px auto 40px; }
+
+    .topbar{
+      display:flex; gap:14px; align-items:center; justify-content:space-between;
+      padding:14px 16px;
+      background: color-mix(in srgb, var(--card) 92%, transparent);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      position: sticky; top: 14px; backdrop-filter: blur(10px);
+      z-index: 10;
     }
-    iframe{
-      width: 100%;
-      border: 0;
-      display:block;
-      height: 900px; /* fallback, wird per postMessage überschrieben */
-      background: transparent;
+
+    .brand{ display:flex; gap:12px; align-items:center; min-width: 260px; }
+    .brand img{
+      width:34px; height:34px; border-radius:10px; border:1px solid var(--border);
+      background: var(--card2); padding:5px;
     }
-    .hint{
-      margin-top: 12px;
-      color: var(--muted);
+    .brand h2{ margin:0; font-size:18px; line-height:1.1; }
+    .brand .sub{ margin:2px 0 0; font-size:12px; color:var(--muted); }
+
+    nav{ display:flex; gap:8px; flex-wrap:wrap; justify-content:center; }
+    .tab{
+      border:1px solid var(--border);
+      background: linear-gradient(180deg, color-mix(in srgb, var(--card) 92%, transparent), var(--card2));
+      color:var(--text);
+      padding:10px 12px;
+      border-radius:999px;
+      cursor:pointer;
+      font-weight:700;
+      transition: transform .08s ease, border-color .2s ease, background .2s ease;
+      display:flex; align-items:center; gap:8px;
+    }
+    .tab:hover{ transform: translateY(-1px); border-color: color-mix(in srgb, var(--accent) 40%, var(--border)); }
+    .tab.active{
+      border-color: color-mix(in srgb, var(--accent) 70%, var(--border));
+      box-shadow: 0 0 0 4px rgba(225,29,72,.14);
+      background: linear-gradient(180deg, rgba(225,29,72,.18), rgba(225,29,72,.10));
+    }
+    .tab .dot{ width:8px; height:8px; border-radius:999px; background: var(--accent); box-shadow: 0 0 0 3px rgba(225,29,72,.15); }
+
+    .actions{ min-width:260px; display:flex; justify-content:flex-end; gap:10px; }
+    .pill{
+      border:1px solid var(--border);
+      background: color-mix(in srgb, var(--card) 85%, transparent);
+      padding: 8px 10px;
+      border-radius: 999px;
       font-size: 12px;
+      color: var(--muted);
+      white-space:nowrap;
+    }
+
+    .grid{ display:grid; grid-template-columns: 1fr; gap:14px; margin-top:14px; }
+
+    .card{
+      border:1px solid var(--border);
+      background: linear-gradient(180deg, color-mix(in srgb, var(--card) 94%, transparent), var(--card2));
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 16px;
+      overflow:hidden;
+    }
+    .card h3{ margin:0 0 12px; font-size:16px; }
+
+    .msg{
+      padding: 12px 14px; border-radius: 12px;
+      border: 1px solid var(--border);
+      background: color-mix(in srgb, var(--card) 90%, transparent);
+      display:none;
+      margin-top: 14px;
+      white-space: pre-line;
+    }
+    .msg.show{ display:block; }
+    .msg.ok{ border-color: rgba(34,197,94,.35); }
+    .msg.error{ border-color: rgba(239,68,68,.40); }
+
+    .muted{ color:var(--muted); font-size:.92em; }
+    .hidden{ display:none !important; }
+
+    /* Auftrag erstellen: untereinander */
+    .form{ display:grid; grid-template-columns: 1fr; gap:12px; }
+
+    label{ display:block; font-weight: 800; font-size: 13px; }
+    input, textarea, select{
+      width:100%;
+      margin-top:6px;
+      padding:10px 11px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: color-mix(in srgb, var(--bg) 35%, var(--card));
+      color: var(--text);
+      outline:none;
+      transition: box-shadow .2s ease, border-color .2s ease;
+      box-sizing:border-box;
+    }
+    textarea{ resize: vertical; min-height: 90px; }
+    input:focus, textarea:focus, select:focus{
+      box-shadow: var(--focus);
+      border-color: color-mix(in srgb, var(--accent) 55%, var(--border));
+    }
+    input[readonly]{ opacity:.92; cursor:not-allowed; }
+
+    .toolbar{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-bottom:12px; }
+    .toolbar input{ max-width:340px; }
+    .pager{ display:flex; gap:8px; align-items:center; margin-left:auto; }
+
+    .btn{
+      border:1px solid var(--border);
+      background: linear-gradient(180deg, color-mix(in srgb, var(--card) 92%, transparent), var(--card2));
+      color:var(--text);
+      padding:10px 12px;
+      border-radius:12px;
+      cursor:pointer;
+      font-weight:750;
+      transition: transform .08s ease, border-color .2s ease;
+      display:inline-flex; align-items:center; gap:8px;
+    }
+    .btn:hover{ transform: translateY(-1px); border-color: color-mix(in srgb, var(--accent) 40%, var(--border)); }
+    .btn:disabled{ opacity:.6; cursor:not-allowed; transform:none; }
+    .btn-primary{
+      border-color: color-mix(in srgb, var(--accent) 60%, var(--border));
+      background: linear-gradient(180deg, rgba(225,29,72,.35), rgba(225,29,72,.15));
+    }
+    .btn-danger{
+      border-color: rgba(239,68,68,.55);
+      background: linear-gradient(180deg, rgba(239,68,68,.22), rgba(239,68,68,.12));
+    }
+    .tiny{ padding: 8px 10px; border-radius: 10px; font-weight: 750; }
+
+    table{ width:100%; border-collapse: collapse; border-radius: 12px; overflow:hidden; }
+    thead th{
+      font-size:12px; text-transform: uppercase; letter-spacing:.2px;
+      color: var(--muted);
+      background: color-mix(in srgb, var(--card) 80%, transparent);
+      border-bottom: 1px solid var(--border);
+      padding: 10px 10px;
+      white-space: nowrap;
+    }
+    tbody td{ border-bottom: 1px solid var(--border); padding: 10px 10px; vertical-align: top; }
+    tbody tr:hover td{ background: rgba(225,29,72,.06); }
+    .row-actions{ display:flex; gap:8px; align-items:center; }
+
+    /* hidden iframe */
+    iframe#sinkFrame{ display:none; width:0; height:0; border:0; }
+
+    @media (max-width: 920px){
+      .app{ width:94%; }
+      .pager{ margin-left: 0; }
+      .actions{ min-width:auto; }
+      .brand{ min-width:auto; }
     }
   </style>
 </head>
+
 <body>
-  <div class="wrap">
-    <div class="shell">
-      <div class="shell-header">
-        <div class="brand">
-          <img alt="Logo" src="https://raw.githubusercontent.com/BattleNogare/h-h_weinfabrik/main/fischer_weinfabrik_logo.png">
-          <div>
-            <h1>Aufträge</h1>
-            <div class="sub">GitHub Shell · Apps Script eingebettet</div>
-          </div>
+  <div class="app">
+    <div class="topbar">
+      <div class="brand">
+        <img alt="Logo" src="https://raw.githubusercontent.com/BattleNogare/h-h_weinfabrik/main/fischer_weinfabrik_logo.png">
+        <div>
+          <h2>Aufträge</h2>
+          <p class="sub">GitHub UI · Apps Script API</p>
         </div>
-        <div class="pill">Darkmode · Rot</div>
       </div>
 
-      <div class="frame-wrap">
-        <iframe id="appFrame" title="Aufträge App"></iframe>
+      <nav>
+        <button id="tab-create" class="tab active"><span class="dot"></span>Auftrag erstellen</button>
+        <button id="tab-open" class="tab"><span class="dot"></span>Offene Aufträge</button>
+        <button id="tab-done" class="tab"><span class="dot"></span>Fertige Aufträge</button>
+      </nav>
+
+      <div class="actions">
+        <span id="syncPill" class="pill">Sync: –</span>
+        <span class="pill">Sortierung: ID ↑</span>
       </div>
     </div>
 
-    <div class="hint">
-      Hinweis: Das UI läuft im eingebetteten Apps-Script iframe (keine CORS-Probleme), GitHub dient nur als hübsche Hülle.
+    <div id="msg" class="msg"></div>
+
+    <div class="grid">
+      <section id="view-create" class="card">
+        <h3>Auftrag erstellen</h3>
+
+        <div class="form">
+          <div><label>Kunde*<input id="fKunde" type="text" required /></label></div>
+          <div><label>Mitarbeiter*<input id="fMitarbeiter" type="text" required /></label></div>
+          <div><label>Anzahl Fässer*<input id="fAnzahl" type="number" min="0" step="1" required /></label></div>
+          <div><label>Prozent* (1–100)<input id="fProzent" type="number" min="1" max="100" step="1" required /></label></div>
+          <div><label>Kosten (automatisch)<input id="fKosten" type="text" readonly /></label></div>
+
+          <div>
+            <label>Kunde hat alle Weinflaschen erhalten?
+              <select id="fErhalten" disabled>
+                <option value="false" selected>Nein</option>
+                <option value="true">Ja</option>
+              </select>
+            </label>
+            <div class="muted">Neue Aufträge werden immer als „Nein“ gespeichert.</div>
+          </div>
+
+          <div><label>Info<textarea id="fInfo" rows="3"></textarea></label></div>
+        </div>
+
+        <div style="margin-top: 14px; display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+          <button id="btnCreate" class="btn btn-primary">💾 Speichern</button>
+          <span class="muted">* Pflichtfelder</span>
+        </div>
+
+        <div class="muted" style="margin-top:10px;">
+          Hinweis: Schreiben erfolgt über Cross-Origin Form-POST (ohne CORS). Danach wird die CSV neu geladen.
+        </div>
+      </section>
+
+      <section id="view-open" class="card hidden">
+        <h3>Offene Aufträge</h3>
+
+        <div class="toolbar">
+          <input id="openSearch" type="text" placeholder="Suche Kunde/Mitarbeiter…" />
+          <div class="pager">
+            <button id="openPrev" class="btn tiny">◀</button>
+            <span id="openPageInfo" class="pill"></span>
+            <button id="openNext" class="btn tiny">▶</button>
+          </div>
+        </div>
+
+        <div id="openTableWrap"></div>
+      </section>
+
+      <section id="view-done" class="card hidden">
+        <h3>Fertige Aufträge</h3>
+
+        <div class="toolbar">
+          <input id="doneSearch" type="text" placeholder="Suche Kunde/Mitarbeiter…" />
+          <div class="pager">
+            <button id="donePrev" class="btn tiny">◀</button>
+            <span id="donePageInfo" class="pill"></span>
+            <button id="doneNext" class="btn tiny">▶</button>
+          </div>
+        </div>
+
+        <div id="doneTableWrap"></div>
+      </section>
     </div>
   </div>
 
-  <script>
-    // ✅ HIER deine Apps Script WebApp /exec URL eintragen:
-    const APPS_SCRIPT_APP_URL = 'https://script.google.com/macros/s/AKfycbyrbnoenHlCFKW1Lk1bI_GOf9WFlw7IR9Y_fxZAsaOfG57Ddy4Ei2ENTTNCSN1IyypmzQ/exec';
+  <!-- hidden iframe target for cross-origin form posts -->
+  <iframe id="sinkFrame" name="sinkFrame"></iframe>
 
-    const frame = document.getElementById('appFrame');
-    frame.src = APPS_SCRIPT_APP_URL + (APPS_SCRIPT_APP_URL.includes('?') ? '&' : '?') + 'embed=1';
+<script>
+/** =========================
+ * CONFIG (DU MUSST NUR HIER EINMAL ANPASSEN)
+ * ========================= */
+const WEBAPP_EXEC_URL = 'https://script.google.com/macros/s/AKfycbyrbnoenHlCFKW1Lk1bI_GOf9WFlw7IR9Y_fxZAsaOfG57Ddy4Ei2ENTTNCSN1IyypmzQ/exec'; // z.B. https://script.google.com/macros/s/XXXXX/exec
+const API_BASE = WEBAPP_EXEC_URL + '?api=1';
 
-    // Auto-Resize via postMessage aus App.html
-    window.addEventListener('message', (event) => {
-      const data = event.data;
-      if (!data || data.type !== 'WEINFABRIK_HEIGHT') return;
+// Public CSV (read-only)
+const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQF3gShRvJeEt3T4Za6wm_2mOzWhJU1Zj07iEs19fKJAypT-PEHn728dDzsWHTwLaVl4G1YC7rXMGil/pub?gid=345717060&single=true&output=csv';
 
-      // Optional: origin check (empfohlen)
-      // if (!String(event.origin).includes('script.google.com')) return;
+const PAGE_SIZE = 50;
+const DEBUG = true; // Debug logs in browser console
 
-      const h = Number(data.height);
-      if (Number.isFinite(h) && h > 200) {
-        frame.style.height = (h + 20) + 'px';
+/** =========================
+ * UI HELPERS
+ * ========================= */
+const $ = (id) => document.getElementById(id);
+
+function log(...args){ if (DEBUG) console.log('[GH-APP]', ...args); }
+
+function showMsg(type, text) {
+  const el = $('msg');
+  el.className = 'msg show ' + (type === 'error' ? 'error' : 'ok');
+  el.textContent = text;
+  clearTimeout(showMsg._t);
+  showMsg._t = setTimeout(() => { el.className = 'msg'; el.textContent=''; }, 5200);
+}
+
+function setTab(tab) {
+  const tabs = ['create','open','done'];
+  for (const t of tabs) {
+    $('tab-' + t).classList.toggle('active', t === tab);
+    $('view-' + t).classList.toggle('hidden', t !== tab);
+  }
+  if (tab === 'open') renderOpen();
+  if (tab === 'done') renderDone();
+}
+
+/** =========================
+ * DATA: CSV LOAD + PARSE
+ * ========================= */
+let allRows = [];
+let lastSync = null;
+
+function parseCSV(text) {
+  // Simple CSV parser supporting quotes
+  const rows = [];
+  let cur = '';
+  let inQuotes = false;
+  let row = [];
+
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+    const next = text[i+1];
+
+    if (ch === '"' && inQuotes && next === '"') { cur += '"'; i++; continue; }
+    if (ch === '"') { inQuotes = !inQuotes; continue; }
+
+    if (ch === ',' && !inQuotes) { row.push(cur); cur = ''; continue; }
+    if ((ch === '\n' || ch === '\r') && !inQuotes) {
+      if (ch === '\r' && next === '\n') i++;
+      row.push(cur); cur = '';
+      if (row.length > 1 || (row.length === 1 && row[0] !== '')) rows.push(row);
+      row = [];
+      continue;
+    }
+    cur += ch;
+  }
+  // tail
+  row.push(cur);
+  if (row.length > 1 || (row.length === 1 && row[0] !== '')) rows.push(row);
+  return rows;
+}
+
+function toBool(v){
+  const s = String(v ?? '').trim().toLowerCase();
+  return (s === 'true' || s === '1' || s === 'ja' || s === 'yes');
+}
+
+function toInt(v){
+  const n = Math.trunc(Number(String(v ?? '').replace(',', '.')));
+  return Number.isFinite(n) ? n : 0;
+}
+
+function escapeHtml(s) {
+  return String(s ?? '')
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#039;');
+}
+
+async function loadCSV() {
+  // Cache-buster to ensure fresh data after updates
+  const url = CSV_URL + '&_ts=' + Date.now();
+  log('Loading CSV', url);
+  const res = await fetch(url, { method:'GET' });
+  const text = await res.text();
+  const raw = parseCSV(text);
+
+  if (!raw.length) throw new Error('CSV leer / nicht erreichbar.');
+
+  const header = raw[0].map(h => String(h).trim());
+  const dataRows = raw.slice(1);
+
+  const items = dataRows
+    .filter(r => r.some(cell => String(cell).trim() !== ''))
+    .map(r => {
+      const obj = {};
+      for (let i = 0; i < header.length; i++) obj[header[i]] = r[i] ?? '';
+      // normalize fields
+      obj.ID = toInt(obj.ID);
+      obj.Anzahl = toInt(obj.Anzahl);
+      obj.Prozent = toInt(obj.Prozent);
+      obj.Kosten = Number(String(obj.Kosten ?? '').replace(',', '.')) || 0;
+      obj.__erhalten = toBool(obj['Kunde hat alle Weinflaschen erhalten?']);
+      return obj;
+    })
+    .sort((a,b) => a.ID - b.ID);
+
+  allRows = items;
+  lastSync = new Date();
+  $('syncPill').textContent = 'Sync: ' + lastSync.toLocaleString('de-DE');
+  log('CSV loaded rows=', allRows.length);
+}
+
+/** =========================
+ * WRITE: Cross-Origin Form POST (No CORS)
+ * ========================= */
+function postForm(paramsObj, bodyObj) {
+  // Build URL with query params (api=1 etc.)
+  const url = new URL(API_BASE);
+  Object.entries(paramsObj || {}).forEach(([k,v]) => url.searchParams.set(k, String(v)));
+
+  // Create form
+  const form = document.createElement('form');
+  form.method = 'POST';
+  form.action = url.toString();
+  form.target = 'sinkFrame'; // hidden iframe
+  form.style.display = 'none';
+
+  // body fields
+  Object.entries(bodyObj || {}).forEach(([k,v]) => {
+    const inp = document.createElement('input');
+    inp.type = 'hidden';
+    inp.name = k;
+    inp.value = String(v);
+    form.appendChild(inp);
+  });
+
+  document.body.appendChild(form);
+
+  log('POST FORM', form.action, bodyObj);
+
+  // Submit and cleanup
+  form.submit();
+  setTimeout(() => form.remove(), 1000);
+}
+
+/** =========================
+ * BUSINESS: Costs
+ * ========================= */
+function computeKosten(anzahl, prozent) {
+  const a = Number(anzahl);
+  const p = Number(prozent);
+  if (!Number.isFinite(a) || !Number.isFinite(p)) return '';
+  const val = (a * 8 * 1299) * (p / 100);
+  return Math.round(val).toLocaleString('de-DE') + ' €';
+}
+function moneyEUR(n) {
+  const v = Number(n);
+  if (!Number.isFinite(v)) return '';
+  return Math.round(v).toLocaleString('de-DE') + ' €';
+}
+
+/** =========================
+ * VIEW: Create
+ * ========================= */
+function validateCreateForm() {
+  const kunde = $('fKunde').value.trim();
+  const mitarbeiter = $('fMitarbeiter').value.trim();
+  const anzahl = toInt($('fAnzahl').value);
+  const prozent = toInt($('fProzent').value);
+
+  if (!kunde) throw new Error('Kunde ist Pflichtfeld.');
+  if (!mitarbeiter) throw new Error('Mitarbeiter ist Pflichtfeld.');
+  if (!Number.isInteger(anzahl) || anzahl < 0) throw new Error('Anzahl muss eine nicht-negative Ganzzahl sein.');
+  if (!Number.isInteger(prozent) || prozent < 1 || prozent > 100) throw new Error('Prozent muss 1–100 (Ganzzahl) sein.');
+}
+
+function hookKostenAuto() {
+  const recalc = () => { $('fKosten').value = computeKosten($('fAnzahl').value, $('fProzent').value); };
+  $('fAnzahl').addEventListener('input', recalc);
+  $('fProzent').addEventListener('input', recalc);
+  recalc();
+}
+
+async function createOrder() {
+  const btn = $('btnCreate');
+  btn.disabled = true;
+  const old = btn.textContent;
+  btn.textContent = 'Speichert…';
+
+  try {
+    validateCreateForm();
+
+    const body = {
+      Kunde: $('fKunde').value.trim(),
+      Mitarbeiter: $('fMitarbeiter').value.trim(),
+      Anzahl: toInt($('fAnzahl').value),
+      Prozent: toInt($('fProzent').value),
+      Info: $('fInfo').value.trim()
+    };
+
+    // fire-and-forget (cross-origin form post)
+    postForm({}, body);
+
+    showMsg('ok',
+      'Auftrag gesendet.\n' +
+      'Hinweis: Die Tabelle aktualisiert sich in ~1–3 Sekunden (CSV Sync).'
+    );
+
+    // reset UI
+    $('fKunde').value = '';
+    $('fMitarbeiter').value = '';
+    $('fAnzahl').value = '';
+    $('fProzent').value = '';
+    $('fInfo').value = '';
+    $('fKosten').value = '';
+
+    // refresh dataset after short delay (CSV updates can lag a bit)
+    await refreshWithRetry();
+
+  } catch (e) {
+    showMsg('error', e.message);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = old;
+  }
+}
+
+/** =========================
+ * VIEW: Tables + Pagination/Search
+ * ========================= */
+let openState = { page: 1, search: '' };
+let doneState = { page: 1, search: '' };
+
+function applySearchAndPage(rows, state) {
+  const q = String(state.search || '').trim().toLowerCase();
+  let filtered = rows;
+
+  if (q) {
+    filtered = rows.filter(r =>
+      String(r.Kunde || '').toLowerCase().includes(q) ||
+      String(r.Mitarbeiter || '').toLowerCase().includes(q)
+    );
+  }
+
+  filtered.sort((a,b) => a.ID - b.ID);
+
+  const total = filtered.length;
+  const start = (state.page - 1) * PAGE_SIZE;
+  const items = filtered.slice(start, start + PAGE_SIZE);
+
+  return { total, items };
+}
+
+function renderOpen() {
+  const openRows = allRows.filter(r => !r.__erhalten);
+  const { total, items } = applySearchAndPage(openRows, openState);
+
+  $('openPageInfo').textContent = `Seite ${openState.page} · ${total} Treffer`;
+  $('openPrev').disabled = openState.page <= 1;
+  $('openNext').disabled = (openState.page * PAGE_SIZE) >= total;
+
+  const wrap = $('openTableWrap');
+  if (!items.length) { wrap.innerHTML = '<div class="muted">Keine offenen Aufträge gefunden.</div>'; return; }
+
+  wrap.innerHTML = `
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th><th>Kunde</th><th>Mitarbeiter</th><th>Anzahl</th><th>Prozent</th><th>Kosten</th>
+          <th>Erhalten?</th><th>Info</th><th></th>
+        </tr>
+      </thead>
+      <tbody>
+        ${items.map(r => `
+          <tr>
+            <td>${r.ID}</td>
+            <td>${escapeHtml(r.Kunde)}</td>
+            <td>${escapeHtml(r.Mitarbeiter)}</td>
+            <td>${r.Anzahl}</td>
+            <td>${r.Prozent}</td>
+            <td>${moneyEUR(r.Kosten)}</td>
+            <td>
+              <select data-id="${r.ID}" class="open-erhalten">
+                <option value="0" selected>Nein</option>
+                <option value="1">Ja</option>
+              </select>
+              <div class="muted">Nur auf „Ja“ setzbar</div>
+            </td>
+            <td><textarea data-id="${r.ID}" class="open-info" rows="2">${escapeHtml(r.Info || '')}</textarea></td>
+            <td class="row-actions"><button data-id="${r.ID}" class="btn tiny btn-primary open-save">Speichern</button></td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+  `;
+
+  wrap.querySelectorAll('.open-save').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const id = btn.getAttribute('data-id');
+      const info = wrap.querySelector('.open-info[data-id="' + id + '"]').value;
+      const erhalten = wrap.querySelector('.open-erhalten[data-id="' + id + '"]').value; // 1/0
+
+      btn.disabled = true;
+      const old = btn.textContent;
+      btn.textContent = 'Speichert…';
+
+      try {
+        // ✅ write via cross-origin form post (no CORS). Keep debug flag in query for server-side debug if you later inspect logs.
+        postForm({ method:'PATCH', id, debug:'1' }, { Info: info, Erhalten: erhalten });
+
+        showMsg('ok',
+          'Änderung gesendet. ID: ' + id + '\n' +
+          'Hinweis: Liste aktualisiert sich in ~1–3 Sekunden.'
+        );
+
+        await refreshWithRetry();
+
+        // if user tried to set back to 0, UI reset (rule)
+        if (erhalten === '0') {
+          wrap.querySelector('.open-erhalten[data-id="' + id + '"]').value = '0';
+        }
+      } catch (e) {
+        showMsg('error', e.message);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = old;
       }
     });
-  </script>
+  });
+}
+
+function renderDone() {
+  const doneRows = allRows.filter(r => r.__erhalten);
+  const { total, items } = applySearchAndPage(doneRows, doneState);
+
+  $('donePageInfo').textContent = `Seite ${doneState.page} · ${total} Treffer`;
+  $('donePrev').disabled = doneState.page <= 1;
+  $('doneNext').disabled = (doneState.page * PAGE_SIZE) >= total;
+
+  const wrap = $('doneTableWrap');
+  if (!items.length) { wrap.innerHTML = '<div class="muted">Keine fertigen Aufträge gefunden.</div>'; return; }
+
+  wrap.innerHTML = `
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th><th>Kunde</th><th>Mitarbeiter</th><th>Anzahl</th><th>Prozent</th><th>Kosten</th>
+          <th>Erhalten?</th><th>Info</th><th></th>
+        </tr>
+      </thead>
+      <tbody>
+        ${items.map(r => `
+          <tr>
+            <td>${r.ID}</td>
+            <td>${escapeHtml(r.Kunde)}</td>
+            <td>${escapeHtml(r.Mitarbeiter)}</td>
+            <td>${r.Anzahl}</td>
+            <td>${r.Prozent}</td>
+            <td>${moneyEUR(r.Kosten)}</td>
+            <td>Ja</td>
+            <td>${escapeHtml(r.Info || '')}</td>
+            <td class="row-actions"><button data-id="${r.ID}" class="btn tiny btn-danger done-del">Löschen</button></td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+  `;
+
+  wrap.querySelectorAll('.done-del').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const id = btn.getAttribute('data-id');
+      if (!confirm('Auftrag ID ' + id + ' wirklich löschen?')) return;
+
+      btn.disabled = true;
+      const old = btn.textContent;
+      btn.textContent = 'Löscht…';
+
+      try {
+        postForm({ method:'DELETE', id, debug:'1' }, {});
+        showMsg('ok', 'Löschung gesendet. ID: ' + id + '\nHinweis: Liste aktualisiert sich in ~1–3 Sekunden.');
+        await refreshWithRetry();
+      } catch (e) {
+        showMsg('error', e.message);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = old;
+      }
+    });
+  });
+}
+
+/** =========================
+ * Refresh with retry (CSV can lag)
+ * ========================= */
+async function refreshWithRetry() {
+  // CSV publish often has a slight delay; retry a few times
+  const tries = 4;
+  const delays = [900, 1400, 2000, 2600];
+
+  for (let i = 0; i < tries; i++) {
+    await new Promise(r => setTimeout(r, delays[i]));
+    try {
+      await loadCSV();
+      // re-render current tab
+      if ($('tab-open').classList.contains('active')) renderOpen();
+      if ($('tab-done').classList.contains('active')) renderDone();
+      return;
+    } catch (e) {
+      log('refresh try failed', i+1, e);
+    }
+  }
+
+  // if still failing
+  showMsg('error', 'Aktualisierung fehlgeschlagen. Bitte Seite neu laden.');
+}
+
+/** =========================
+ * Wire up
+ * ========================= */
+$('tab-create').addEventListener('click', () => setTab('create'));
+$('tab-open').addEventListener('click', () => setTab('open'));
+$('tab-done').addEventListener('click', () => setTab('done'));
+
+$('btnCreate').addEventListener('click', createOrder);
+
+$('openSearch').addEventListener('input', () => { openState.search = $('openSearch').value.trim(); openState.page=1; renderOpen(); });
+$('openPrev').addEventListener('click', () => { openState.page=Math.max(1, openState.page-1); renderOpen(); });
+$('openNext').addEventListener('click', () => { openState.page+=1; renderOpen(); });
+
+$('doneSearch').addEventListener('input', () => { doneState.search = $('doneSearch').value.trim(); doneState.page=1; renderDone(); });
+$('donePrev').addEventListener('click', () => { doneState.page=Math.max(1, doneState.page-1); renderDone(); });
+$('doneNext').addEventListener('click', () => { doneState.page+=1; renderDone(); });
+
+hookKostenAuto();
+
+// Boot
+(async function init(){
+  try{
+    await loadCSV();
+    setTab('create');
+  } catch(e){
+    showMsg('error', 'CSV konnte nicht geladen werden.\n' + e.message);
+  }
+})();
+</script>
 </body>
 </html>
