@@ -3,592 +3,144 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Aufträge</title>
-
+  <title>Fischer Weinfabrik · Aufträge</title>
   <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/BattleNogare/h-h_weinfabrik/main/fischer_weinfabrik_logo.png">
 
   <style>
     :root{
-      --bg: #0b0d10;
+      --bg:#0b0d10;
       --bg2:#0f1217;
       --card:#11151c;
-      --card2:#0f131a;
       --text:#e7eaf0;
       --muted:#a8b0bf;
-      --border: rgba(255,255,255,.08);
-      --shadow: 0 10px 30px rgba(0,0,0,.35);
+      --border: rgba(255,255,255,.10);
+      --shadow: 0 16px 50px rgba(0,0,0,.45);
       --accent:#e11d48;
-      --focus: 0 0 0 3px rgba(225,29,72,.25);
-      --radius: 14px;
+      --radius: 18px;
     }
-
     body{
       margin:0;
       font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+      color: var(--text);
       background:
-        radial-gradient(1200px 600px at 20% 0%, rgba(225,29,72,.18), transparent 55%),
-        radial-gradient(900px 500px at 80% 20%, rgba(225,29,72,.10), transparent 50%),
+        radial-gradient(1200px 600px at 20% 0%, rgba(225,29,72,.22), transparent 55%),
+        radial-gradient(900px 500px at 80% 20%, rgba(225,29,72,.12), transparent 50%),
         linear-gradient(180deg, var(--bg), var(--bg2));
-      color: var(--text);
     }
-
-    .app{ width:85%; max-width:1300px; margin:22px auto 40px; }
-
-    .topbar{
-      display:flex; gap:14px; align-items:center; justify-content:space-between;
-      padding:14px 16px;
-      background: color-mix(in srgb, var(--card) 90%, transparent);
+    .wrap{
+      width: 92%;
+      max-width: 1400px;
+      margin: 22px auto 40px;
+    }
+    .shell{
       border: 1px solid var(--border);
       border-radius: var(--radius);
+      background: rgba(17,21,28,.65);
       box-shadow: var(--shadow);
-      position: sticky; top: 14px; backdrop-filter: blur(10px);
-      z-index: 10;
+      overflow: hidden;
+      backdrop-filter: blur(10px);
     }
-
-    .brand{ display:flex; gap:12px; align-items:center; min-width: 220px; }
+    .shell-header{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:14px;
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--border);
+    }
+    .brand{
+      display:flex; align-items:center; gap:12px;
+    }
     .brand img{
-      width:34px; height:34px; border-radius:10px; border:1px solid var(--border);
-      background: var(--card2); padding:5px;
-    }
-    .brand h2{ margin:0; font-size:18px; line-height:1.1; }
-    .brand .sub{ margin:2px 0 0; font-size:12px; color:var(--muted); }
-
-    nav{ display:flex; gap:8px; flex-wrap:wrap; justify-content:center; }
-    .tab{
-      border:1px solid var(--border);
-      background: linear-gradient(180deg, color-mix(in srgb, var(--card) 92%, transparent), var(--card2));
-      color:var(--text);
-      padding:10px 12px;
-      border-radius:999px;
-      cursor:pointer;
-      font-weight:700;
-      transition: transform .08s ease, border-color .2s ease, background .2s ease;
-      display:flex; align-items:center; gap:8px;
-    }
-    .tab:hover{ transform: translateY(-1px); border-color: color-mix(in srgb, var(--accent) 40%, var(--border)); }
-    .tab.active{
-      border-color: color-mix(in srgb, var(--accent) 70%, var(--border));
-      box-shadow: 0 0 0 4px rgba(225,29,72,.14);
-      background: linear-gradient(180deg, rgba(225,29,72,.18), rgba(225,29,72,.10));
-    }
-    .tab .dot{ width:8px; height:8px; border-radius:999px; background: var(--accent); box-shadow: 0 0 0 3px rgba(225,29,72,.15); }
-
-    .actions{ min-width:220px; display:flex; justify-content:flex-end; }
-
-    .btn{
-      border:1px solid var(--border);
-      background: linear-gradient(180deg, color-mix(in srgb, var(--card) 92%, transparent), var(--card2));
-      color:var(--text);
-      padding:10px 12px;
-      border-radius:12px;
-      cursor:pointer;
-      font-weight:750;
-      transition: transform .08s ease, border-color .2s ease;
-      display:inline-flex; align-items:center; gap:8px;
-    }
-    .btn:hover{ transform: translateY(-1px); border-color: color-mix(in srgb, var(--accent) 40%, var(--border)); }
-    .btn-primary{
-      border-color: color-mix(in srgb, var(--accent) 60%, var(--border));
-      background: linear-gradient(180deg, rgba(225,29,72,.35), rgba(225,29,72,.15));
-    }
-    .btn-danger{
-      border-color: rgba(239,68,68,.55);
-      background: linear-gradient(180deg, rgba(239,68,68,.22), rgba(239,68,68,.12));
-    }
-    .tiny{ padding: 8px 10px; border-radius: 10px; font-weight: 750; }
-
-    .grid{ display:grid; grid-template-columns: 1fr; gap:14px; margin-top:14px; }
-
-    .card{
-      border:1px solid var(--border);
-      background: linear-gradient(180deg, color-mix(in srgb, var(--card) 94%, transparent), var(--card2));
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-      padding: 16px;
-      overflow:hidden;
-    }
-    .card h3{ margin:0 0 12px; font-size:16px; }
-
-    .msg{
-      padding: 12px 14px; border-radius: 12px;
+      width: 36px; height: 36px;
+      border-radius: 10px;
       border: 1px solid var(--border);
-      background: color-mix(in srgb, var(--card) 90%, transparent);
-      display:none;
-      margin-top: 14px;
+      background: rgba(0,0,0,.2);
+      padding: 6px;
     }
-    .msg.show{ display:block; }
-    .msg.ok{ border-color: rgba(34,197,94,.35); }
-    .msg.error{ border-color: rgba(239,68,68,.40); }
-
-    .muted{ color:var(--muted); font-size:.92em; }
-    .hidden{ display:none !important; }
-
-    /* ✅ Auftrag erstellen: untereinander (1 Spalte) */
-    .form{
-      display:grid;
-      grid-template-columns: 1fr;
-      gap:12px;
+    .brand h1{
+      margin:0;
+      font-size: 16px;
+      letter-spacing:.2px;
+      line-height:1.1;
     }
-
-    label{ display:block; font-weight: 800; font-size: 13px; }
-    input, textarea, select{
-      width:100%;
-      margin-top:6px;
-      padding:10px 11px;
-      border-radius: 12px;
-      border: 1px solid var(--border);
-      background: color-mix(in srgb, var(--bg) 35%, var(--card));
-      color: var(--text);
-      outline:none;
-      transition: box-shadow .2s ease, border-color .2s ease;
-      box-sizing:border-box;
-    }
-    textarea{ resize: vertical; min-height: 90px; }
-    input:focus, textarea:focus, select:focus{
-      box-shadow: var(--focus);
-      border-color: color-mix(in srgb, var(--accent) 55%, var(--border));
-    }
-    input[readonly]{ opacity:.92; cursor:not-allowed; }
-
-    .toolbar{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-bottom:12px; }
-    .toolbar input{ max-width:340px; }
-    .pager{ display:flex; gap:8px; align-items:center; margin-left:auto; }
-    .pill{
-      border:1px solid var(--border);
-      background: color-mix(in srgb, var(--card) 85%, transparent);
-      padding: 8px 10px;
-      border-radius: 999px;
+    .brand .sub{
+      margin:2px 0 0;
       font-size: 12px;
       color: var(--muted);
     }
-
-    table{ width:100%; border-collapse: collapse; border-radius: 12px; overflow:hidden; }
-    thead th{
-      font-size:12px; text-transform: uppercase; letter-spacing:.2px;
+    .pill{
+      font-size: 12px;
       color: var(--muted);
-      background: color-mix(in srgb, var(--card) 80%, transparent);
-      border-bottom: 1px solid var(--border);
-      padding: 10px 10px;
-      white-space: nowrap;
+      padding: 8px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: rgba(0,0,0,.15);
     }
-    tbody td{
-      border-bottom: 1px solid var(--border);
-      padding: 10px 10px;
-      vertical-align: top;
-    }
-    tbody tr:hover td{ background: rgba(225,29,72,.06); }
-    .row-actions{ display:flex; gap:8px; align-items:center; }
 
-    @media (max-width: 920px){
-      .app{ width:94%; }
-      .brand{ min-width: unset; }
-      .actions{ min-width: unset; }
-      .pager{ margin-left: 0; }
+    /* iframe wrapper */
+    .frame-wrap{
+      position: relative;
+      background: transparent;
+    }
+    iframe{
+      width: 100%;
+      border: 0;
+      display:block;
+      height: 900px; /* fallback, wird per postMessage überschrieben */
+      background: transparent;
+    }
+    .hint{
+      margin-top: 12px;
+      color: var(--muted);
+      font-size: 12px;
     }
   </style>
 </head>
-
 <body>
-  <div class="app">
-
-    <div class="topbar">
-      <div class="brand">
-        <img alt="Logo" src="https://raw.githubusercontent.com/BattleNogare/h-h_weinfabrik/main/fischer_weinfabrik_logo.png">
-        <div>
-          <h2>Aufträge</h2>
-          <p class="sub">Fischer Weinfabrik · interne Desktop-App</p>
+  <div class="wrap">
+    <div class="shell">
+      <div class="shell-header">
+        <div class="brand">
+          <img alt="Logo" src="https://raw.githubusercontent.com/BattleNogare/h-h_weinfabrik/main/fischer_weinfabrik_logo.png">
+          <div>
+            <h1>Aufträge</h1>
+            <div class="sub">GitHub Shell · Apps Script eingebettet</div>
+          </div>
         </div>
+        <div class="pill">Darkmode · Rot</div>
       </div>
 
-      <nav>
-        <button id="tab-create" class="tab active"><span class="dot"></span>Auftrag erstellen</button>
-        <button id="tab-open" class="tab"><span class="dot"></span>Offene Aufträge</button>
-        <button id="tab-done" class="tab"><span class="dot"></span>Fertige Aufträge</button>
-      </nav>
-
-      <div class="actions">
-        <span class="pill">Darkmode</span>
+      <div class="frame-wrap">
+        <iframe id="appFrame" title="Aufträge App"></iframe>
       </div>
     </div>
 
-    <div id="msg" class="msg"></div>
-
-    <div class="grid">
-
-      <section id="view-create" class="card">
-        <h3>Auftrag erstellen</h3>
-
-        <div class="form">
-          <div>
-            <label>Kunde*<input id="fKunde" type="text" required /></label>
-          </div>
-          <div>
-            <label>Mitarbeiter*<input id="fMitarbeiter" type="text" required /></label>
-          </div>
-          <div>
-            <label>Anzahl Fässer*<input id="fAnzahl" type="number" min="0" step="1" required /></label>
-          </div>
-          <div>
-            <label>Prozent* (1–100)<input id="fProzent" type="number" min="1" max="100" step="1" required /></label>
-          </div>
-
-          <div>
-            <label>Kosten (automatisch)
-              <input id="fKosten" type="text" readonly />
-            </label>
-          </div>
-
-          <div>
-            <label>Kunde hat alle Weinflaschen erhalten?
-              <select id="fErhalten" disabled>
-                <option value="false" selected>Nein</option>
-                <option value="true">Ja</option>
-              </select>
-            </label>
-            <div class="muted">Neue Aufträge werden immer als „Nein“ gespeichert.</div>
-          </div>
-
-          <div>
-            <label>Info<textarea id="fInfo" rows="3"></textarea></label>
-          </div>
-        </div>
-
-        <div style="margin-top: 14px; display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
-          <button id="btnCreate" class="btn btn-primary">💾 Speichern</button>
-          <span class="muted">* Pflichtfelder</span>
-        </div>
-      </section>
-
-      <section id="view-open" class="card hidden">
-        <h3>Offene Aufträge</h3>
-
-        <div class="toolbar">
-          <input id="openSearch" type="text" placeholder="Suche Kunde/Mitarbeiter…" />
-          <span class="pill">Sortierung: ID ↑</span>
-
-          <div class="pager">
-            <button id="openPrev" class="btn tiny">◀</button>
-            <span id="openPageInfo" class="pill"></span>
-            <button id="openNext" class="btn tiny">▶</button>
-          </div>
-        </div>
-
-        <div id="openTableWrap"></div>
-      </section>
-
-      <section id="view-done" class="card hidden">
-        <h3>Fertige Aufträge</h3>
-
-        <div class="toolbar">
-          <input id="doneSearch" type="text" placeholder="Suche Kunde/Mitarbeiter…" />
-          <span class="pill">Sortierung: ID ↑</span>
-
-          <div class="pager">
-            <button id="donePrev" class="btn tiny">◀</button>
-            <span id="donePageInfo" class="pill"></span>
-            <button id="doneNext" class="btn tiny">▶</button>
-          </div>
-        </div>
-
-        <div id="doneTableWrap"></div>
-      </section>
-
+    <div class="hint">
+      Hinweis: Das UI läuft im eingebetteten Apps-Script iframe (keine CORS-Probleme), GitHub dient nur als hübsche Hülle.
     </div>
   </div>
 
-<script>
-  // ✅ Same-origin API (kein CORS), wenn über Apps Script ausgeliefert
-  const API_BASE_URL = window.location.href.split('?')[0];
-  const API_TOKEN = '';
-  const PAGE_SIZE = 50;
+  <script>
+    // ✅ HIER deine Apps Script WebApp /exec URL eintragen:
+    const APPS_SCRIPT_APP_URL = 'https://script.google.com/macros/s/AKfycbyrbnoenHlCFKW1Lk1bI_GOf9WFlw7IR9Y_fxZAsaOfG57Ddy4Ei2ENTTNCSN1IyypmzQ/exec';
 
-  const $ = (id) => document.getElementById(id);
+    const frame = document.getElementById('appFrame');
+    frame.src = APPS_SCRIPT_APP_URL + (APPS_SCRIPT_APP_URL.includes('?') ? '&' : '?') + 'embed=1';
 
-  function showMsg(type, text) {
-    const el = $('msg');
-    el.className = 'msg show ' + (type === 'error' ? 'error' : 'ok');
-    el.textContent = text;
-    clearTimeout(showMsg._t);
-    showMsg._t = setTimeout(() => { el.className = 'msg'; el.textContent=''; }, 4200);
-  }
+    // Auto-Resize via postMessage aus App.html
+    window.addEventListener('message', (event) => {
+      const data = event.data;
+      if (!data || data.type !== 'WEINFABRIK_HEIGHT') return;
 
-  function setTab(tab) {
-    const tabs = ['create','open','done'];
-    for (const t of tabs) {
-      $('tab-' + t).classList.toggle('active', t === tab);
-      $('view-' + t).classList.toggle('hidden', t !== tab);
-    }
-    if (tab === 'open') loadOpen();
-    if (tab === 'done') loadDone();
-  }
+      // Optional: origin check (empfohlen)
+      // if (!String(event.origin).includes('script.google.com')) return;
 
-  // ===== API =====
-  async function apiGet(params = {}) {
-    const url = new URL(API_BASE_URL);
-    if (API_TOKEN) params.token = API_TOKEN;
-    Object.entries(params).forEach(([k,v]) => url.searchParams.set(k, v));
-    const res = await fetch(url.toString(), { method: 'GET' });
-    const data = await res.json();
-    if (!data.ok) throw new Error(data.error || 'API Fehler');
-    return data;
-  }
-
-  // form-urlencoded (funktioniert zuverlässig)
-  async function apiPost(body, params = {}) {
-    const url = new URL(API_BASE_URL);
-    if (API_TOKEN) params.token = API_TOKEN;
-    Object.entries(params).forEach(([k,v]) => url.searchParams.set(k, v));
-
-    const form = new URLSearchParams();
-    for (const [k, v] of Object.entries(body || {})) form.set(k, String(v));
-
-    const res = await fetch(url.toString(), {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' },
-      body: form.toString()
+      const h = Number(data.height);
+      if (Number.isFinite(h) && h > 200) {
+        frame.style.height = (h + 20) + 'px';
+      }
     });
-
-    const text = await res.text();
-    let data;
-    try { data = JSON.parse(text); }
-    catch { throw new Error('Antwort ist kein JSON: ' + text); }
-
-    if (!data.ok) throw new Error(data.error || 'API Fehler');
-    return data;
-  }
-
-  // ===== Business =====
-  function computeKosten(anzahl, prozent) {
-    const a = Number(anzahl);
-    const p = Number(prozent);
-    if (!Number.isFinite(a) || !Number.isFinite(p)) return '';
-    const val = (a * 8 * 1299) * (p / 100);
-    return Math.round(val).toLocaleString('de-DE') + ' €';
-  }
-
-  function validateCreateForm() {
-    const kunde = $('fKunde').value.trim();
-    const mitarbeiter = $('fMitarbeiter').value.trim();
-    const anzahl = Number($('fAnzahl').value);
-    const prozent = Number($('fProzent').value);
-
-    if (!kunde) throw new Error('Kunde ist Pflichtfeld.');
-    if (!mitarbeiter) throw new Error('Mitarbeiter ist Pflichtfeld.');
-    if (!Number.isInteger(anzahl) || anzahl < 0) throw new Error('Anzahl muss eine nicht-negative Ganzzahl sein.');
-    if (!Number.isInteger(prozent) || prozent < 1 || prozent > 100) throw new Error('Prozent muss 1–100 (Ganzzahl) sein.');
-  }
-
-  function hookKostenAuto() {
-    const recalc = () => $('fKosten').value = computeKosten($('fAnzahl').value, $('fProzent').value);
-    $('fAnzahl').addEventListener('input', recalc);
-    $('fProzent').addEventListener('input', recalc);
-    recalc();
-  }
-
-  async function createOrder() {
-    try {
-      validateCreateForm();
-
-      const body = {
-        Kunde: $('fKunde').value.trim(),
-        Mitarbeiter: $('fMitarbeiter').value.trim(),
-        Anzahl: Number($('fAnzahl').value),
-        Prozent: Number($('fProzent').value),
-        Info: $('fInfo').value.trim()
-      };
-
-      const data = await apiPost(body);
-      showMsg('ok', 'Auftrag gespeichert. ID: ' + data.item.ID);
-
-      $('fKunde').value = '';
-      $('fMitarbeiter').value = '';
-      $('fAnzahl').value = '';
-      $('fProzent').value = '';
-      $('fInfo').value = '';
-      $('fKosten').value = '';
-    } catch (e) {
-      showMsg('error', e.message);
-    }
-  }
-
-  // ===== Lists =====
-  let openState = { page: 1, search: '' };
-  let doneState = { page: 1, search: '' };
-
-  async function loadOpen() {
-    try {
-      const data = await apiGet({
-        status: 'open',
-        search: openState.search,
-        page: openState.page,
-        limit: PAGE_SIZE
-      });
-      $('openPageInfo').textContent = `Seite ${openState.page} · ${data.total} Treffer`;
-      renderOpenTable(data.items);
-      $('openPrev').disabled = openState.page <= 1;
-      $('openNext').disabled = (openState.page * PAGE_SIZE) >= data.total;
-    } catch (e) {
-      showMsg('error', e.message);
-    }
-  }
-
-  async function loadDone() {
-    try {
-      const data = await apiGet({
-        status: 'done',
-        search: doneState.search,
-        page: doneState.page,
-        limit: PAGE_SIZE
-      });
-      $('donePageInfo').textContent = `Seite ${doneState.page} · ${data.total} Treffer`;
-      renderDoneTable(data.items);
-      $('donePrev').disabled = doneState.page <= 1;
-      $('doneNext').disabled = (doneState.page * PAGE_SIZE) >= data.total;
-    } catch (e) {
-      showMsg('error', e.message);
-    }
-  }
-
-  function moneyEUR(n) {
-    const v = Number(n);
-    if (!Number.isFinite(v)) return '';
-    return Math.round(v).toLocaleString('de-DE') + ' €';
-  }
-
-  function renderOpenTable(items) {
-    const wrap = $('openTableWrap');
-    if (!items.length) { wrap.innerHTML = '<div class="muted">Keine offenen Aufträge gefunden.</div>'; return; }
-
-    const rows = items.map(r => `
-      <tr>
-        <td>${r.ID}</td>
-        <td>${escapeHtml(r.Kunde)}</td>
-        <td>${escapeHtml(r.Mitarbeiter)}</td>
-        <td>${r.Anzahl}</td>
-        <td>${r.Prozent}</td>
-        <td>${moneyEUR(r.Kosten)}</td>
-        <td>
-          <select data-id="${r.ID}" class="open-erhalten">
-            <option value="false" selected>Nein</option>
-            <option value="true">Ja</option>
-          </select>
-          <div class="muted">Nur auf „Ja“ setzbar</div>
-        </td>
-        <td>
-          <textarea data-id="${r.ID}" class="open-info" rows="2">${escapeHtml(r.Info || '')}</textarea>
-        </td>
-        <td class="row-actions">
-          <button data-id="${r.ID}" class="btn tiny btn-primary open-save">Speichern</button>
-        </td>
-      </tr>
-    `).join('');
-
-    wrap.innerHTML = `
-      <table>
-        <thead>
-          <tr>
-            <th>ID</th><th>Kunde</th><th>Mitarbeiter</th><th>Anzahl</th><th>Prozent</th><th>Kosten</th>
-            <th>Erhalten?</th><th>Info</th><th></th>
-          </tr>
-        </thead>
-        <tbody>${rows}</tbody>
-      </table>
-    `;
-
-    wrap.querySelectorAll('.open-save').forEach(btn => {
-      btn.addEventListener('click', async () => {
-        const id = btn.getAttribute('data-id');
-        const info = wrap.querySelector(`.open-info[data-id="${id}"]`).value;
-        const erhaltenVal = wrap.querySelector(`.open-erhalten[data-id="${id}"]`).value;
-
-        try {
-          await apiPost({
-            Info: info,
-            'Kunde hat alle Weinflaschen erhalten?': (erhaltenVal === 'true')
-          }, { method: 'PATCH', id });
-
-          showMsg('ok', 'Gespeichert. ID: ' + id);
-          await loadOpen();
-        } catch (e) {
-          showMsg('error', e.message);
-          wrap.querySelector(`.open-erhalten[data-id="${id}"]`).value = 'false';
-        }
-      });
-    });
-  }
-
-  function renderDoneTable(items) {
-    const wrap = $('doneTableWrap');
-    if (!items.length) { wrap.innerHTML = '<div class="muted">Keine fertigen Aufträge gefunden.</div>'; return; }
-
-    const rows = items.map(r => `
-      <tr>
-        <td>${r.ID}</td>
-        <td>${escapeHtml(r.Kunde)}</td>
-        <td>${escapeHtml(r.Mitarbeiter)}</td>
-        <td>${r.Anzahl}</td>
-        <td>${r.Prozent}</td>
-        <td>${moneyEUR(r.Kosten)}</td>
-        <td>Ja</td>
-        <td>${escapeHtml(r.Info || '')}</td>
-        <td class="row-actions">
-          <button data-id="${r.ID}" class="btn tiny btn-danger done-del">Löschen</button>
-        </td>
-      </tr>
-    `).join('');
-
-    wrap.innerHTML = `
-      <table>
-        <thead>
-          <tr>
-            <th>ID</th><th>Kunde</th><th>Mitarbeiter</th><th>Anzahl</th><th>Prozent</th><th>Kosten</th>
-            <th>Erhalten?</th><th>Info</th><th></th>
-          </tr>
-        </thead>
-        <tbody>${rows}</tbody>
-      </table>
-    `;
-
-    wrap.querySelectorAll('.done-del').forEach(btn => {
-      btn.addEventListener('click', async () => {
-        const id = btn.getAttribute('data-id');
-        if (!confirm('Auftrag ID ' + id + ' wirklich löschen?')) return;
-
-        try {
-          await apiPost({}, { method: 'DELETE', id });
-          showMsg('ok', 'Gelöscht. ID: ' + id);
-          await loadDone();
-        } catch (e) {
-          showMsg('error', e.message);
-        }
-      });
-    });
-  }
-
-  function escapeHtml(s) {
-    return String(s)
-      .replaceAll('&', '&amp;')
-      .replaceAll('<', '&lt;')
-      .replaceAll('>', '&gt;')
-      .replaceAll('"', '&quot;')
-      .replaceAll("'", '&#039;');
-  }
-
-  // Wiring
-  $('tab-create').addEventListener('click', () => setTab('create'));
-  $('tab-open').addEventListener('click', () => setTab('open'));
-  $('tab-done').addEventListener('click', () => setTab('done'));
-
-  $('btnCreate').addEventListener('click', createOrder);
-  hookKostenAuto();
-
-  $('openSearch').addEventListener('input', () => { openState.search = $('openSearch').value.trim(); openState.page = 1; loadOpen(); });
-  $('openPrev').addEventListener('click', () => { openState.page = Math.max(1, openState.page - 1); loadOpen(); });
-  $('openNext').addEventListener('click', () => { openState.page += 1; loadOpen(); });
-
-  $('doneSearch').addEventListener('input', () => { doneState.search = $('doneSearch').value.trim(); doneState.page = 1; loadDone(); });
-  $('donePrev').addEventListener('click', () => { doneState.page = Math.max(1, doneState.page - 1); loadDone(); });
-  $('doneNext').addEventListener('click', () => { doneState.page += 1; loadDone(); });
-</script>
+  </script>
 </body>
 </html>
