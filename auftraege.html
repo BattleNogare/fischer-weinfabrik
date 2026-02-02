@@ -238,6 +238,10 @@
           <button id="btnCreate" class="btn btn-primary">💾 Speichern</button>
           <span class="muted">* Pflichtfelder</span>
         </div>
+
+        <div class="muted" style="margin-top:10px;">
+          Hinweis: Schreiben erfolgt per Cross-Origin Form-POST (ohne CORS). Lesen erfolgt über Published CSV (kann verzögert sein).
+        </div>
       </section>
 
       <section id="view-open" class="card hidden">
@@ -276,10 +280,12 @@
 
 <script>
 /** =========================
- * CONFIG
+ * CONFIG (DU MUSST NUR HIER EINMAL ANPASSEN)
  * ========================= */
-const WEBAPP_EXEC_URL = 'https://script.google.com/macros/s/AKfycbyrbnoenHlCFKW1Lk1bI_GOf9WFlw7IR9Y_fxZAsaOfG57Ddy4Ei2ENTTNCSN1IyypmzQ/exec'; // <— HIER EINTRAGEN
+const WEBAPP_EXEC_URL = 'https://script.google.com/macros/s/AKfycbyrbnoenHlCFKW1Lk1bI_GOf9WFlw7IR9Y_fxZAsaOfG57Ddy4Ei2ENTTNCSN1IyypmzQ/exec'; // z.B. https://script.google.com/macros/s/.../exec
 const API_BASE = WEBAPP_EXEC_URL + '?api=1';
+
+// Public CSV (read-only)
 const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQF3gShRvJeEt3T4Za6wm_2mOzWhJU1Zj07iEs19fKJAypT-PEHn728dDzsWHTwLaVl4G1YC7rXMGil/pub?gid=345717060&single=true&output=csv';
 
 const PAGE_SIZE = 50;
@@ -320,10 +326,27 @@ function todayISO() {
   return `${yyyy}-${mm}-${dd}`;
 }
 const TODAY_MIN = todayISO();
-
 function isDateBeforeToday(dateStr) {
   if (!dateStr) return false;
   return dateStr < TODAY_MIN;
+}
+
+/** =========================
+ * ✅ FIX: robust DE number parser
+ * ========================= */
+function parseNumberDE(value) {
+  if (typeof value === 'number' && Number.isFinite(value)) return value;
+
+  const s = String(value ?? '')
+    .trim()
+    .replace(/\s/g, '')
+    .replace(/€/g, '');
+
+  if (!s) return 0;
+
+  const normalized = s.replace(/\./g, '').replace(',', '.');
+  const n = Number(normalized);
+  return Number.isFinite(n) ? n : 0;
 }
 
 /** =========================
@@ -376,6 +399,7 @@ function escapeHtml(s) {
     .replaceAll('"', '&quot;')
     .replaceAll("'", '&#039;');
 }
+
 function normalizeDateOnlyForInput(v){
   const s = String(v ?? '').trim();
   if (!s) return '';
@@ -407,7 +431,9 @@ async function loadCSV() {
       obj.ID = toInt(obj.ID);
       obj.Anzahl = toInt(obj.Anzahl);
       obj.Prozent = toInt(obj.Prozent);
-      obj.Kosten = Number(String(obj.Kosten ?? '').replace(',', '.')) || 0;
+
+      // ✅ FIX: robust cost parsing
+      obj.Kosten = parseNumberDE(obj.Kosten);
 
       obj.AuftragsDatum = String(obj.AuftragsDatum ?? '').trim();
       obj.AbholDatum = String(obj.AbholDatum ?? '').trim();
@@ -509,7 +535,11 @@ async function createOrder() {
 
     postForm({}, body);
 
-    showMsg('ok', 'Auftrag gesendet.\nHinweis: Sync kann verzögert sein – wir laden automatisch nach.');
+    showMsg('ok',
+      'Auftrag gesendet.\n' +
+      'Hinweis: Die CSV-Ansicht kann verzögert sein – wir versuchen automatisch nachzuladen.'
+    );
+
     $('fKunde').value = '';
     $('fMitarbeiter').value = '';
     $('fAnzahl').value = '';
@@ -552,7 +582,7 @@ function applySearchAndPage(rows, state) {
   return { total, items };
 }
 
-/** ✅ OFFENE: AuftragsDatum NICHT anzeigen */
+/** OFFENE: AuftragsDatum NICHT anzeigen */
 function renderOpen() {
   const openRows = allRows.filter(r => !r.__erhalten);
   const { total, items } = applySearchAndPage(openRows, openState);
@@ -621,7 +651,6 @@ function renderOpen() {
       const erhalten = wrap.querySelector('.open-erhalten[data-id="' + id + '"]').value; // 1/0
       const abhol = wrap.querySelector('.open-abhol[data-id="' + id + '"]').value; // yyyy-MM-dd or ""
 
-      // Frontend-Regeln
       if (abhol && isDateBeforeToday(abhol)) {
         showMsg('error', 'AbholDatum darf nicht in der Vergangenheit liegen.');
         return;
@@ -642,6 +671,7 @@ function renderOpen() {
         );
 
         showMsg('ok', 'Änderung gesendet. ID: ' + id + '\nHinweis: Liste aktualisiert sich automatisch (kann verzögert sein).');
+
         await refreshWithRetry();
       } catch (e) {
         showMsg('error', e.message);
@@ -653,7 +683,7 @@ function renderOpen() {
   });
 }
 
-/** ✅ FERTIGE: AuftragsDatum + AbholDatum anzeigen */
+/** FERTIGE: AuftragsDatum + AbholDatum anzeigen */
 function renderDone() {
   const doneRows = allRows.filter(r => r.__erhalten);
   const { total, items } = applySearchAndPage(doneRows, doneState);
@@ -746,7 +776,11 @@ async function refreshWithRetry() {
     }
   }
 
-  showMsg('error', 'Aktualisierung dauert länger als erwartet.\nBitte kurz warten und dann „Neu laden“ drücken oder Seite neu laden.');
+  showMsg(
+    'error',
+    'Aktualisierung dauert länger als erwartet.\n' +
+    'Bitte kurz warten und dann „Neu laden“ drücken oder Seite neu laden.'
+  );
   $('syncPill').textContent = 'Sync: verzögert';
 }
 
