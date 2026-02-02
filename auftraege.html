@@ -159,16 +159,33 @@
     }
     .tiny{ padding: 8px 10px; border-radius: 10px; font-weight: 750; }
 
-    table{ width:100%; border-collapse: collapse; border-radius: 12px; overflow:hidden; }
+    /* ✅ Sticky header setup */
+    .table-wrap{
+      border:1px solid var(--border);
+      border-radius: 12px;
+      overflow:auto;
+      max-height: 70vh; /* scroll inside table */
+      background: color-mix(in srgb, var(--card) 85%, transparent);
+    }
+
+    table{ width:100%; border-collapse: separate; border-spacing: 0; min-width: 900px; }
     thead th{
+      position: sticky;
+      top: 0;
+      z-index: 3;
       font-size:12px; text-transform: uppercase; letter-spacing:.2px;
       color: var(--muted);
-      background: color-mix(in srgb, var(--card) 80%, transparent);
+      background: color-mix(in srgb, var(--card) 92%, black);
       border-bottom: 1px solid var(--border);
       padding: 10px 10px;
       white-space: nowrap;
     }
-    tbody td{ border-bottom: 1px solid var(--border); padding: 10px 10px; vertical-align: top; }
+    tbody td{
+      border-bottom: 1px solid var(--border);
+      padding: 10px 10px;
+      vertical-align: top;
+      background: transparent;
+    }
     tbody tr:hover td{ background: rgba(225,29,72,.06); }
     .row-actions{ display:flex; gap:8px; align-items:center; }
 
@@ -180,6 +197,7 @@
       .pager{ margin-left: 0; }
       .actions{ min-width:auto; }
       .brand{ min-width:auto; }
+      table{ min-width: 860px; }
     }
   </style>
 </head>
@@ -595,53 +613,55 @@ function renderOpen() {
   if (!items.length) { wrap.innerHTML = '<div class="muted">Keine offenen Aufträge gefunden.</div>'; return; }
 
   wrap.innerHTML = `
-    <table>
-      <thead>
-        <tr>
-          <th>ID</th>
-          <th>Kunde</th>
-          <th>Mitarbeiter</th>
-          <th>Anzahl</th>
-          <th>Prozent</th>
-          <th>Kosten</th>
-          <th>AbholDatum</th>
-          <th>Erhalten?</th>
-          <th>Info</th>
-          <th></th>
-        </tr>
-      </thead>
-      <tbody>
-        ${items.map(r => `
+    <div class="table-wrap">
+      <table>
+        <thead>
           <tr>
-            <td>${r.ID}</td>
-            <td>${escapeHtml(r.Kunde)}</td>
-            <td>${escapeHtml(r.Mitarbeiter)}</td>
-            <td>${r.Anzahl}</td>
-            <td>${r.Prozent}</td>
-            <td>${moneyEUR(r.Kosten)}</td>
-
-            <td class="date-cell">
-              <input type="date"
-                     min="${TODAY_MIN}"
-                     data-id="${r.ID}"
-                     class="open-abhol"
-                     value="${escapeHtml(r.__abholInput || '')}">
-            </td>
-
-            <td>
-              <select data-id="${r.ID}" class="open-erhalten">
-                <option value="0" selected>Nein</option>
-                <option value="1">Ja</option>
-              </select>
-              <div class="muted">Ja nur mit AbholDatum</div>
-            </td>
-
-            <td><textarea data-id="${r.ID}" class="open-info" rows="2">${escapeHtml(r.Info || '')}</textarea></td>
-            <td class="row-actions"><button data-id="${r.ID}" class="btn tiny btn-primary open-save">Speichern</button></td>
+            <th>ID</th>
+            <th>Kunde</th>
+            <th>Mitarbeiter</th>
+            <th>Anzahl</th>
+            <th>Prozent</th>
+            <th>Kosten</th>
+            <th>AbholDatum</th>
+            <th>Erhalten?</th>
+            <th>Info</th>
+            <th></th>
           </tr>
-        `).join('')}
-      </tbody>
-    </table>
+        </thead>
+        <tbody>
+          ${items.map(r => `
+            <tr>
+              <td>${r.ID}</td>
+              <td>${escapeHtml(r.Kunde)}</td>
+              <td>${escapeHtml(r.Mitarbeiter)}</td>
+              <td>${r.Anzahl}</td>
+              <td>${r.Prozent}</td>
+              <td>${moneyEUR(r.Kosten)}</td>
+
+              <td class="date-cell">
+                <input type="date"
+                       min="${TODAY_MIN}"
+                       data-id="${r.ID}"
+                       class="open-abhol"
+                       value="${escapeHtml(r.__abholInput || '')}">
+              </td>
+
+              <td>
+                <select data-id="${r.ID}" class="open-erhalten">
+                  <option value="0" selected>Nein</option>
+                  <option value="1">Ja</option>
+                </select>
+                <div class="muted">Ja nur mit AbholDatum</div>
+              </td>
+
+              <td><textarea data-id="${r.ID}" class="open-info" rows="2">${escapeHtml(r.Info || '')}</textarea></td>
+              <td class="row-actions"><button data-id="${r.ID}" class="btn tiny btn-primary open-save">Speichern</button></td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    </div>
   `;
 
   wrap.querySelectorAll('.open-save').forEach(btn => {
@@ -671,7 +691,6 @@ function renderOpen() {
         );
 
         showMsg('ok', 'Änderung gesendet. ID: ' + id + '\nHinweis: Liste aktualisiert sich automatisch (kann verzögert sein).');
-
         await refreshWithRetry();
       } catch (e) {
         showMsg('error', e.message);
@@ -696,40 +715,42 @@ function renderDone() {
   if (!items.length) { wrap.innerHTML = '<div class="muted">Keine fertigen Aufträge gefunden.</div>'; return; }
 
   wrap.innerHTML = `
-    <table>
-      <thead>
-        <tr>
-          <th>ID</th>
-          <th>AuftragsDatum</th>
-          <th>Kunde</th>
-          <th>Mitarbeiter</th>
-          <th>Anzahl</th>
-          <th>Prozent</th>
-          <th>Kosten</th>
-          <th>AbholDatum</th>
-          <th>Erhalten?</th>
-          <th>Info</th>
-          <th></th>
-        </tr>
-      </thead>
-      <tbody>
-        ${items.map(r => `
+    <div class="table-wrap">
+      <table>
+        <thead>
           <tr>
-            <td>${r.ID}</td>
-            <td>${escapeHtml(r.AuftragsDatum || '')}</td>
-            <td>${escapeHtml(r.Kunde)}</td>
-            <td>${escapeHtml(r.Mitarbeiter)}</td>
-            <td>${r.Anzahl}</td>
-            <td>${r.Prozent}</td>
-            <td>${moneyEUR(r.Kosten)}</td>
-            <td>${escapeHtml(r.AbholDatum || '')}</td>
-            <td>Ja</td>
-            <td>${escapeHtml(r.Info || '')}</td>
-            <td class="row-actions"><button data-id="${r.ID}" class="btn tiny btn-danger done-del">Löschen</button></td>
+            <th>ID</th>
+            <th>AuftragsDatum</th>
+            <th>Kunde</th>
+            <th>Mitarbeiter</th>
+            <th>Anzahl</th>
+            <th>Prozent</th>
+            <th>Kosten</th>
+            <th>AbholDatum</th>
+            <th>Erhalten?</th>
+            <th>Info</th>
+            <th></th>
           </tr>
-        `).join('')}
-      </tbody>
-    </table>
+        </thead>
+        <tbody>
+          ${items.map(r => `
+            <tr>
+              <td>${r.ID}</td>
+              <td>${escapeHtml(r.AuftragsDatum || '')}</td>
+              <td>${escapeHtml(r.Kunde)}</td>
+              <td>${escapeHtml(r.Mitarbeiter)}</td>
+              <td>${r.Anzahl}</td>
+              <td>${r.Prozent}</td>
+              <td>${moneyEUR(r.Kosten)}</td>
+              <td>${escapeHtml(r.AbholDatum || '')}</td>
+              <td>Ja</td>
+              <td>${escapeHtml(r.Info || '')}</td>
+              <td class="row-actions"><button data-id="${r.ID}" class="btn tiny btn-danger done-del">Löschen</button></td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    </div>
   `;
 
   wrap.querySelectorAll('.done-del').forEach(btn => {
