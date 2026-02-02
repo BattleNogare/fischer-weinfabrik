@@ -110,7 +110,6 @@
     .muted{ color:var(--muted); font-size:.92em; }
     .hidden{ display:none !important; }
 
-    /* Auftrag erstellen: untereinander */
     .form{ display:grid; grid-template-columns: 1fr; gap:12px; }
 
     label{ display:block; font-weight: 800; font-size: 13px; }
@@ -174,6 +173,7 @@
     .row-actions{ display:flex; gap:8px; align-items:center; }
 
     iframe#sinkFrame{ display:none; width:0; height:0; border:0; }
+    .date-cell input[type="date"]{ padding:8px 10px; border-radius:10px; }
 
     @media (max-width: 920px){
       .app{ width:94%; }
@@ -238,10 +238,6 @@
           <button id="btnCreate" class="btn btn-primary">💾 Speichern</button>
           <span class="muted">* Pflichtfelder</span>
         </div>
-
-        <div class="muted" style="margin-top:10px;">
-          Hinweis: Schreiben erfolgt per Cross-Origin Form-POST (ohne CORS). Lesen erfolgt über Published CSV (kann verzögert sein).
-        </div>
       </section>
 
       <section id="view-open" class="card hidden">
@@ -280,12 +276,10 @@
 
 <script>
 /** =========================
- * CONFIG (DU MUSST NUR HIER EINMAL ANPASSEN)
+ * CONFIG
  * ========================= */
-const WEBAPP_EXEC_URL = 'https://script.google.com/macros/s/AKfycbyrbnoenHlCFKW1Lk1bI_GOf9WFlw7IR9Y_fxZAsaOfG57Ddy4Ei2ENTTNCSN1IyypmzQ/exec'; // z.B. https://script.google.com/macros/s/XXXXX/exec
+const WEBAPP_EXEC_URL = 'https://script.google.com/macros/s/AKfycbyrbnoenHlCFKW1Lk1bI_GOf9WFlw7IR9Y_fxZAsaOfG57Ddy4Ei2ENTTNCSN1IyypmzQ/exec'; // <— HIER EINTRAGEN
 const API_BASE = WEBAPP_EXEC_URL + '?api=1';
-
-// Public CSV (read-only)
 const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQF3gShRvJeEt3T4Za6wm_2mOzWhJU1Zj07iEs19fKJAypT-PEHn728dDzsWHTwLaVl4G1YC7rXMGil/pub?gid=345717060&single=true&output=csv';
 
 const PAGE_SIZE = 50;
@@ -313,6 +307,25 @@ function setTab(tab) {
   }
   if (tab === 'open') renderOpen();
   if (tab === 'done') renderDone();
+}
+
+/** =========================
+ * DATE HELPERS (Client)
+ * ========================= */
+function todayISO() {
+  // Use local time (Browser) to define "today"
+  const d = new Date();
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth()+1).padStart(2,'0');
+  const dd = String(d.getDate()).padStart(2,'0');
+  return `${yyyy}-${mm}-${dd}`;
+}
+const TODAY_MIN = todayISO();
+
+function isDateBeforeToday(dateStr) {
+  if (!dateStr) return false;
+  // dateStr is yyyy-MM-dd, lexicographical compare works
+  return dateStr < TODAY_MIN;
 }
 
 /** =========================
@@ -366,6 +379,15 @@ function escapeHtml(s) {
     .replaceAll("'", '&#039;');
 }
 
+function normalizeDateOnlyForInput(v){
+  const s = String(v ?? '').trim();
+  if (!s) return '';
+  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+  const m = s.match(/(\d{4}-\d{2}-\d{2})/);
+  if (m) return m[1];
+  return '';
+}
+
 async function loadCSV() {
   const url = CSV_URL + '&_ts=' + Date.now();
   log('Loading CSV', url);
@@ -384,10 +406,16 @@ async function loadCSV() {
     .map(r => {
       const obj = {};
       for (let i = 0; i < header.length; i++) obj[header[i]] = r[i] ?? '';
+
       obj.ID = toInt(obj.ID);
       obj.Anzahl = toInt(obj.Anzahl);
       obj.Prozent = toInt(obj.Prozent);
       obj.Kosten = Number(String(obj.Kosten ?? '').replace(',', '.')) || 0;
+
+      obj.AuftragsDatum = String(obj.AuftragsDatum ?? '').trim();
+      obj.AbholDatum = String(obj.AbholDatum ?? '').trim();
+      obj.__abholInput = normalizeDateOnlyForInput(obj.AbholDatum);
+
       obj.__erhalten = toBool(obj['Kunde hat alle Weinflaschen erhalten?']);
       return obj;
     })
@@ -484,11 +512,7 @@ async function createOrder() {
 
     postForm({}, body);
 
-    showMsg('ok',
-      'Auftrag gesendet.\n' +
-      'Hinweis: Die CSV-Ansicht kann verzögert sein – wir versuchen automatisch nachzuladen.'
-    );
-
+    showMsg('ok', 'Auftrag gesendet.\nHinweis: Sync kann verzögert sein – wir laden automatisch nach.');
     $('fKunde').value = '';
     $('fMitarbeiter').value = '';
     $('fAnzahl').value = '';
@@ -496,9 +520,7 @@ async function createOrder() {
     $('fInfo').value = '';
     $('fKosten').value = '';
 
-    // robust refresh
     await refreshWithRetry();
-
   } catch (e) {
     showMsg('error', e.message);
   } finally {
@@ -548,26 +570,46 @@ function renderOpen() {
     <table>
       <thead>
         <tr>
-          <th>ID</th><th>Kunde</th><th>Mitarbeiter</th><th>Anzahl</th><th>Prozent</th><th>Kosten</th>
-          <th>Erhalten?</th><th>Info</th><th></th>
+          <th>ID</th>
+          <th>AuftragsDatum</th>
+          <th>Kunde</th>
+          <th>Mitarbeiter</th>
+          <th>Anzahl</th>
+          <th>Prozent</th>
+          <th>Kosten</th>
+          <th>AbholDatum</th>
+          <th>Erhalten?</th>
+          <th>Info</th>
+          <th></th>
         </tr>
       </thead>
       <tbody>
         ${items.map(r => `
           <tr>
             <td>${r.ID}</td>
+            <td>${escapeHtml(r.AuftragsDatum || '')}</td>
             <td>${escapeHtml(r.Kunde)}</td>
             <td>${escapeHtml(r.Mitarbeiter)}</td>
             <td>${r.Anzahl}</td>
             <td>${r.Prozent}</td>
             <td>${moneyEUR(r.Kosten)}</td>
+
+            <td class="date-cell">
+              <input type="date"
+                     min="${TODAY_MIN}"
+                     data-id="${r.ID}"
+                     class="open-abhol"
+                     value="${escapeHtml(r.__abholInput || '')}">
+            </td>
+
             <td>
               <select data-id="${r.ID}" class="open-erhalten">
                 <option value="0" selected>Nein</option>
                 <option value="1">Ja</option>
               </select>
-              <div class="muted">Nur auf „Ja“ setzbar</div>
+              <div class="muted">Ja nur mit AbholDatum</div>
             </td>
+
             <td><textarea data-id="${r.ID}" class="open-info" rows="2">${escapeHtml(r.Info || '')}</textarea></td>
             <td class="row-actions"><button data-id="${r.ID}" class="btn tiny btn-primary open-save">Speichern</button></td>
           </tr>
@@ -580,20 +622,32 @@ function renderOpen() {
     btn.addEventListener('click', async () => {
       const id = btn.getAttribute('data-id');
       const info = wrap.querySelector('.open-info[data-id="' + id + '"]').value;
-      const erhalten = wrap.querySelector('.open-erhalten[data-id="' + id + '"]').value;
+      const erhalten = wrap.querySelector('.open-erhalten[data-id="' + id + '"]').value; // 1/0
+      const abhol = wrap.querySelector('.open-abhol[data-id="' + id + '"]').value; // yyyy-MM-dd or ""
+
+      // ✅ Frontend-Regeln:
+      // 1) AbholDatum nicht in Vergangenheit
+      if (abhol && isDateBeforeToday(abhol)) {
+        showMsg('error', 'AbholDatum darf nicht in der Vergangenheit liegen.');
+        return;
+      }
+      // 2) Pflicht wenn Erhalten=Ja
+      if (erhalten === '1' && !abhol) {
+        showMsg('error', 'Bitte zuerst ein AbholDatum auswählen (Pflicht), bevor "Erhalten = Ja" gesetzt wird.');
+        return;
+      }
 
       btn.disabled = true;
       const old = btn.textContent;
       btn.textContent = 'Speichert…';
 
       try {
-        postForm({ method:'PATCH', id, debug:'1' }, { Info: info, Erhalten: erhalten });
-
-        showMsg('ok',
-          'Änderung gesendet. ID: ' + id + '\n' +
-          'Hinweis: Liste aktualisiert sich automatisch (kann verzögert sein).'
+        postForm(
+          { method:'PATCH', id, debug:'1' },
+          { Info: info, Erhalten: erhalten, AbholDatum: abhol }
         );
 
+        showMsg('ok', 'Änderung gesendet. ID: ' + id + '\nHinweis: Liste aktualisiert sich automatisch (kann verzögert sein).');
         await refreshWithRetry();
       } catch (e) {
         showMsg('error', e.message);
@@ -620,19 +674,30 @@ function renderDone() {
     <table>
       <thead>
         <tr>
-          <th>ID</th><th>Kunde</th><th>Mitarbeiter</th><th>Anzahl</th><th>Prozent</th><th>Kosten</th>
-          <th>Erhalten?</th><th>Info</th><th></th>
+          <th>ID</th>
+          <th>AuftragsDatum</th>
+          <th>Kunde</th>
+          <th>Mitarbeiter</th>
+          <th>Anzahl</th>
+          <th>Prozent</th>
+          <th>Kosten</th>
+          <th>AbholDatum</th>
+          <th>Erhalten?</th>
+          <th>Info</th>
+          <th></th>
         </tr>
       </thead>
       <tbody>
         ${items.map(r => `
           <tr>
             <td>${r.ID}</td>
+            <td>${escapeHtml(r.AuftragsDatum || '')}</td>
             <td>${escapeHtml(r.Kunde)}</td>
             <td>${escapeHtml(r.Mitarbeiter)}</td>
             <td>${r.Anzahl}</td>
             <td>${r.Prozent}</td>
             <td>${moneyEUR(r.Kosten)}</td>
+            <td>${escapeHtml(r.AbholDatum || '')}</td>
             <td>Ja</td>
             <td>${escapeHtml(r.Info || '')}</td>
             <td class="row-actions"><button data-id="${r.ID}" class="btn tiny btn-danger done-del">Löschen</button></td>
@@ -669,8 +734,6 @@ function renderDone() {
  * Refresh with retry (CSV can lag)
  * ========================= */
 async function refreshWithRetry() {
-  // Google "published CSV" kann stark verzögert sein.
-  // Wir versuchen es bis ~30s mit Backoff.
   const tries = 9;
   const delays = [800, 1200, 1800, 2600, 3600, 5200, 7200, 9000, 11000];
 
@@ -688,11 +751,7 @@ async function refreshWithRetry() {
     }
   }
 
-  showMsg(
-    'error',
-    'Aktualisierung dauert länger als erwartet.\n' +
-    'Bitte kurz warten und dann „Neu laden“ drücken oder Seite neu laden.'
-  );
+  showMsg('error', 'Aktualisierung dauert länger als erwartet.\nBitte kurz warten und dann „Neu laden“ drücken oder Seite neu laden.');
   $('syncPill').textContent = 'Sync: verzögert';
 }
 
@@ -713,7 +772,6 @@ $('doneSearch').addEventListener('input', () => { doneState.search = $('doneSear
 $('donePrev').addEventListener('click', () => { doneState.page=Math.max(1, doneState.page-1); renderDone(); });
 $('doneNext').addEventListener('click', () => { doneState.page+=1; renderDone(); });
 
-// manual reload button
 $('btnReload').addEventListener('click', async () => {
   try {
     $('btnReload').disabled = true;
@@ -729,12 +787,6 @@ $('btnReload').addEventListener('click', async () => {
   }
 });
 
-function hookKostenAuto() {
-  const recalc = () => { $('fKosten').value = computeKosten($('fAnzahl').value, $('fProzent').value); };
-  $('fAnzahl').addEventListener('input', recalc);
-  $('fProzent').addEventListener('input', recalc);
-  recalc();
-}
 hookKostenAuto();
 
 // Boot
