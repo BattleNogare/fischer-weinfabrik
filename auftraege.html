@@ -72,7 +72,7 @@
     }
     .tab .dot{ width:8px; height:8px; border-radius:999px; background: var(--accent); box-shadow: 0 0 0 3px rgba(225,29,72,.15); }
 
-    .actions{ min-width:260px; display:flex; justify-content:flex-end; gap:10px; }
+    .actions{ min-width:260px; display:flex; justify-content:flex-end; gap:10px; align-items:center; }
     .pill{
       border:1px solid var(--border);
       background: color-mix(in srgb, var(--card) 85%, transparent);
@@ -173,7 +173,6 @@
     tbody tr:hover td{ background: rgba(225,29,72,.06); }
     .row-actions{ display:flex; gap:8px; align-items:center; }
 
-    /* hidden iframe */
     iframe#sinkFrame{ display:none; width:0; height:0; border:0; }
 
     @media (max-width: 920px){
@@ -192,7 +191,7 @@
         <img alt="Logo" src="https://raw.githubusercontent.com/BattleNogare/h-h_weinfabrik/main/fischer_weinfabrik_logo.png">
         <div>
           <h2>Aufträge</h2>
-          <p class="sub">GitHub UI · Apps Script API</p>
+          <p class="sub">GitHub UI · CSV Read · Apps Script Write</p>
         </div>
       </div>
 
@@ -204,6 +203,7 @@
 
       <div class="actions">
         <span id="syncPill" class="pill">Sync: –</span>
+        <button id="btnReload" class="btn tiny">↻ Neu laden</button>
         <span class="pill">Sortierung: ID ↑</span>
       </div>
     </div>
@@ -240,7 +240,7 @@
         </div>
 
         <div class="muted" style="margin-top:10px;">
-          Hinweis: Schreiben erfolgt über Cross-Origin Form-POST (ohne CORS). Danach wird die CSV neu geladen.
+          Hinweis: Schreiben erfolgt per Cross-Origin Form-POST (ohne CORS). Lesen erfolgt über Published CSV (kann verzögert sein).
         </div>
       </section>
 
@@ -276,27 +276,25 @@
     </div>
   </div>
 
-  <!-- hidden iframe target for cross-origin form posts -->
   <iframe id="sinkFrame" name="sinkFrame"></iframe>
 
 <script>
 /** =========================
  * CONFIG (DU MUSST NUR HIER EINMAL ANPASSEN)
  * ========================= */
-const WEBAPP_EXEC_URL = 'https://script.google.com/macros/s/AKfycbyrbnoenHlCFKW1Lk1bI_GOf9WFlw7IR9Y_fxZAsaOfG57Ddy4Ei2ENTTNCSN1IyypmzQ/exec'; // z.B. https://script.google.com/macros/s/XXXXX/exec
+const WEBAPP_EXEC_URL = 'PASTE_DEINE_EXEC_URL_HIER'; // z.B. https://script.google.com/macros/s/XXXXX/exec
 const API_BASE = WEBAPP_EXEC_URL + '?api=1';
 
 // Public CSV (read-only)
 const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQF3gShRvJeEt3T4Za6wm_2mOzWhJU1Zj07iEs19fKJAypT-PEHn728dDzsWHTwLaVl4G1YC7rXMGil/pub?gid=345717060&single=true&output=csv';
 
 const PAGE_SIZE = 50;
-const DEBUG = true; // Debug logs in browser console
+const DEBUG = true;
 
 /** =========================
  * UI HELPERS
  * ========================= */
 const $ = (id) => document.getElementById(id);
-
 function log(...args){ if (DEBUG) console.log('[GH-APP]', ...args); }
 
 function showMsg(type, text) {
@@ -324,7 +322,6 @@ let allRows = [];
 let lastSync = null;
 
 function parseCSV(text) {
-  // Simple CSV parser supporting quotes
   const rows = [];
   let cur = '';
   let inQuotes = false;
@@ -347,7 +344,6 @@ function parseCSV(text) {
     }
     cur += ch;
   }
-  // tail
   row.push(cur);
   if (row.length > 1 || (row.length === 1 && row[0] !== '')) rows.push(row);
   return rows;
@@ -357,12 +353,10 @@ function toBool(v){
   const s = String(v ?? '').trim().toLowerCase();
   return (s === 'true' || s === '1' || s === 'ja' || s === 'yes');
 }
-
 function toInt(v){
   const n = Math.trunc(Number(String(v ?? '').replace(',', '.')));
   return Number.isFinite(n) ? n : 0;
 }
-
 function escapeHtml(s) {
   return String(s ?? '')
     .replaceAll('&', '&amp;')
@@ -373,10 +367,10 @@ function escapeHtml(s) {
 }
 
 async function loadCSV() {
-  // Cache-buster to ensure fresh data after updates
   const url = CSV_URL + '&_ts=' + Date.now();
   log('Loading CSV', url);
-  const res = await fetch(url, { method:'GET' });
+
+  const res = await fetch(url, { method:'GET', cache:'no-store' });
   const text = await res.text();
   const raw = parseCSV(text);
 
@@ -390,7 +384,6 @@ async function loadCSV() {
     .map(r => {
       const obj = {};
       for (let i = 0; i < header.length; i++) obj[header[i]] = r[i] ?? '';
-      // normalize fields
       obj.ID = toInt(obj.ID);
       obj.Anzahl = toInt(obj.Anzahl);
       obj.Prozent = toInt(obj.Prozent);
@@ -410,18 +403,15 @@ async function loadCSV() {
  * WRITE: Cross-Origin Form POST (No CORS)
  * ========================= */
 function postForm(paramsObj, bodyObj) {
-  // Build URL with query params (api=1 etc.)
   const url = new URL(API_BASE);
   Object.entries(paramsObj || {}).forEach(([k,v]) => url.searchParams.set(k, String(v)));
 
-  // Create form
   const form = document.createElement('form');
   form.method = 'POST';
   form.action = url.toString();
-  form.target = 'sinkFrame'; // hidden iframe
+  form.target = 'sinkFrame';
   form.style.display = 'none';
 
-  // body fields
   Object.entries(bodyObj || {}).forEach(([k,v]) => {
     const inp = document.createElement('input');
     inp.type = 'hidden';
@@ -431,10 +421,8 @@ function postForm(paramsObj, bodyObj) {
   });
 
   document.body.appendChild(form);
-
   log('POST FORM', form.action, bodyObj);
 
-  // Submit and cleanup
   form.submit();
   setTimeout(() => form.remove(), 1000);
 }
@@ -494,15 +482,13 @@ async function createOrder() {
       Info: $('fInfo').value.trim()
     };
 
-    // fire-and-forget (cross-origin form post)
     postForm({}, body);
 
     showMsg('ok',
       'Auftrag gesendet.\n' +
-      'Hinweis: Die Tabelle aktualisiert sich in ~1–3 Sekunden (CSV Sync).'
+      'Hinweis: Die CSV-Ansicht kann verzögert sein – wir versuchen automatisch nachzuladen.'
     );
 
-    // reset UI
     $('fKunde').value = '';
     $('fMitarbeiter').value = '';
     $('fAnzahl').value = '';
@@ -510,7 +496,7 @@ async function createOrder() {
     $('fInfo').value = '';
     $('fKosten').value = '';
 
-    // refresh dataset after short delay (CSV updates can lag a bit)
+    // robust refresh
     await refreshWithRetry();
 
   } catch (e) {
@@ -522,7 +508,7 @@ async function createOrder() {
 }
 
 /** =========================
- * VIEW: Tables + Pagination/Search
+ * TABLES + Pagination/Search
  * ========================= */
 let openState = { page: 1, search: '' };
 let doneState = { page: 1, search: '' };
@@ -594,27 +580,21 @@ function renderOpen() {
     btn.addEventListener('click', async () => {
       const id = btn.getAttribute('data-id');
       const info = wrap.querySelector('.open-info[data-id="' + id + '"]').value;
-      const erhalten = wrap.querySelector('.open-erhalten[data-id="' + id + '"]').value; // 1/0
+      const erhalten = wrap.querySelector('.open-erhalten[data-id="' + id + '"]').value;
 
       btn.disabled = true;
       const old = btn.textContent;
       btn.textContent = 'Speichert…';
 
       try {
-        // ✅ write via cross-origin form post (no CORS). Keep debug flag in query for server-side debug if you later inspect logs.
         postForm({ method:'PATCH', id, debug:'1' }, { Info: info, Erhalten: erhalten });
 
         showMsg('ok',
           'Änderung gesendet. ID: ' + id + '\n' +
-          'Hinweis: Liste aktualisiert sich in ~1–3 Sekunden.'
+          'Hinweis: Liste aktualisiert sich automatisch (kann verzögert sein).'
         );
 
         await refreshWithRetry();
-
-        // if user tried to set back to 0, UI reset (rule)
-        if (erhalten === '0') {
-          wrap.querySelector('.open-erhalten[data-id="' + id + '"]').value = '0';
-        }
       } catch (e) {
         showMsg('error', e.message);
       } finally {
@@ -673,7 +653,7 @@ function renderDone() {
 
       try {
         postForm({ method:'DELETE', id, debug:'1' }, {});
-        showMsg('ok', 'Löschung gesendet. ID: ' + id + '\nHinweis: Liste aktualisiert sich in ~1–3 Sekunden.');
+        showMsg('ok', 'Löschung gesendet. ID: ' + id + '\nHinweis: Liste aktualisiert sich automatisch (kann verzögert sein).');
         await refreshWithRetry();
       } catch (e) {
         showMsg('error', e.message);
@@ -689,25 +669,31 @@ function renderDone() {
  * Refresh with retry (CSV can lag)
  * ========================= */
 async function refreshWithRetry() {
-  // CSV publish often has a slight delay; retry a few times
-  const tries = 4;
-  const delays = [900, 1400, 2000, 2600];
+  // Google "published CSV" kann stark verzögert sein.
+  // Wir versuchen es bis ~30s mit Backoff.
+  const tries = 9;
+  const delays = [800, 1200, 1800, 2600, 3600, 5200, 7200, 9000, 11000];
+
+  $('syncPill').textContent = 'Sync: aktualisiert…';
 
   for (let i = 0; i < tries; i++) {
     await new Promise(r => setTimeout(r, delays[i]));
     try {
       await loadCSV();
-      // re-render current tab
       if ($('tab-open').classList.contains('active')) renderOpen();
       if ($('tab-done').classList.contains('active')) renderDone();
       return;
     } catch (e) {
-      log('refresh try failed', i+1, e);
+      log('refresh try failed', i + 1, e);
     }
   }
 
-  // if still failing
-  showMsg('error', 'Aktualisierung fehlgeschlagen. Bitte Seite neu laden.');
+  showMsg(
+    'error',
+    'Aktualisierung dauert länger als erwartet.\n' +
+    'Bitte kurz warten und dann „Neu laden“ drücken oder Seite neu laden.'
+  );
+  $('syncPill').textContent = 'Sync: verzögert';
 }
 
 /** =========================
@@ -727,6 +713,28 @@ $('doneSearch').addEventListener('input', () => { doneState.search = $('doneSear
 $('donePrev').addEventListener('click', () => { doneState.page=Math.max(1, doneState.page-1); renderDone(); });
 $('doneNext').addEventListener('click', () => { doneState.page+=1; renderDone(); });
 
+// manual reload button
+$('btnReload').addEventListener('click', async () => {
+  try {
+    $('btnReload').disabled = true;
+    $('syncPill').textContent = 'Sync: aktualisiert…';
+    await loadCSV();
+    if ($('tab-open').classList.contains('active')) renderOpen();
+    if ($('tab-done').classList.contains('active')) renderDone();
+    showMsg('ok', 'Neu geladen.');
+  } catch (e) {
+    showMsg('error', 'Neu laden fehlgeschlagen: ' + e.message);
+  } finally {
+    $('btnReload').disabled = false;
+  }
+});
+
+function hookKostenAuto() {
+  const recalc = () => { $('fKosten').value = computeKosten($('fAnzahl').value, $('fProzent').value); };
+  $('fAnzahl').addEventListener('input', recalc);
+  $('fProzent').addEventListener('input', recalc);
+  recalc();
+}
 hookKostenAuto();
 
 // Boot
