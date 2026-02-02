@@ -313,7 +313,6 @@ function setTab(tab) {
  * DATE HELPERS (Client)
  * ========================= */
 function todayISO() {
-  // Use local time (Browser) to define "today"
   const d = new Date();
   const yyyy = d.getFullYear();
   const mm = String(d.getMonth()+1).padStart(2,'0');
@@ -324,7 +323,6 @@ const TODAY_MIN = todayISO();
 
 function isDateBeforeToday(dateStr) {
   if (!dateStr) return false;
-  // dateStr is yyyy-MM-dd, lexicographical compare works
   return dateStr < TODAY_MIN;
 }
 
@@ -378,7 +376,6 @@ function escapeHtml(s) {
     .replaceAll('"', '&quot;')
     .replaceAll("'", '&#039;');
 }
-
 function normalizeDateOnlyForInput(v){
   const s = String(v ?? '').trim();
   if (!s) return '';
@@ -555,6 +552,7 @@ function applySearchAndPage(rows, state) {
   return { total, items };
 }
 
+/** ✅ OFFENE: AuftragsDatum NICHT anzeigen */
 function renderOpen() {
   const openRows = allRows.filter(r => !r.__erhalten);
   const { total, items } = applySearchAndPage(openRows, openState);
@@ -571,7 +569,6 @@ function renderOpen() {
       <thead>
         <tr>
           <th>ID</th>
-          <th>AuftragsDatum</th>
           <th>Kunde</th>
           <th>Mitarbeiter</th>
           <th>Anzahl</th>
@@ -587,7 +584,6 @@ function renderOpen() {
         ${items.map(r => `
           <tr>
             <td>${r.ID}</td>
-            <td>${escapeHtml(r.AuftragsDatum || '')}</td>
             <td>${escapeHtml(r.Kunde)}</td>
             <td>${escapeHtml(r.Mitarbeiter)}</td>
             <td>${r.Anzahl}</td>
@@ -625,13 +621,11 @@ function renderOpen() {
       const erhalten = wrap.querySelector('.open-erhalten[data-id="' + id + '"]').value; // 1/0
       const abhol = wrap.querySelector('.open-abhol[data-id="' + id + '"]').value; // yyyy-MM-dd or ""
 
-      // ✅ Frontend-Regeln:
-      // 1) AbholDatum nicht in Vergangenheit
+      // Frontend-Regeln
       if (abhol && isDateBeforeToday(abhol)) {
         showMsg('error', 'AbholDatum darf nicht in der Vergangenheit liegen.');
         return;
       }
-      // 2) Pflicht wenn Erhalten=Ja
       if (erhalten === '1' && !abhol) {
         showMsg('error', 'Bitte zuerst ein AbholDatum auswählen (Pflicht), bevor "Erhalten = Ja" gesetzt wird.');
         return;
@@ -659,6 +653,7 @@ function renderOpen() {
   });
 }
 
+/** ✅ FERTIGE: AuftragsDatum + AbholDatum anzeigen */
 function renderDone() {
   const doneRows = allRows.filter(r => r.__erhalten);
   const { total, items } = applySearchAndPage(doneRows, doneState);
