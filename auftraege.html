@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Aufträge</title>
 
-  <!-- Favicon -->
   <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/BattleNogare/h-h_weinfabrik/main/fischer_weinfabrik_logo.png">
 
   <style>
@@ -18,59 +17,14 @@
       --muted:#a8b0bf;
       --border: rgba(255,255,255,.08);
       --shadow: 0 10px 30px rgba(0,0,0,.35);
-      --accent:#e11d48;      /* rot */
-      --accent2:#fb7185;     /* helleres rot */
-      --good:#22c55e;
-      --warn:#f59e0b;
-      --error:#ef4444;
+      --accent:#e11d48;
       --focus: 0 0 0 3px rgba(225,29,72,.25);
       --radius: 14px;
     }
 
-    /* Optional: Light mode fallback via system preference */
-    @media (prefers-color-scheme: light) {
-      :root{
-        --bg:#f6f7fb;
-        --bg2:#eef1f7;
-        --card:#ffffff;
-        --card2:#ffffff;
-        --text:#0f172a;
-        --muted:#475569;
-        --border: rgba(2,6,23,.10);
-        --shadow: 0 10px 30px rgba(2,6,23,.08);
-        --focus: 0 0 0 3px rgba(225,29,72,.18);
-      }
-    }
-
-    /* Manual dark-mode toggle class */
-    body.force-dark{
-      --bg: #0b0d10;
-      --bg2:#0f1217;
-      --card:#11151c;
-      --card2:#0f131a;
-      --text:#e7eaf0;
-      --muted:#a8b0bf;
-      --border: rgba(255,255,255,.08);
-      --shadow: 0 10px 30px rgba(0,0,0,.35);
-      --focus: 0 0 0 3px rgba(225,29,72,.25);
-    }
-    body.force-light{
-      --bg:#f6f7fb;
-      --bg2:#eef1f7;
-      --card:#ffffff;
-      --card2:#ffffff;
-      --text:#0f172a;
-      --muted:#475569;
-      --border: rgba(2,6,23,.10);
-      --shadow: 0 10px 30px rgba(2,6,23,.08);
-      --focus: 0 0 0 3px rgba(225,29,72,.18);
-    }
-
-    * { box-sizing: border-box; }
-    html, body { height:100%; }
     body{
       margin:0;
-      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
       background:
         radial-gradient(1200px 600px at 20% 0%, rgba(225,29,72,.18), transparent 55%),
         radial-gradient(900px 500px at 80% 20%, rgba(225,29,72,.10), transparent 50%),
@@ -78,74 +32,38 @@
       color: var(--text);
     }
 
-    .app{
-      width: 85%;
-      max-width: 1300px;
-      margin: 22px auto 40px;
-    }
+    .app{ width:85%; max-width:1300px; margin:22px auto 40px; }
 
     .topbar{
-      display:flex;
-      gap:14px;
-      align-items:center;
-      justify-content: space-between;
-      padding: 14px 16px;
+      display:flex; gap:14px; align-items:center; justify-content:space-between;
+      padding:14px 16px;
       background: color-mix(in srgb, var(--card) 90%, transparent);
       border: 1px solid var(--border);
       border-radius: var(--radius);
       box-shadow: var(--shadow);
-      position: sticky;
-      top: 14px;
-      backdrop-filter: blur(10px);
+      position: sticky; top: 14px; backdrop-filter: blur(10px);
       z-index: 10;
     }
 
-    .brand{
-      display:flex;
-      gap:12px;
-      align-items:center;
-      min-width: 220px;
-    }
+    .brand{ display:flex; gap:12px; align-items:center; min-width: 220px; }
     .brand img{
-      width: 34px;
-      height: 34px;
-      border-radius: 10px;
-      border: 1px solid var(--border);
-      background: var(--card2);
-      padding: 5px;
+      width:34px; height:34px; border-radius:10px; border:1px solid var(--border);
+      background: var(--card2); padding:5px;
     }
-    .brand h2{
-      margin:0;
-      font-size: 18px;
-      letter-spacing: .2px;
-      line-height: 1.1;
-    }
-    .brand .sub{
-      margin:0;
-      font-size: 12px;
-      color: var(--muted);
-      margin-top: 2px;
-    }
+    .brand h2{ margin:0; font-size:18px; line-height:1.1; }
+    .brand .sub{ margin:2px 0 0; font-size:12px; color:var(--muted); }
 
-    nav{
-      display:flex;
-      gap:8px;
-      flex-wrap: wrap;
-      justify-content:center;
-    }
-
+    nav{ display:flex; gap:8px; flex-wrap:wrap; justify-content:center; }
     .tab{
-      border: 1px solid var(--border);
+      border:1px solid var(--border);
       background: linear-gradient(180deg, color-mix(in srgb, var(--card) 92%, transparent), var(--card2));
-      color: var(--text);
-      padding: 10px 12px;
-      border-radius: 999px;
-      cursor: pointer;
-      font-weight: 600;
+      color:var(--text);
+      padding:10px 12px;
+      border-radius:999px;
+      cursor:pointer;
+      font-weight:700;
       transition: transform .08s ease, border-color .2s ease, background .2s ease;
-      display:flex;
-      align-items:center;
-      gap:8px;
+      display:flex; align-items:center; gap:8px;
     }
     .tab:hover{ transform: translateY(-1px); border-color: color-mix(in srgb, var(--accent) 40%, var(--border)); }
     .tab.active{
@@ -153,35 +71,22 @@
       box-shadow: 0 0 0 4px rgba(225,29,72,.14);
       background: linear-gradient(180deg, rgba(225,29,72,.18), rgba(225,29,72,.10));
     }
-    .tab .dot{
-      width: 8px; height: 8px; border-radius: 999px;
-      background: color-mix(in srgb, var(--accent) 60%, #fff 0%);
-      box-shadow: 0 0 0 3px rgba(225,29,72,.15);
-    }
+    .tab .dot{ width:8px; height:8px; border-radius:999px; background: var(--accent); box-shadow: 0 0 0 3px rgba(225,29,72,.15); }
 
-    .actions{
-      display:flex;
-      gap:10px;
-      align-items:center;
-      min-width: 220px;
-      justify-content:flex-end;
-    }
+    .actions{ min-width:220px; display:flex; justify-content:flex-end; }
 
     .btn{
-      border: 1px solid var(--border);
+      border:1px solid var(--border);
       background: linear-gradient(180deg, color-mix(in srgb, var(--card) 92%, transparent), var(--card2));
-      color: var(--text);
-      padding: 10px 12px;
-      border-radius: 12px;
+      color:var(--text);
+      padding:10px 12px;
+      border-radius:12px;
       cursor:pointer;
-      font-weight: 650;
+      font-weight:750;
       transition: transform .08s ease, border-color .2s ease;
-      display:inline-flex;
-      align-items:center;
-      gap:8px;
+      display:inline-flex; align-items:center; gap:8px;
     }
     .btn:hover{ transform: translateY(-1px); border-color: color-mix(in srgb, var(--accent) 40%, var(--border)); }
-    .btn:active{ transform: translateY(0px); }
     .btn-primary{
       border-color: color-mix(in srgb, var(--accent) 60%, var(--border));
       background: linear-gradient(180deg, rgba(225,29,72,.35), rgba(225,29,72,.15));
@@ -190,90 +95,66 @@
       border-color: rgba(239,68,68,.55);
       background: linear-gradient(180deg, rgba(239,68,68,.22), rgba(239,68,68,.12));
     }
+    .tiny{ padding: 8px 10px; border-radius: 10px; font-weight: 750; }
 
-    .grid{
-      display:grid;
-      grid-template-columns: 1fr;
-      gap: 14px;
-      margin-top: 14px;
-    }
+    .grid{ display:grid; grid-template-columns: 1fr; gap:14px; margin-top:14px; }
 
     .card{
-      border: 1px solid var(--border);
+      border:1px solid var(--border);
       background: linear-gradient(180deg, color-mix(in srgb, var(--card) 94%, transparent), var(--card2));
       border-radius: var(--radius);
       box-shadow: var(--shadow);
       padding: 16px;
-      overflow: hidden;
+      overflow:hidden;
     }
-    .card h3{
-      margin:0 0 12px;
-      font-size: 16px;
-      letter-spacing: .2px;
-    }
+    .card h3{ margin:0 0 12px; font-size:16px; }
 
     .msg{
-      padding: 12px 14px;
-      border-radius: 12px;
+      padding: 12px 14px; border-radius: 12px;
       border: 1px solid var(--border);
       background: color-mix(in srgb, var(--card) 90%, transparent);
       display:none;
+      margin-top: 14px;
     }
     .msg.show{ display:block; }
     .msg.ok{ border-color: rgba(34,197,94,.35); }
     .msg.error{ border-color: rgba(239,68,68,.40); }
 
-    .muted{ color: var(--muted); font-size: 0.92em; }
+    .muted{ color:var(--muted); font-size:.92em; }
     .hidden{ display:none !important; }
 
+    /* ✅ Auftrag erstellen: untereinander (1 Spalte) */
     .form{
       display:grid;
       grid-template-columns: 1fr;
-      gap: 12px;
+      gap:12px;
     }
-    .form .full{ grid-column: 1 / -1; }
 
-    label{ display:block; font-weight: 650; font-size: 13px; letter-spacing: .2px; }
+    label{ display:block; font-weight: 800; font-size: 13px; }
     input, textarea, select{
       width:100%;
       margin-top:6px;
-      padding: 10px 11px;
+      padding:10px 11px;
       border-radius: 12px;
       border: 1px solid var(--border);
       background: color-mix(in srgb, var(--bg) 35%, var(--card));
       color: var(--text);
-      outline: none;
+      outline:none;
       transition: box-shadow .2s ease, border-color .2s ease;
+      box-sizing:border-box;
     }
     textarea{ resize: vertical; min-height: 90px; }
     input:focus, textarea:focus, select:focus{
       box-shadow: var(--focus);
       border-color: color-mix(in srgb, var(--accent) 55%, var(--border));
     }
-    input[readonly]{
-      opacity: .92;
-      cursor:not-allowed;
-      background: color-mix(in srgb, var(--bg) 50%, var(--card));
-    }
+    input[readonly]{ opacity:.92; cursor:not-allowed; }
 
-    .toolbar{
-      display:flex;
-      gap: 10px;
-      align-items:center;
-      flex-wrap: wrap;
-      margin-bottom: 12px;
-    }
-    .toolbar input{
-      max-width: 340px;
-    }
-    .pager{
-      display:flex;
-      gap:8px;
-      align-items:center;
-      margin-left:auto;
-    }
+    .toolbar{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-bottom:12px; }
+    .toolbar input{ max-width:340px; }
+    .pager{ display:flex; gap:8px; align-items:center; margin-left:auto; }
     .pill{
-      border: 1px solid var(--border);
+      border:1px solid var(--border);
       background: color-mix(in srgb, var(--card) 85%, transparent);
       padding: 8px 10px;
       border-radius: 999px;
@@ -281,16 +162,9 @@
       color: var(--muted);
     }
 
-    table{
-      width:100%;
-      border-collapse: collapse;
-      overflow: hidden;
-      border-radius: 12px;
-    }
+    table{ width:100%; border-collapse: collapse; border-radius: 12px; overflow:hidden; }
     thead th{
-      font-size: 12px;
-      letter-spacing: .2px;
-      text-transform: uppercase;
+      font-size:12px; text-transform: uppercase; letter-spacing:.2px;
       color: var(--muted);
       background: color-mix(in srgb, var(--card) 80%, transparent);
       border-bottom: 1px solid var(--border);
@@ -302,23 +176,19 @@
       padding: 10px 10px;
       vertical-align: top;
     }
-    tbody tr:hover td{
-      background: rgba(225,29,72,.06);
-    }
+    tbody tr:hover td{ background: rgba(225,29,72,.06); }
     .row-actions{ display:flex; gap:8px; align-items:center; }
-    .tiny{ padding: 8px 10px; border-radius: 10px; font-weight: 650; }
 
     @media (max-width: 920px){
-      .app{ width: 94%; }
+      .app{ width:94%; }
       .brand{ min-width: unset; }
       .actions{ min-width: unset; }
-      .form{ grid-template-columns: 1fr; }
       .pager{ margin-left: 0; }
     }
   </style>
 </head>
 
-<body class="force-dark">
+<body>
   <div class="app">
 
     <div class="topbar">
@@ -337,7 +207,7 @@
       </nav>
 
       <div class="actions">
-        <button id="themeToggle" class="btn" title="Hell/Dunkel umschalten">🌓 Theme</button>
+        <span class="pill">Darkmode</span>
       </div>
     </div>
 
@@ -345,7 +215,6 @@
 
     <div class="grid">
 
-      <!-- CREATE -->
       <section id="view-create" class="card">
         <h3>Auftrag erstellen</h3>
 
@@ -353,15 +222,12 @@
           <div>
             <label>Kunde*<input id="fKunde" type="text" required /></label>
           </div>
-
           <div>
             <label>Mitarbeiter*<input id="fMitarbeiter" type="text" required /></label>
           </div>
-
           <div>
             <label>Anzahl Fässer*<input id="fAnzahl" type="number" min="0" step="1" required /></label>
           </div>
-
           <div>
             <label>Prozent* (1–100)<input id="fProzent" type="number" min="1" max="100" step="1" required /></label>
           </div>
@@ -374,15 +240,15 @@
 
           <div>
             <label>Kunde hat alle Weinflaschen erhalten?
-              <select id="fErhalten">
+              <select id="fErhalten" disabled>
                 <option value="false" selected>Nein</option>
                 <option value="true">Ja</option>
               </select>
             </label>
-            <div class="muted">Hinweis: Neue Aufträge werden immer als „Nein“ gespeichert.</div>
+            <div class="muted">Neue Aufträge werden immer als „Nein“ gespeichert.</div>
           </div>
 
-          <div class="full">
+          <div>
             <label>Info<textarea id="fInfo" rows="3"></textarea></label>
           </div>
         </div>
@@ -393,7 +259,6 @@
         </div>
       </section>
 
-      <!-- OPEN -->
       <section id="view-open" class="card hidden">
         <h3>Offene Aufträge</h3>
 
@@ -411,7 +276,6 @@
         <div id="openTableWrap"></div>
       </section>
 
-      <!-- DONE -->
       <section id="view-done" class="card hidden">
         <h3>Fertige Aufträge</h3>
 
@@ -433,12 +297,11 @@
   </div>
 
 <script>
-  // ====== CONFIG ======
-  const API_BASE_URL = 'https://script.google.com/macros/s/AKfycbyrbnoenHlCFKW1Lk1bI_GOf9WFlw7IR9Y_fxZAsaOfG57Ddy4Ei2ENTTNCSN1IyypmzQ/exec'; // z.B. https://script.google.com/macros/s/.../exec
-  const API_TOKEN = ''; // muss zu Code.gs passen (oder leer lassen)
+  // ✅ Same-origin API (kein CORS), wenn über Apps Script ausgeliefert
+  const API_BASE_URL = window.location.href.split('?')[0];
+  const API_TOKEN = '';
   const PAGE_SIZE = 50;
 
-  // ====== Helpers ======
   const $ = (id) => document.getElementById(id);
 
   function showMsg(type, text) {
@@ -459,21 +322,7 @@
     if (tab === 'done') loadDone();
   }
 
-  // ====== Theme Toggle ======
-  function setTheme(mode) {
-    // mode: 'dark'|'light'
-    document.body.classList.remove('force-dark','force-light');
-    document.body.classList.add(mode === 'dark' ? 'force-dark' : 'force-light');
-    localStorage.setItem('theme', mode);
-  }
-  function initTheme() {
-    const saved = localStorage.getItem('theme');
-    if (saved === 'light' || saved === 'dark') return setTheme(saved);
-    // default: dark (du wolltest Darkmode)
-    setTheme('dark');
-  }
-
-  // ====== API ======
+  // ===== API =====
   async function apiGet(params = {}) {
     const url = new URL(API_BASE_URL);
     if (API_TOKEN) params.token = API_TOKEN;
@@ -484,26 +333,37 @@
     return data;
   }
 
+  // form-urlencoded (funktioniert zuverlässig)
   async function apiPost(body, params = {}) {
     const url = new URL(API_BASE_URL);
     if (API_TOKEN) params.token = API_TOKEN;
     Object.entries(params).forEach(([k,v]) => url.searchParams.set(k, v));
+
+    const form = new URLSearchParams();
+    for (const [k, v] of Object.entries(body || {})) form.set(k, String(v));
+
     const res = await fetch(url.toString(), {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body || {})
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' },
+      body: form.toString()
     });
-    const data = await res.json();
+
+    const text = await res.text();
+    let data;
+    try { data = JSON.parse(text); }
+    catch { throw new Error('Antwort ist kein JSON: ' + text); }
+
     if (!data.ok) throw new Error(data.error || 'API Fehler');
     return data;
   }
 
-  // ====== business rules / validation ======
+  // ===== Business =====
   function computeKosten(anzahl, prozent) {
     const a = Number(anzahl);
     const p = Number(prozent);
     if (!Number.isFinite(a) || !Number.isFinite(p)) return '';
-    return ((a * 8 * 1299) * (p / 100)).toFixed(2);
+    const val = (a * 8 * 1299) * (p / 100);
+    return Math.round(val).toLocaleString('de-DE') + ' €';
   }
 
   function validateCreateForm() {
@@ -525,7 +385,6 @@
     recalc();
   }
 
-  // ====== create ======
   async function createOrder() {
     try {
       validateCreateForm();
@@ -546,14 +405,13 @@
       $('fAnzahl').value = '';
       $('fProzent').value = '';
       $('fInfo').value = '';
-      $('fErhalten').value = 'false';
       $('fKosten').value = '';
     } catch (e) {
       showMsg('error', e.message);
     }
   }
 
-  // ====== open/done lists ======
+  // ===== Lists =====
   let openState = { page: 1, search: '' };
   let doneState = { page: 1, search: '' };
 
@@ -563,8 +421,7 @@
         status: 'open',
         search: openState.search,
         page: openState.page,
-        limit: PAGE_SIZE,
-        sort: 'id_asc'
+        limit: PAGE_SIZE
       });
       $('openPageInfo').textContent = `Seite ${openState.page} · ${data.total} Treffer`;
       renderOpenTable(data.items);
@@ -581,8 +438,7 @@
         status: 'done',
         search: doneState.search,
         page: doneState.page,
-        limit: PAGE_SIZE,
-        sort: 'id_asc'
+        limit: PAGE_SIZE
       });
       $('donePageInfo').textContent = `Seite ${doneState.page} · ${data.total} Treffer`;
       renderDoneTable(data.items);
@@ -591,6 +447,12 @@
     } catch (e) {
       showMsg('error', e.message);
     }
+  }
+
+  function moneyEUR(n) {
+    const v = Number(n);
+    if (!Number.isFinite(v)) return '';
+    return Math.round(v).toLocaleString('de-DE') + ' €';
   }
 
   function renderOpenTable(items) {
@@ -604,7 +466,7 @@
         <td>${escapeHtml(r.Mitarbeiter)}</td>
         <td>${r.Anzahl}</td>
         <td>${r.Prozent}</td>
-        <td>${Number(r.Kosten).toFixed(2)}</td>
+        <td>${moneyEUR(r.Kosten)}</td>
         <td>
           <select data-id="${r.ID}" class="open-erhalten">
             <option value="false" selected>Nein</option>
@@ -625,7 +487,7 @@
       <table>
         <thead>
           <tr>
-            <th>ID</th><th>Kunde</th><th>Mitarbeiter</th><th>Anzahl</th><th>%</th><th>Kosten</th>
+            <th>ID</th><th>Kunde</th><th>Mitarbeiter</th><th>Anzahl</th><th>Prozent</th><th>Kosten</th>
             <th>Erhalten?</th><th>Info</th><th></th>
           </tr>
         </thead>
@@ -666,7 +528,7 @@
         <td>${escapeHtml(r.Mitarbeiter)}</td>
         <td>${r.Anzahl}</td>
         <td>${r.Prozent}</td>
-        <td>${Number(r.Kosten).toFixed(2)}</td>
+        <td>${moneyEUR(r.Kosten)}</td>
         <td>Ja</td>
         <td>${escapeHtml(r.Info || '')}</td>
         <td class="row-actions">
@@ -679,7 +541,7 @@
       <table>
         <thead>
           <tr>
-            <th>ID</th><th>Kunde</th><th>Mitarbeiter</th><th>Anzahl</th><th>%</th><th>Kosten</th>
+            <th>ID</th><th>Kunde</th><th>Mitarbeiter</th><th>Anzahl</th><th>Prozent</th><th>Kosten</th>
             <th>Erhalten?</th><th>Info</th><th></th>
           </tr>
         </thead>
@@ -712,7 +574,7 @@
       .replaceAll("'", '&#039;');
   }
 
-  // ====== wiring ======
+  // Wiring
   $('tab-create').addEventListener('click', () => setTab('create'));
   $('tab-open').addEventListener('click', () => setTab('open'));
   $('tab-done').addEventListener('click', () => setTab('done'));
@@ -720,28 +582,13 @@
   $('btnCreate').addEventListener('click', createOrder);
   hookKostenAuto();
 
-  $('openSearch').addEventListener('input', () => {
-    openState.search = $('openSearch').value.trim();
-    openState.page = 1;
-    loadOpen();
-  });
+  $('openSearch').addEventListener('input', () => { openState.search = $('openSearch').value.trim(); openState.page = 1; loadOpen(); });
   $('openPrev').addEventListener('click', () => { openState.page = Math.max(1, openState.page - 1); loadOpen(); });
   $('openNext').addEventListener('click', () => { openState.page += 1; loadOpen(); });
 
-  $('doneSearch').addEventListener('input', () => {
-    doneState.search = $('doneSearch').value.trim();
-    doneState.page = 1;
-    loadDone();
-  });
+  $('doneSearch').addEventListener('input', () => { doneState.search = $('doneSearch').value.trim(); doneState.page = 1; loadDone(); });
   $('donePrev').addEventListener('click', () => { doneState.page = Math.max(1, doneState.page - 1); loadDone(); });
   $('doneNext').addEventListener('click', () => { doneState.page += 1; loadDone(); });
-
-  $('themeToggle').addEventListener('click', () => {
-    const isDark = document.body.classList.contains('force-dark');
-    setTheme(isDark ? 'light' : 'dark');
-  });
-
-  initTheme();
 </script>
 </body>
 </html>
