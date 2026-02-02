@@ -258,7 +258,7 @@
         </div>
 
         <div class="muted" style="margin-top:10px;">
-          Hinweis: Schreiben erfolgt per Cross-Origin Form-POST (ohne CORS). Lesen erfolgt über Published CSV (kann verzögert sein).
+          Es kann verzögert sein dass ein neuer Auftrag unter offenen Aufträgen auftaucht (ca 1-2 min)
         </div>
       </section>
 
@@ -652,7 +652,7 @@ function renderOpen() {
                   <option value="0" selected>Nein</option>
                   <option value="1">Ja</option>
                 </select>
-                <div class="muted">Ja nur mit AbholDatum</div>
+                <div class="muted">Ja nur mit Abholdatum möglich</div>
               </td>
 
               <td><textarea data-id="${r.ID}" class="open-info" rows="2">${escapeHtml(r.Info || '')}</textarea></td>
