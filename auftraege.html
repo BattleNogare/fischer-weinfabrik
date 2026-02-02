@@ -1,0 +1,407 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Aufträge</title>
+  <style>
+    body { font-family: system-ui, Arial, sans-serif; margin: 16px; }
+    header { display:flex; gap:12px; align-items:center; margin-bottom: 12px; }
+    nav button { padding: 8px 12px; cursor:pointer; }
+    nav button.active { font-weight: 700; }
+    .card { border: 1px solid #ddd; border-radius: 8px; padding: 12px; margin-bottom: 12px; }
+    label { display:block; margin-top: 10px; }
+    input, textarea, select { width: 100%; padding: 8px; margin-top: 4px; box-sizing: border-box; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { border-bottom: 1px solid #eee; padding: 8px; text-align: left; vertical-align: top; }
+    th { white-space: nowrap; }
+    .row-actions { display:flex; gap:8px; }
+    .muted { color:#666; font-size: 0.9em; }
+    .toolbar { display:flex; gap:12px; align-items:center; flex-wrap: wrap; margin-bottom: 10px; }
+    .toolbar input { width: 280px; }
+    .pager { display:flex; gap:8px; align-items:center; }
+    .hidden { display:none; }
+    .error { color: #b00020; }
+    .ok { color: #0a7a0a; }
+  </style>
+</head>
+<body>
+
+<header>
+  <h2 style="margin:0;">Aufträge</h2>
+  <nav style="margin-left:auto;">
+    <button id="tab-create" class="active">Auftrag erstellen</button>
+    <button id="tab-open">Offene Aufträge</button>
+    <button id="tab-done">Fertige Aufträge</button>
+  </nav>
+</header>
+
+<div id="msg" class="card hidden"></div>
+
+<section id="view-create" class="card">
+  <h3>Auftrag erstellen</h3>
+
+  <label>Kunde*<input id="fKunde" type="text" required /></label>
+  <label>Mitarbeiter*<input id="fMitarbeiter" type="text" required /></label>
+  <label>Anzahl Fässer*<input id="fAnzahl" type="number" min="0" step="1" required /></label>
+  <label>Prozent* (1–100)<input id="fProzent" type="number" min="1" max="100" step="1" required /></label>
+
+  <label>Kosten (automatisch)
+    <input id="fKosten" type="text" readonly />
+  </label>
+
+  <label>Kunde hat alle Weinflaschen erhalten?
+    <select id="fErhalten">
+      <option value="false" selected>Nein</option>
+      <option value="true">Ja</option>
+    </select>
+  </label>
+
+  <label>Info<textarea id="fInfo" rows="3"></textarea></label>
+
+  <div style="margin-top: 12px; display:flex; gap:10px; align-items:center;">
+    <button id="btnCreate">Speichern</button>
+    <span class="muted">* Pflichtfelder</span>
+  </div>
+</section>
+
+<section id="view-open" class="card hidden">
+  <h3>Offene Aufträge</h3>
+
+  <div class="toolbar">
+    <input id="openSearch" type="text" placeholder="Suche Kunde/Mitarbeiter…" />
+    <div class="muted">Sortierung: ID aufsteigend</div>
+    <div class="pager">
+      <button id="openPrev">◀</button>
+      <span id="openPageInfo"></span>
+      <button id="openNext">▶</button>
+    </div>
+  </div>
+
+  <div id="openTableWrap"></div>
+</section>
+
+<section id="view-done" class="card hidden">
+  <h3>Fertige Aufträge</h3>
+
+  <div class="toolbar">
+    <input id="doneSearch" type="text" placeholder="Suche Kunde/Mitarbeiter…" />
+    <div class="muted">Sortierung: ID aufsteigend</div>
+    <div class="pager">
+      <button id="donePrev">◀</button>
+      <span id="donePageInfo"></span>
+      <button id="doneNext">▶</button>
+    </div>
+  </div>
+
+  <div id="doneTableWrap"></div>
+</section>
+
+<script>
+  // ====== CONFIG ======
+  const API_BASE_URL = 'https://script.google.com/macros/s/AKfycbyrbnoenHlCFKW1Lk1bI_GOf9WFlw7IR9Y_fxZAsaOfG57Ddy4Ei2ENTTNCSN1IyypmzQ/exec'; // z.B. https://script.google.com/macros/s/.../exec
+  const API_TOKEN = ''; // muss zu Code.gs passen (oder leer lassen)
+
+  const PAGE_SIZE = 50;
+
+  // ====== UI helpers ======
+  const $ = (id) => document.getElementById(id);
+
+  function showMsg(type, text) {
+    const el = $('msg');
+    el.classList.remove('hidden');
+    el.classList.toggle('error', type === 'error');
+    el.classList.toggle('ok', type === 'ok');
+    el.textContent = text;
+    setTimeout(() => el.classList.add('hidden'), 4000);
+  }
+
+  function setTab(tab) {
+    const tabs = ['create','open','done'];
+    for (const t of tabs) {
+      $('tab-' + t).classList.toggle('active', t === tab);
+      $('view-' + t).classList.toggle('hidden', t !== tab);
+    }
+    if (tab === 'open') loadOpen();
+    if (tab === 'done') loadDone();
+  }
+
+  // ====== API ======
+  async function apiGet(path, params = {}) {
+    const url = new URL(API_BASE_URL + path);
+    if (API_TOKEN) params.token = API_TOKEN;
+    Object.entries(params).forEach(([k,v]) => url.searchParams.set(k, v));
+
+    const res = await fetch(url.toString(), { method: 'GET' });
+    const data = await res.json();
+    if (!data.ok) throw new Error(data.error || 'API Fehler');
+    return data;
+  }
+
+  async function apiPost(path, body, params = {}) {
+    const url = new URL(API_BASE_URL + path);
+    if (API_TOKEN) params.token = API_TOKEN;
+    Object.entries(params).forEach(([k,v]) => url.searchParams.set(k, v));
+
+    const res = await fetch(url.toString(), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body || {})
+    });
+    const data = await res.json();
+    if (!data.ok) throw new Error(data.error || 'API Fehler');
+    return data;
+  }
+
+  // ====== business rules / validation ======
+  function computeKosten(anzahl, prozent) {
+    // ([Anzahl] * 8 * 1299) * ([Prozent]/100)
+    const a = Number(anzahl);
+    const p = Number(prozent);
+    if (!Number.isFinite(a) || !Number.isFinite(p)) return '';
+    return ((a * 8 * 1299) * (p / 100)).toFixed(2);
+  }
+
+  function validateCreateForm() {
+    const kunde = $('fKunde').value.trim();
+    const mitarbeiter = $('fMitarbeiter').value.trim();
+    const anzahl = Number($('fAnzahl').value);
+    const prozent = Number($('fProzent').value);
+
+    if (!kunde) throw new Error('Kunde ist Pflichtfeld.');
+    if (!mitarbeiter) throw new Error('Mitarbeiter ist Pflichtfeld.');
+    if (!Number.isInteger(anzahl) || anzahl < 0) throw new Error('Anzahl muss eine nicht-negative Ganzzahl sein.');
+    if (!Number.isInteger(prozent) || prozent < 1 || prozent > 100) throw new Error('Prozent muss 1–100 (Ganzzahl) sein.');
+  }
+
+  // ====== create ======
+  function hookKostenAuto() {
+    const recalc = () => {
+      $('fKosten').value = computeKosten($('fAnzahl').value, $('fProzent').value);
+    };
+    $('fAnzahl').addEventListener('input', recalc);
+    $('fProzent').addEventListener('input', recalc);
+    recalc();
+  }
+
+  async function createOrder() {
+    try {
+      validateCreateForm();
+
+      const body = {
+        Kunde: $('fKunde').value.trim(),
+        Mitarbeiter: $('fMitarbeiter').value.trim(),
+        Anzahl: Number($('fAnzahl').value),
+        Prozent: Number($('fProzent').value),
+        // Kosten wird serverseitig berechnet, muss hier nicht gesendet werden
+        Info: $('fInfo').value.trim()
+        // boolean wird serverseitig auf false gesetzt (Regel), unabhängig vom Dropdown
+      };
+
+      const data = await apiPost('', body); // POST an /exec (root)
+      showMsg('ok', 'Auftrag gespeichert. ID: ' + data.item.ID);
+
+      // reset
+      $('fKunde').value = '';
+      $('fMitarbeiter').value = '';
+      $('fAnzahl').value = '';
+      $('fProzent').value = '';
+      $('fInfo').value = '';
+      hookKostenAuto();
+
+    } catch (e) {
+      showMsg('error', e.message);
+    }
+  }
+
+  // ====== open/done lists ======
+  let openState = { page: 1, search: '' };
+  let doneState = { page: 1, search: '' };
+
+  async function loadOpen() {
+    try {
+      const data = await apiGet('', {
+        status: 'open',
+        search: openState.search,
+        page: openState.page,
+        limit: PAGE_SIZE,
+        sort: 'id_asc'
+      });
+      $('openPageInfo').textContent = `Seite ${openState.page} · ${data.total} Treffer`;
+      renderOpenTable(data.items);
+      // pager enable/disable
+      $('openPrev').disabled = openState.page <= 1;
+      $('openNext').disabled = (openState.page * PAGE_SIZE) >= data.total;
+    } catch (e) {
+      showMsg('error', e.message);
+    }
+  }
+
+  async function loadDone() {
+    try {
+      const data = await apiGet('', {
+        status: 'done',
+        search: doneState.search,
+        page: doneState.page,
+        limit: PAGE_SIZE,
+        sort: 'id_asc'
+      });
+      $('donePageInfo').textContent = `Seite ${doneState.page} · ${data.total} Treffer`;
+      renderDoneTable(data.items);
+      $('donePrev').disabled = doneState.page <= 1;
+      $('doneNext').disabled = (doneState.page * PAGE_SIZE) >= data.total;
+    } catch (e) {
+      showMsg('error', e.message);
+    }
+  }
+
+  function renderOpenTable(items) {
+    const wrap = $('openTableWrap');
+    if (!items.length) { wrap.innerHTML = '<div class="muted">Keine offenen Aufträge gefunden.</div>'; return; }
+
+    const rows = items.map(r => `
+      <tr>
+        <td>${r.ID}</td>
+        <td>${escapeHtml(r.Kunde)}</td>
+        <td>${escapeHtml(r.Mitarbeiter)}</td>
+        <td>${r.Anzahl}</td>
+        <td>${r.Prozent}</td>
+        <td>${Number(r.Kosten).toFixed(2)}</td>
+        <td>
+          <select data-id="${r.ID}" class="open-erhalten">
+            <option value="false" selected>Nein</option>
+            <option value="true">Ja</option>
+          </select>
+          <div class="muted">Nur auf “Ja” setzbar</div>
+        </td>
+        <td>
+          <textarea data-id="${r.ID}" class="open-info" rows="2">${escapeHtml(r.Info || '')}</textarea>
+        </td>
+        <td class="row-actions">
+          <button data-id="${r.ID}" class="open-save">Speichern</button>
+        </td>
+      </tr>
+    `).join('');
+
+    wrap.innerHTML = `
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th><th>Kunde</th><th>Mitarbeiter</th><th>Anzahl</th><th>%</th><th>Kosten</th>
+            <th>Erhalten?</th><th>Info</th><th></th>
+          </tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>
+    `;
+
+    // Hook save buttons
+    wrap.querySelectorAll('.open-save').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const id = btn.getAttribute('data-id');
+        const info = wrap.querySelector(`.open-info[data-id="${id}"]`).value;
+        const erhaltenVal = wrap.querySelector(`.open-erhalten[data-id="${id}"]`).value;
+
+        try {
+          // Regel: darf nicht auf false setzen; backend erzwingt das.
+          await apiPost('', {
+            Info: info,
+            'Kunde hat alle Weinflaschen erhalten?': (erhaltenVal === 'true')
+          }, { method: 'PATCH', id });
+
+          showMsg('ok', 'Gespeichert. ID: ' + id);
+          // Wenn auf TRUE gesetzt → verschwindet aus "offen"
+          await loadOpen();
+        } catch (e) {
+          showMsg('error', e.message);
+          // dropdown wieder auf "Nein", falls Fehler
+          wrap.querySelector(`.open-erhalten[data-id="${id}"]`).value = 'false';
+        }
+      });
+    });
+  }
+
+  function renderDoneTable(items) {
+    const wrap = $('doneTableWrap');
+    if (!items.length) { wrap.innerHTML = '<div class="muted">Keine fertigen Aufträge gefunden.</div>'; return; }
+
+    const rows = items.map(r => `
+      <tr>
+        <td>${r.ID}</td>
+        <td>${escapeHtml(r.Kunde)}</td>
+        <td>${escapeHtml(r.Mitarbeiter)}</td>
+        <td>${r.Anzahl}</td>
+        <td>${r.Prozent}</td>
+        <td>${Number(r.Kosten).toFixed(2)}</td>
+        <td>Ja</td>
+        <td>${escapeHtml(r.Info || '')}</td>
+        <td class="row-actions">
+          <button data-id="${r.ID}" class="done-del">Löschen</button>
+        </td>
+      </tr>
+    `).join('');
+
+    wrap.innerHTML = `
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th><th>Kunde</th><th>Mitarbeiter</th><th>Anzahl</th><th>%</th><th>Kosten</th>
+            <th>Erhalten?</th><th>Info</th><th></th>
+          </tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>
+    `;
+
+    wrap.querySelectorAll('.done-del').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const id = btn.getAttribute('data-id');
+        if (!confirm('Auftrag ID ' + id + ' wirklich löschen?')) return;
+
+        try {
+          await apiPost('', {}, { method: 'DELETE', id });
+          showMsg('ok', 'Gelöscht. ID: ' + id);
+          await loadDone();
+        } catch (e) {
+          showMsg('error', e.message);
+        }
+      });
+    });
+  }
+
+  function escapeHtml(s) {
+    return String(s)
+      .replaceAll('&', '&amp;')
+      .replaceAll('<', '&lt;')
+      .replaceAll('>', '&gt;')
+      .replaceAll('"', '&quot;')
+      .replaceAll("'", '&#039;');
+  }
+
+  // ====== wiring ======
+  $('tab-create').addEventListener('click', () => setTab('create'));
+  $('tab-open').addEventListener('click', () => setTab('open'));
+  $('tab-done').addEventListener('click', () => setTab('done'));
+
+  $('btnCreate').addEventListener('click', createOrder);
+  hookKostenAuto();
+
+  $('openSearch').addEventListener('input', () => {
+    openState.search = $('openSearch').value.trim();
+    openState.page = 1;
+    loadOpen();
+  });
+  $('openPrev').addEventListener('click', () => { openState.page = Math.max(1, openState.page - 1); loadOpen(); });
+  $('openNext').addEventListener('click', () => { openState.page += 1; loadOpen(); });
+
+  $('doneSearch').addEventListener('input', () => {
+    doneState.search = $('doneSearch').value.trim();
+    doneState.page = 1;
+    loadDone();
+  });
+  $('donePrev').addEventListener('click', () => { doneState.page = Math.max(1, doneState.page - 1); loadDone(); });
+  $('doneNext').addEventListener('click', () => { doneState.page += 1; loadDone(); });
+
+</script>
+</body>
+</html>
