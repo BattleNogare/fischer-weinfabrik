@@ -8,194 +8,310 @@
 
   <style>
     :root{
-      --bg:#0b0d10; --bg2:#0f1217; --card:#11151c; --card2:#0f131a;
-      --text:#e7eaf0; --muted:#a8b0bf; --border: rgba(255,255,255,.08);
-      --shadow: 0 12px 34px rgba(0,0,0,.42);
-      --accent:#e11d48; --focus: 0 0 0 3px rgba(225,29,72,.25);
-      --radius: 14px;
+      --bg0:#07080b;
+      --bg1:#0b0d12;
+      --card: rgba(255,255,255,.05);
+      --card2: rgba(255,255,255,.035);
+      --border: rgba(255,255,255,.09);
+      --text:#e8ebf2;
+      --muted:#a7afbf;
+      --accent:#e11d48;
+      --accent2:#fb7185;
+      --shadow: 0 18px 45px rgba(0,0,0,.45);
+      --shadow2: 0 10px 22px rgba(0,0,0,.35);
+      --radius: 16px;
+      --radius2: 12px;
+      --focus: 0 0 0 4px rgba(225,29,72,.22);
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
     }
+
+    *{ box-sizing:border-box; }
+    html, body{ height:100%; }
     body{
       margin:0;
       font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
-      background:
-        radial-gradient(1200px 600px at 20% 0%, rgba(225,29,72,.20), transparent 55%),
-        radial-gradient(900px 500px at 80% 20%, rgba(225,29,72,.10), transparent 50%),
-        linear-gradient(180deg, var(--bg), var(--bg2));
       color: var(--text);
+      background:
+        radial-gradient(1200px 700px at 12% 10%, rgba(225,29,72,.18), transparent 55%),
+        radial-gradient(900px 520px at 85% 18%, rgba(225,29,72,.09), transparent 52%),
+        radial-gradient(700px 500px at 55% 95%, rgba(251,113,133,.08), transparent 55%),
+        linear-gradient(180deg, var(--bg0), var(--bg1));
+      overflow-x:hidden;
     }
-    .app{ width:85%; max-width:1300px; margin:22px auto 40px; }
-    .topbar{
-      display:flex; gap:14px; align-items:center; justify-content:space-between;
-      padding:14px 16px;
-      background: color-mix(in srgb, var(--card) 92%, transparent);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-      position: sticky; top: 14px; backdrop-filter: blur(10px);
-      z-index: 10;
-    }
-    .brand{ display:flex; gap:12px; align-items:center; min-width: 260px; }
-    .brand img{
-      width:34px; height:34px; border-radius:10px; border:1px solid var(--border);
-      background: var(--card2); padding:5px;
-    }
-    .brand h2{ margin:0; font-size:18px; line-height:1.1; }
-    .brand .sub{ margin:2px 0 0; font-size:12px; color:var(--muted); }
 
-    nav{ display:flex; gap:8px; flex-wrap:wrap; justify-content:center; }
-    .tab{
-      border:1px solid var(--border);
-      background: linear-gradient(180deg, color-mix(in srgb, var(--card) 92%, transparent), var(--card2));
-      color:var(--text);
-      padding:10px 12px;
-      border-radius:999px;
-      cursor:pointer;
-      font-weight:700;
-      transition: transform .08s ease, border-color .2s ease, background .2s ease;
-      display:flex; align-items:center; gap:8px;
+    .bg-noise{
+      position: fixed;
+      inset: 0;
+      pointer-events:none;
+      opacity: .08;
+      background-image:
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)' opacity='.55'/%3E%3C/svg%3E");
+      mix-blend-mode: overlay;
     }
-    .tab:hover{ transform: translateY(-1px); border-color: color-mix(in srgb, var(--accent) 40%, var(--border)); }
-    .tab.active{
-      border-color: color-mix(in srgb, var(--accent) 70%, var(--border));
-      box-shadow: 0 0 0 4px rgba(225,29,72,.14);
-      background: linear-gradient(180deg, rgba(225,29,72,.18), rgba(225,29,72,.10));
+
+    .app{
+      width: min(1100px, 92vw);
+      margin: 26px auto 44px;
     }
-    .tab .dot{ width:8px; height:8px; border-radius:999px; background: var(--accent); box-shadow: 0 0 0 3px rgba(225,29,72,.15); }
-    .actions{ min-width:260px; display:flex; justify-content:flex-end; gap:10px; align-items:center; }
-    .pill{
-      border:1px solid var(--border);
-      background: color-mix(in srgb, var(--card) 85%, transparent);
-      padding: 8px 10px;
+
+    /* Topbar */
+    .topbar{
+      position: sticky;
+      top: 16px;
+      z-index: 20;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap: 14px;
+      padding: 12px 14px;
       border-radius: 999px;
-      font-size: 12px;
+      background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.035));
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow2);
+      backdrop-filter: blur(12px);
+    }
+
+    .brand{
+      display:flex; align-items:center; gap:10px;
+      min-width: 240px;
+    }
+    .brand img{
+      width: 34px; height:34px;
+      border-radius: 11px;
+      padding: 6px;
+      background: rgba(255,255,255,.045);
+      border: 1px solid rgba(255,255,255,.10);
+    }
+    .brand-title{ display:flex; flex-direction:column; line-height:1.1; }
+    .brand-title b{ font-size: 14px; letter-spacing:.2px; }
+    .brand-title span{ font-size: 11px; color: var(--muted); }
+
+    .tabs{
+      display:flex; gap:8px; align-items:center; flex-wrap:wrap;
+      justify-content:center;
+    }
+    .tab{
+      appearance:none;
+      border: 1px solid transparent;
+      background: transparent;
       color: var(--muted);
+      padding: 9px 12px;
+      border-radius: 999px;
+      cursor:pointer;
+      font-weight: 750;
+      transition: background .15s ease, border-color .15s ease, transform .08s ease, color .15s ease;
+      display:flex; gap:8px; align-items:center;
       white-space:nowrap;
     }
+    .tab:hover{
+      transform: translateY(-1px);
+      background: rgba(255,255,255,.04);
+      border-color: rgba(255,255,255,.08);
+      color: var(--text);
+    }
+    .tab.active{
+      background: rgba(225,29,72,.16);
+      border-color: rgba(225,29,72,.35);
+      color: var(--text);
+      box-shadow: 0 0 0 4px rgba(225,29,72,.12);
+    }
+    .dot{
+      width:8px; height:8px; border-radius:999px;
+      background: var(--accent);
+      box-shadow: 0 0 0 3px rgba(225,29,72,.14);
+    }
 
-    .grid{ display:grid; grid-template-columns: 1fr; gap:14px; margin-top:14px; }
+    .actions{
+      display:flex; align-items:center; gap:10px; justify-content:flex-end;
+      min-width: 240px;
+    }
+    .pill{
+      display:inline-flex; align-items:center; gap:8px;
+      padding: 8px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.09);
+      background: rgba(255,255,255,.03);
+      color: var(--muted);
+      font-size: 12px;
+      white-space:nowrap;
+    }
+    .btn{
+      appearance:none;
+      border: 1px solid rgba(255,255,255,.10);
+      background: rgba(255,255,255,.04);
+      color: var(--text);
+      padding: 9px 10px;
+      border-radius: 12px;
+      cursor:pointer;
+      font-weight: 760;
+      transition: transform .08s ease, border-color .15s ease, background .15s ease;
+      display:inline-flex; align-items:center; gap:8px;
+    }
+    .btn:hover{
+      transform: translateY(-1px);
+      background: rgba(255,255,255,.055);
+      border-color: rgba(255,255,255,.14);
+    }
+    .btn:disabled{ opacity:.55; cursor:not-allowed; transform:none; }
+    .btn-primary{
+      border-color: rgba(225,29,72,.40);
+      background: linear-gradient(180deg, rgba(225,29,72,.26), rgba(225,29,72,.12));
+    }
+    .btn-danger{
+      border-color: rgba(239,68,68,.45);
+      background: linear-gradient(180deg, rgba(239,68,68,.20), rgba(239,68,68,.10));
+    }
+
+    /* Cards */
+    .grid{ margin-top: 14px; display:grid; gap: 14px; }
     .card{
-      border:1px solid var(--border);
-      background: linear-gradient(180deg, color-mix(in srgb, var(--card) 94%, transparent), var(--card2));
+      border: 1px solid var(--border);
+      background: linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.03));
       border-radius: var(--radius);
       box-shadow: var(--shadow);
-      padding: 16px;
       overflow:hidden;
     }
-    .card h3{ margin:0 0 12px; font-size:16px; }
+    .card-hd{
+      padding: 14px 16px;
+      border-bottom: 1px solid rgba(255,255,255,.06);
+      display:flex; align-items:center; justify-content:space-between; gap: 12px;
+    }
+    .card-hd h3{
+      margin:0;
+      font-size: 14px;
+      letter-spacing: .2px;
+    }
+    .card-bd{ padding: 16px; }
+
+    /* Message */
     .msg{
-      padding: 12px 14px; border-radius: 12px;
-      border: 1px solid var(--border);
-      background: color-mix(in srgb, var(--card) 90%, transparent);
-      display:none;
       margin-top: 14px;
+      padding: 12px 14px;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,.09);
+      background: rgba(255,255,255,.03);
+      display:none;
       white-space: pre-line;
     }
     .msg.show{ display:block; }
-    .msg.ok{ border-color: rgba(34,197,94,.35); }
-    .msg.error{ border-color: rgba(239,68,68,.40); }
-    .muted{ color:var(--muted); font-size:.92em; }
-    .hidden{ display:none !important; }
+    .msg.ok{ border-color: rgba(34,197,94,.28); }
+    .msg.error{ border-color: rgba(239,68,68,.34); }
 
-    .form{ display:grid; grid-template-columns: 1fr; gap:12px; }
-    label{ display:block; font-weight: 800; font-size: 13px; }
+    /* Form */
+    .form{
+      display:grid;
+      gap: 12px;
+      grid-template-columns: 1fr;
+      max-width: 720px;
+    }
+    label{ display:block; font-weight: 800; font-size: 12px; color: var(--muted); }
     input, textarea, select{
       width:100%;
-      margin-top:6px;
-      padding:10px 11px;
-      border-radius: 12px;
-      border: 1px solid var(--border);
-      background: color-mix(in srgb, var(--bg) 35%, var(--card));
+      margin-top: 6px;
+      padding: 11px 12px;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,.10);
+      background: rgba(0,0,0,.20);
       color: var(--text);
       outline:none;
-      transition: box-shadow .2s ease, border-color .2s ease;
-      box-sizing:border-box;
+      transition: box-shadow .15s ease, border-color .15s ease, background .15s ease;
     }
-    textarea{ resize: vertical; min-height: 90px; }
+    textarea{ min-height: 92px; resize: vertical; }
     input:focus, textarea:focus, select:focus{
       box-shadow: var(--focus);
-      border-color: color-mix(in srgb, var(--accent) 55%, var(--border));
+      border-color: rgba(225,29,72,.45);
+      background: rgba(0,0,0,.26);
     }
-    input[readonly]{ opacity:.92; cursor:not-allowed; }
+    input[readonly]{ opacity:.9; }
 
-    .toolbar{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-bottom:12px; }
-    .toolbar input{ max-width:340px; }
-    .pager{ display:flex; gap:8px; align-items:center; margin-left:auto; }
+    .muted{ color: var(--muted); font-size: 12px; }
 
-    .btn{
-      border:1px solid var(--border);
-      background: linear-gradient(180deg, color-mix(in srgb, var(--card) 92%, transparent), var(--card2));
-      color:var(--text);
-      padding:10px 12px;
-      border-radius:12px;
-      cursor:pointer;
-      font-weight:750;
-      transition: transform .08s ease, border-color .2s ease;
-      display:inline-flex; align-items:center; gap:8px;
+    /* Toolbar / Pagination */
+    .toolbar{
+      display:flex; gap:10px; align-items:center; flex-wrap:wrap;
+      padding: 12px 16px;
+      border-bottom: 1px solid rgba(255,255,255,.06);
     }
-    .btn:hover{ transform: translateY(-1px); border-color: color-mix(in srgb, var(--accent) 40%, var(--border)); }
-    .btn:disabled{ opacity:.6; cursor:not-allowed; transform:none; }
-    .btn-primary{
-      border-color: color-mix(in srgb, var(--accent) 60%, var(--border));
-      background: linear-gradient(180deg, rgba(225,29,72,.35), rgba(225,29,72,.15));
+    .toolbar input{
+      max-width: 360px;
     }
-    .btn-danger{
-      border-color: rgba(239,68,68,.55);
-      background: linear-gradient(180deg, rgba(239,68,68,.22), rgba(239,68,68,.12));
-    }
-    .tiny{ padding: 8px 10px; border-radius: 10px; font-weight: 750; }
+    .pager{ margin-left:auto; display:flex; gap:8px; align-items:center; }
 
+    /* Table */
     .table-wrap{
-      border:1px solid var(--border);
-      border-radius: 12px;
+      max-height: 72vh;
       overflow:auto;
-      max-height: 70vh;
-      background: color-mix(in srgb, var(--card) 85%, transparent);
     }
-    table{ width:100%; border-collapse: separate; border-spacing: 0; min-width: 980px; }
+    table{
+      width:100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      min-width: 980px;
+    }
     thead th{
-      position: sticky; top: 0; z-index: 3;
-      font-size:12px; text-transform: uppercase; letter-spacing:.2px;
-      color: var(--muted);
-      background: color-mix(in srgb, var(--card) 92%, black);
-      border-bottom: 1px solid var(--border);
-      padding: 10px 10px;
-      white-space: nowrap;
+      position: sticky;
+      top: 0;
+      z-index: 5;
+      background: rgba(10,10,14,.85);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid rgba(255,255,255,.08);
+      padding: 10px 12px;
+      text-align:left;
+      font-size: 11px;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: rgba(231,235,242,.75);
     }
-    tbody td{ border-bottom: 1px solid var(--border); padding: 10px 10px; vertical-align: top; }
-    tbody tr:hover td{ background: rgba(225,29,72,.06); }
-    .date-cell input[type="date"]{ padding:8px 10px; border-radius:10px; }
+    tbody td{
+      border-bottom: 1px solid rgba(255,255,255,.06);
+      padding: 12px 12px;
+      vertical-align: top;
+      color: rgba(231,235,242,.92);
+    }
+    tbody tr:hover td{
+      background: rgba(255,255,255,.02);
+    }
 
-    @media (max-width: 920px){
-      .app{ width:94%; }
-      .pager{ margin-left: 0; }
-      .actions{ min-width:auto; }
-      .brand{ min-width:auto; }
+    .date-cell input[type="date"]{
+      padding: 9px 10px;
+      border-radius: 12px;
+      min-width: 150px;
+    }
+    .tiny{ padding: 8px 10px; border-radius: 12px; font-weight: 780; }
+    .hidden{ display:none !important; }
+
+    /* Small */
+    @media (max-width: 980px){
+      .topbar{ border-radius: 18px; padding: 12px; }
+      .brand, .actions{ min-width:auto; }
+      .actions{ flex-wrap:wrap; justify-content:flex-end; }
       table{ min-width: 920px; }
     }
   </style>
 </head>
 
 <body>
+  <div class="bg-noise"></div>
+
   <div class="app">
     <div class="topbar">
       <div class="brand">
         <img alt="Logo" src="https://raw.githubusercontent.com/BattleNogare/h-h_weinfabrik/main/fischer_weinfabrik_logo.png">
-        <div>
-          <h2>Aufträge</h2>
-          <p class="sub">Backend: Supabase Edge Function · OPEN (ohne Key)</p>
+        <div class="brand-title">
+          <b>Fischer Weinfabrik · Aufträge</b>
+          <span>Minimal UI · Rot Akzent · Supabase</span>
         </div>
       </div>
 
-      <nav>
+      <div class="tabs">
         <button id="tab-create" class="tab active"><span class="dot"></span>Auftrag erstellen</button>
         <button id="tab-open" class="tab"><span class="dot"></span>Offene Aufträge</button>
         <button id="tab-done" class="tab"><span class="dot"></span>Fertige Aufträge</button>
-      </nav>
+      </div>
 
       <div class="actions">
         <span id="syncPill" class="pill">Sync: –</span>
         <button id="btnReload" class="btn tiny">↻ Neu laden</button>
-        <span class="pill">Sortierung: ID ↑</span>
       </div>
     </div>
 
@@ -203,29 +319,32 @@
 
     <div class="grid">
       <section id="view-create" class="card">
-        <h3>Auftrag erstellen</h3>
-
-        <div class="form">
-          <div><label>Kunde*<input id="fKunde" type="text" required /></label></div>
-          <div><label>Mitarbeiter*<input id="fMitarbeiter" type="text" required /></label></div>
-          <div><label>Anzahl Fässer*<input id="fAnzahl" type="number" min="0" step="1" required /></label></div>
-          <div><label>Prozent* (1–100)<input id="fProzent" type="number" min="1" max="100" step="1" required /></label></div>
-          <div><label>Kosten (automatisch)<input id="fKosten" type="text" readonly /></label></div>
-          <div><label>Info<textarea id="fInfo" rows="3"></textarea></label></div>
+        <div class="card-hd">
+          <h3>Auftrag erstellen</h3>
+          <span class="pill">Kosten: auto · €</span>
         </div>
+        <div class="card-bd">
+          <div class="form">
+            <div><label>Kunde*<input id="fKunde" type="text" required /></label></div>
+            <div><label>Mitarbeiter*<input id="fMitarbeiter" type="text" required /></label></div>
+            <div><label>Anzahl Fässer*<input id="fAnzahl" type="number" min="0" step="1" required /></label></div>
+            <div><label>Prozent* (1–100)<input id="fProzent" type="number" min="1" max="100" step="1" required /></label></div>
+            <div><label>Kosten (automatisch)<input id="fKosten" type="text" readonly /></label></div>
+            <div><label>Info<textarea id="fInfo" rows="3"></textarea></label></div>
+          </div>
 
-        <div style="margin-top: 14px; display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
-          <button id="btnCreate" class="btn btn-primary">💾 Speichern</button>
-          <span class="muted">* Pflichtfelder</span>
-        </div>
-
-        <div class="muted" style="margin-top:10px;">
-          Hinweis: AuftragsDatum wird automatisch gesetzt. Neue Aufträge starten immer mit „Erhalten = Nein“.
+          <div style="margin-top: 14px; display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+            <button id="btnCreate" class="btn btn-primary">💾 Speichern</button>
+            <span class="muted">AuftragsDatum wird automatisch gesetzt · Erhalten startet mit „Nein“</span>
+          </div>
         </div>
       </section>
 
       <section id="view-open" class="card hidden">
-        <h3>Offene Aufträge</h3>
+        <div class="card-hd">
+          <h3>Offene Aufträge</h3>
+          <span class="pill">Suche: Kunde/Mitarbeiter</span>
+        </div>
 
         <div class="toolbar">
           <input id="openSearch" type="text" placeholder="Suche Kunde/Mitarbeiter…" />
@@ -236,11 +355,14 @@
           </div>
         </div>
 
-        <div id="openTableWrap"></div>
+        <div id="openTableWrap" class="table-wrap"></div>
       </section>
 
       <section id="view-done" class="card hidden">
-        <h3>Fertige Aufträge</h3>
+        <div class="card-hd">
+          <h3>Fertige Aufträge</h3>
+          <span class="pill">Löschen möglich</span>
+        </div>
 
         <div class="toolbar">
           <input id="doneSearch" type="text" placeholder="Suche Kunde/Mitarbeiter…" />
@@ -251,7 +373,7 @@
           </div>
         </div>
 
-        <div id="doneTableWrap"></div>
+        <div id="doneTableWrap" class="table-wrap"></div>
       </section>
     </div>
   </div>
@@ -262,13 +384,13 @@
  * ========================= */
 const API_URL = 'https://mtyaczfezilcnllnwgqq.supabase.co/functions/v1/auftraege-api';
 const PAGE_SIZE = 50;
-const DEBUG = true;
+const DEBUG = false;
 
 /** =========================
  * Helpers
  * ========================= */
 const $ = (id) => document.getElementById(id);
-function log(...args){ if (DEBUG) console.log('[SB-OPEN]', ...args); }
+function log(...args){ if (DEBUG) console.log('[UI]', ...args); }
 
 function showMsg(type, text) {
   const el = $('msg');
@@ -324,7 +446,7 @@ function moneyEUR(n) {
 }
 
 /** =========================
- * API client (OPEN mode – no key)
+ * API client (OPEN)
  * ========================= */
 async function apiFetch(path, { method="GET", body=null } = {}) {
   const url = API_URL + path;
@@ -332,7 +454,7 @@ async function apiFetch(path, { method="GET", body=null } = {}) {
   const init = { method, headers };
 
   if (body !== null) {
-    headers["content-type"] = "application/json";
+    headers["Content-Type"] = "application/json";
     init.body = JSON.stringify(body);
   }
 
@@ -431,54 +553,52 @@ function renderOpen() {
   $('openNext').disabled = (openState.page * PAGE_SIZE) >= total;
 
   const wrap = $('openTableWrap');
-  if (!items.length) { wrap.innerHTML = '<div class="muted">Keine offenen Aufträge gefunden.</div>'; return; }
+  if (!items.length) { wrap.innerHTML = '<div class="card-bd"><div class="muted">Keine offenen Aufträge gefunden.</div></div>'; return; }
 
   wrap.innerHTML = `
-    <div class="table-wrap">
-      <table>
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Kunde</th>
-            <th>Mitarbeiter</th>
-            <th>Anzahl</th>
-            <th>Prozent</th>
-            <th>Kosten</th>
-            <th>AbholDatum</th>
-            <th>Erhalten?</th>
-            <th>Info</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody>
-          ${items.map(r => {
-            const abhol = (r.abhol_datum || '') ? String(r.abhol_datum).slice(0,10) : '';
-            return `
-              <tr>
-                <td>${r.id}</td>
-                <td>${escapeHtml(r.kunde)}</td>
-                <td>${escapeHtml(r.mitarbeiter)}</td>
-                <td>${toInt(r.anzahl)}</td>
-                <td>${toInt(r.prozent)}</td>
-                <td>${moneyEUR(r.kosten)}</td>
-                <td class="date-cell">
-                  <input type="date" min="${TODAY_MIN}" data-id="${r.id}" class="open-abhol" value="${escapeHtml(abhol)}">
-                </td>
-                <td>
-                  <select data-id="${r.id}" class="open-erhalten">
-                    <option value="0" selected>Nein</option>
-                    <option value="1">Ja</option>
-                  </select>
-                  <div class="muted">Ja nur mit AbholDatum</div>
-                </td>
-                <td><textarea data-id="${r.id}" class="open-info" rows="2">${escapeHtml(r.info || '')}</textarea></td>
-                <td><button data-id="${r.id}" class="btn tiny btn-primary open-save">Speichern</button></td>
-              </tr>
-            `;
-          }).join('')}
-        </tbody>
-      </table>
-    </div>
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Kunde</th>
+          <th>Mitarbeiter</th>
+          <th>Anzahl</th>
+          <th>Prozent</th>
+          <th>Kosten</th>
+          <th>AbholDatum</th>
+          <th>Erhalten?</th>
+          <th>Info</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        ${items.map(r => {
+          const abhol = (r.abhol_datum || '') ? String(r.abhol_datum).slice(0,10) : '';
+          return `
+            <tr>
+              <td style="font-family:var(--mono);">${r.id}</td>
+              <td>${escapeHtml(r.kunde)}</td>
+              <td>${escapeHtml(r.mitarbeiter)}</td>
+              <td>${toInt(r.anzahl)}</td>
+              <td>${toInt(r.prozent)}</td>
+              <td>${moneyEUR(r.kosten)}</td>
+              <td class="date-cell">
+                <input type="date" min="${TODAY_MIN}" data-id="${r.id}" class="open-abhol" value="${escapeHtml(abhol)}">
+              </td>
+              <td>
+                <select data-id="${r.id}" class="open-erhalten">
+                  <option value="0" selected>Nein</option>
+                  <option value="1">Ja</option>
+                </select>
+                <div class="muted">Ja nur mit AbholDatum</div>
+              </td>
+              <td><textarea data-id="${r.id}" class="open-info" rows="2">${escapeHtml(r.info || '')}</textarea></td>
+              <td><button data-id="${r.id}" class="btn tiny btn-primary open-save">Speichern</button></td>
+            </tr>
+          `;
+        }).join('')}
+      </tbody>
+    </table>
   `;
 
   wrap.querySelectorAll('.open-save').forEach(btn => {
@@ -522,47 +642,45 @@ function renderDone() {
   $('doneNext').disabled = (doneState.page * PAGE_SIZE) >= total;
 
   const wrap = $('doneTableWrap');
-  if (!items.length) { wrap.innerHTML = '<div class="muted">Keine fertigen Aufträge gefunden.</div>'; return; }
+  if (!items.length) { wrap.innerHTML = '<div class="card-bd"><div class="muted">Keine fertigen Aufträge gefunden.</div></div>'; return; }
 
   wrap.innerHTML = `
-    <div class="table-wrap">
-      <table>
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>AuftragsDatum</th>
-            <th>Kunde</th>
-            <th>Mitarbeiter</th>
-            <th>Anzahl</th>
-            <th>Prozent</th>
-            <th>Kosten</th>
-            <th>AbholDatum</th>
-            <th>Info</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody>
-          ${items.map(r => {
-            const auftrags = r.auftrags_datum ? new Date(r.auftrags_datum).toLocaleString('de-DE') : '';
-            const abhol = (r.abhol_datum || '') ? String(r.abhol_datum).slice(0,10) : '';
-            return `
-              <tr>
-                <td>${r.id}</td>
-                <td>${escapeHtml(auftrags)}</td>
-                <td>${escapeHtml(r.kunde)}</td>
-                <td>${escapeHtml(r.mitarbeiter)}</td>
-                <td>${toInt(r.anzahl)}</td>
-                <td>${toInt(r.prozent)}</td>
-                <td>${moneyEUR(r.kosten)}</td>
-                <td>${escapeHtml(abhol)}</td>
-                <td>${escapeHtml(r.info || '')}</td>
-                <td><button data-id="${r.id}" class="btn tiny btn-danger done-del">Löschen</button></td>
-              </tr>
-            `;
-          }).join('')}
-        </tbody>
-      </table>
-    </div>
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>AuftragsDatum</th>
+          <th>Kunde</th>
+          <th>Mitarbeiter</th>
+          <th>Anzahl</th>
+          <th>Prozent</th>
+          <th>Kosten</th>
+          <th>AbholDatum</th>
+          <th>Info</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        ${items.map(r => {
+          const auftrags = r.auftrags_datum ? new Date(r.auftrags_datum).toLocaleString('de-DE') : '';
+          const abhol = (r.abhol_datum || '') ? String(r.abhol_datum).slice(0,10) : '';
+          return `
+            <tr>
+              <td style="font-family:var(--mono);">${r.id}</td>
+              <td>${escapeHtml(auftrags)}</td>
+              <td>${escapeHtml(r.kunde)}</td>
+              <td>${escapeHtml(r.mitarbeiter)}</td>
+              <td>${toInt(r.anzahl)}</td>
+              <td>${toInt(r.prozent)}</td>
+              <td>${moneyEUR(r.kosten)}</td>
+              <td>${escapeHtml(abhol)}</td>
+              <td>${escapeHtml(r.info || '')}</td>
+              <td><button data-id="${r.id}" class="btn tiny btn-danger done-del">Löschen</button></td>
+            </tr>
+          `;
+        }).join('')}
+      </tbody>
+    </table>
   `;
 
   wrap.querySelectorAll('.done-del').forEach(btn => {
@@ -636,8 +754,8 @@ async function createOrder() {
     $('fInfo').value = '';
     $('fKosten').value = '';
 
-    // refresh open list so the new item shows up
     await loadAndRenderOpen();
+    setTab('open');
 
   } catch (e) {
     showMsg('error', e.message);
