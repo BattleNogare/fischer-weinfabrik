@@ -8,19 +8,12 @@
 
   <style>
     :root{
-      --bg:#0b0d10;
-      --bg2:#0f1217;
-      --card:#11151c;
-      --card2:#0f131a;
-      --text:#e7eaf0;
-      --muted:#a8b0bf;
-      --border: rgba(255,255,255,.08);
+      --bg:#0b0d10; --bg2:#0f1217; --card:#11151c; --card2:#0f131a;
+      --text:#e7eaf0; --muted:#a8b0bf; --border: rgba(255,255,255,.08);
       --shadow: 0 12px 34px rgba(0,0,0,.42);
-      --accent:#e11d48;
-      --focus: 0 0 0 3px rgba(225,29,72,.25);
+      --accent:#e11d48; --focus: 0 0 0 3px rgba(225,29,72,.25);
       --radius: 14px;
     }
-
     body{
       margin:0;
       font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
@@ -30,9 +23,7 @@
         linear-gradient(180deg, var(--bg), var(--bg2));
       color: var(--text);
     }
-
     .app{ width:85%; max-width:1300px; margin:22px auto 40px; }
-
     .topbar{
       display:flex; gap:14px; align-items:center; justify-content:space-between;
       padding:14px 16px;
@@ -43,7 +34,6 @@
       position: sticky; top: 14px; backdrop-filter: blur(10px);
       z-index: 10;
     }
-
     .brand{ display:flex; gap:12px; align-items:center; min-width: 260px; }
     .brand img{
       width:34px; height:34px; border-radius:10px; border:1px solid var(--border);
@@ -71,7 +61,6 @@
       background: linear-gradient(180deg, rgba(225,29,72,.18), rgba(225,29,72,.10));
     }
     .tab .dot{ width:8px; height:8px; border-radius:999px; background: var(--accent); box-shadow: 0 0 0 3px rgba(225,29,72,.15); }
-
     .actions{ min-width:260px; display:flex; justify-content:flex-end; gap:10px; align-items:center; }
     .pill{
       border:1px solid var(--border);
@@ -84,7 +73,6 @@
     }
 
     .grid{ display:grid; grid-template-columns: 1fr; gap:14px; margin-top:14px; }
-
     .card{
       border:1px solid var(--border);
       background: linear-gradient(180deg, color-mix(in srgb, var(--card) 94%, transparent), var(--card2));
@@ -94,7 +82,6 @@
       overflow:hidden;
     }
     .card h3{ margin:0 0 12px; font-size:16px; }
-
     .msg{
       padding: 12px 14px; border-radius: 12px;
       border: 1px solid var(--border);
@@ -111,7 +98,6 @@
     .hidden{ display:none !important; }
 
     .form{ display:grid; grid-template-columns: 1fr; gap:12px; }
-
     label{ display:block; font-weight: 800; font-size: 13px; }
     input, textarea, select{
       width:100%;
@@ -168,9 +154,7 @@
     }
     table{ width:100%; border-collapse: separate; border-spacing: 0; min-width: 900px; }
     thead th{
-      position: sticky;
-      top: 0;
-      z-index: 3;
+      position: sticky; top: 0; z-index: 3;
       font-size:12px; text-transform: uppercase; letter-spacing:.2px;
       color: var(--muted);
       background: color-mix(in srgb, var(--card) 92%, black);
@@ -181,7 +165,6 @@
     tbody td{ border-bottom: 1px solid var(--border); padding: 10px 10px; vertical-align: top; }
     tbody tr:hover td{ background: rgba(225,29,72,.06); }
 
-    iframe#sinkFrame{ display:none; width:0; height:0; border:0; }
     .date-cell input[type="date"]{ padding:8px 10px; border-radius:10px; }
 
     @media (max-width: 920px){
@@ -201,7 +184,7 @@
         <img alt="Logo" src="https://raw.githubusercontent.com/BattleNogare/h-h_weinfabrik/main/fischer_weinfabrik_logo.png">
         <div>
           <h2>Aufträge</h2>
-          <p class="sub">LIVE Read: Google Sheets GVIZ JSONP · Write: Apps Script</p>
+          <p class="sub">LIVE Read: Google Sheets GViz · Write: Apps Script (no-cors fetch)</p>
         </div>
       </div>
 
@@ -248,10 +231,6 @@
           <button id="btnCreate" class="btn btn-primary">💾 Speichern</button>
           <span class="muted">* Pflichtfelder</span>
         </div>
-
-        <div class="muted" style="margin-top:10px;">
-          Hinweis: Lesen ist „live“ aus der Tabelle (GViz). Schreiben geht per Apps Script (Form POST).
-        </div>
       </section>
 
       <section id="view-open" class="card hidden">
@@ -286,8 +265,6 @@
     </div>
   </div>
 
-  <iframe id="sinkFrame" name="sinkFrame"></iframe>
-
 <script>
 /** =========================
  * CONFIG
@@ -295,9 +272,9 @@
 const WEBAPP_EXEC_URL = 'https://script.google.com/macros/s/AKfycbwdmRIAvTa05Rty0E5E9zintH15VerIP5dPgvOzD4Ymk77mCyuE0IPqzrX3XGzNmNHoyg/exec';
 const API_BASE = WEBAPP_EXEC_URL + '?api=1';
 
-// Google Sheet config (READ via GViz JSONP)
+// READ via GViz
 const SPREADSHEET_ID = '18Q64WpaE2NAEmva0Y8dABSamcMfzcbVp2CJ1ToZ9Il8';
-const SHEET_GID = '345717060'; // <- das ist dein GID aus der alten CSV URL
+const SHEET_GID = '345717060';
 
 const PAGE_SIZE = 50;
 const DEBUG = true;
@@ -322,8 +299,7 @@ function setTab(tab) {
     $('tab-' + t).classList.toggle('active', t === tab);
     $('view-' + t).classList.toggle('hidden', t !== tab);
   }
-
-  // ✅ Tab-Wechsel: immer live neu lesen (GViz + cache-bust)
+  // Tab-Wechsel: immer live neu lesen
   if (tab === 'open') { loadAllFromGViz(true).then(renderOpen).catch(e => showMsg('error', e.message)); }
   if (tab === 'done') { loadAllFromGViz(true).then(renderDone).catch(e => showMsg('error', e.message)); }
 }
@@ -370,10 +346,8 @@ function normalizeDateOnlyForInput(v){
   if (!s) return '';
   if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
   const m = s.match(/(\d{4}-\d{2}-\d{2})/);
-  if (m) return m[1];
-  return '';
+  return m ? m[1] : '';
 }
-
 function computeKosten(anzahl, prozent) {
   const a = Number(anzahl);
   const p = Number(prozent);
@@ -387,83 +361,28 @@ function moneyEUR(n) {
   return Math.round(v).toLocaleString('de-DE') + ' €';
 }
 
-/** =========================
- * JSONP Loader (generic)
- * ========================= */
-function jsonp(url, { timeoutMs = 15000 } = {}) {
-  return new Promise((resolve, reject) => {
-    const cbName = '__cb_' + Math.random().toString(36).slice(2);
-    const script = document.createElement('script');
-    const started = Date.now();
-
-    function cleanup() {
-      try { delete window[cbName]; } catch {}
-      if (script && script.parentNode) script.parentNode.removeChild(script);
-    }
-
-    const t = setTimeout(() => {
-      cleanup();
-      reject(new Error('JSONP Timeout nach ' + timeoutMs + 'ms\nURL: ' + url));
-    }, timeoutMs);
-
-    window[cbName] = (data) => {
-      clearTimeout(t);
-      cleanup();
-      resolve(data);
-    };
-
-    const u = new URL(url);
-    u.searchParams.set('callback', cbName);
-
-    script.async = true;
-    script.referrerPolicy = "no-referrer";
-    script.src = u.toString();
-
-    log('JSONP SCRIPT SRC:', script.src);
-
-    script.onerror = () => {
-      clearTimeout(t);
-      cleanup();
-      const ms = Date.now() - started;
-      reject(new Error('JSONP Script Load Error\nDauer: ' + ms + 'ms\nURL: ' + script.src));
-    };
-
-    document.head.appendChild(script);
-  });
-}
+function sleep(ms){ return new Promise(r => setTimeout(r, ms)); }
 
 /** =========================
- * LIVE READ via Google Sheets GViz
+ * LIVE READ via GViz (script-injection interceptor)
  * ========================= */
 let allRows = [];
 let lastSync = null;
 
-// GViz returns: google.visualization.Query.setResponse({...})
-// We load it via JSONP-ish "callback=..." and then parse payload.
 async function loadAllFromGViz(forceNoCache) {
   const base = `https://docs.google.com/spreadsheets/d/${encodeURIComponent(SPREADSHEET_ID)}/gviz/tq`;
   const u = new URL(base);
   u.searchParams.set('gid', SHEET_GID);
-  u.searchParams.set('tqx', 'out:json'); // returns JS wrapper string
+  u.searchParams.set('tqx', 'out:json');
   if (forceNoCache) u.searchParams.set('_ts', String(Date.now()));
-
-  // We cannot use fetch reliably cross-origin without CORS;
-  // so we do JSONP by loading the endpoint as script and capturing string via callback.
-  // Trick: Use the "tqx=out:json" response as a string passed to our callback by requesting
-  // docs.google.com via our own JSONP wrapper endpoint? Not possible.
-  //
-  // Instead: Load GViz with a normal <script> and intercept by defining google.visualization.Query.setResponse.
-  // We'll do that safely below.
-
   const url = u.toString();
   log('GVIZ LOAD', url);
 
-  // Remove previous hook if any
   if (!window.google) window.google = {};
   if (!window.google.visualization) window.google.visualization = {};
+  if (!window.google.visualization.Query) window.google.visualization.Query = {};
 
-  // We'll intercept setResponse once for this load
-  const prev = window.google.visualization.Query && window.google.visualization.Query.setResponse;
+  const prev = window.google.visualization.Query.setResponse;
   let resolveFn, rejectFn;
   const p = new Promise((resolve, reject) => { resolveFn = resolve; rejectFn = reject; });
 
@@ -474,19 +393,9 @@ async function loadAllFromGViz(forceNoCache) {
 
   function cleanup() {
     clearTimeout(timeout);
-    // restore previous handler
-    if (prev) {
-      window.google.visualization.Query.setResponse = prev;
-    } else {
-      // keep minimal object
-      if (window.google && window.google.visualization && window.google.visualization.Query) {
-        // noop
-      }
-    }
+    if (prev) window.google.visualization.Query.setResponse = prev;
   }
 
-  // ensure Query exists
-  if (!window.google.visualization.Query) window.google.visualization.Query = {};
   window.google.visualization.Query.setResponse = (resp) => {
     try {
       cleanup();
@@ -497,7 +406,6 @@ async function loadAllFromGViz(forceNoCache) {
     }
   };
 
-  // load script
   const script = document.createElement('script');
   script.async = true;
   script.referrerPolicy = "no-referrer";
@@ -510,7 +418,6 @@ async function loadAllFromGViz(forceNoCache) {
 
   const resp = await p;
 
-  // Parse rows into objects by column labels
   const table = resp && resp.table;
   if (!table || !table.cols || !table.rows) throw new Error('GViz: ungültige Antwortstruktur');
 
@@ -524,7 +431,6 @@ async function loadAllFromGViz(forceNoCache) {
       const key = cols[i];
       if (!key) continue;
       const cell = cells[i];
-      // prefer formatted value if present; else raw value
       const v = (cell && cell.v !== undefined) ? cell.v : '';
       const f = (cell && cell.f !== undefined) ? cell.f : undefined;
       obj[key] = (f !== undefined && f !== null && f !== '') ? f : v;
@@ -551,35 +457,32 @@ async function loadAllFromGViz(forceNoCache) {
 }
 
 /** =========================
- * WRITE via Apps Script (Form POST no CORS)
+ * WRITE via Apps Script (NO-CORS fetch)
  * ========================= */
-function postForm(paramsObj, bodyObj) {
+function toFormBody(obj){
+  const p = new URLSearchParams();
+  for (const [k,v] of Object.entries(obj || {})) p.set(k, String(v));
+  return p.toString();
+}
+
+async function postNoCors(paramsObj, bodyObj){
   const url = new URL(API_BASE);
   Object.entries(paramsObj || {}).forEach(([k,v]) => url.searchParams.set(k, String(v)));
 
-  const form = document.createElement('form');
-  form.method = 'POST';
-  form.action = url.toString();
-  form.target = 'sinkFrame';
-  form.style.display = 'none';
+  const body = toFormBody(bodyObj);
+  log('POST no-cors', url.toString(), bodyObj);
 
-  Object.entries(bodyObj || {}).forEach(([k,v]) => {
-    const inp = document.createElement('input');
-    inp.type = 'hidden';
-    inp.name = k;
-    inp.value = String(v);
-    form.appendChild(inp);
+  // Simple request => no preflight
+  await fetch(url.toString(), {
+    method: 'POST',
+    mode: 'no-cors',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' },
+    body
   });
-
-  document.body.appendChild(form);
-  log('POST FORM', form.action, bodyObj);
-
-  form.submit();
-  setTimeout(() => form.remove(), 1000);
 }
 
 /** =========================
- * Create
+ * Create + Reload Retry
  * ========================= */
 function validateCreateForm() {
   const kunde = $('fKunde').value.trim();
@@ -600,6 +503,17 @@ function hookKostenAuto() {
   recalc();
 }
 
+async function reloadWithRetry(prevMaxId, tries = 6){
+  for (let i=0; i<tries; i++){
+    await loadAllFromGViz(true);
+    const maxId = allRows.reduce((m,r)=> Math.max(m, r.ID||0), 0);
+    log('RELOAD CHECK', {prevMaxId, maxId, attempt:i+1});
+    if (maxId > prevMaxId) return true;
+    await sleep(350 + i*200);
+  }
+  return false;
+}
+
 async function createOrder() {
   const btn = $('btnCreate');
   btn.disabled = true;
@@ -617,8 +531,10 @@ async function createOrder() {
       Info: $('fInfo').value.trim()
     };
 
-    postForm({ _ts: Date.now() }, body);
-    showMsg('ok', 'Auftrag gesendet.\nLade LIVE neu…');
+    const prevMaxId = allRows.reduce((m,r)=> Math.max(m, r.ID||0), 0);
+
+    await postNoCors({ _ts: Date.now() }, body);
+    showMsg('ok', 'Auftrag gesendet.\nAktualisiere…');
 
     $('fKunde').value = '';
     $('fMitarbeiter').value = '';
@@ -627,10 +543,18 @@ async function createOrder() {
     $('fInfo').value = '';
     $('fKosten').value = '';
 
-    // live reload from sheet
-    await loadAllFromGViz(true);
+    const ok = await reloadWithRetry(prevMaxId);
+    if (!ok) {
+      showMsg('error',
+        'Auftrag wurde gesendet, aber die Tabelle war nach mehreren Versuchen noch nicht aktualisiert.\n' +
+        'Bitte einmal manuell auf „Neu laden“ klicken.'
+      );
+      return;
+    }
+
     if ($('tab-open').classList.contains('active')) renderOpen();
     if ($('tab-done').classList.contains('active')) renderDone();
+    showMsg('ok', 'Gespeichert & live aktualisiert.');
 
   } catch (e) {
     showMsg('error', e.message);
@@ -641,7 +565,7 @@ async function createOrder() {
 }
 
 /** =========================
- * Pagination + Search
+ * Pagination + Search + Render
  * ========================= */
 let openState = { page: 1, search: '' };
 let doneState = { page: 1, search: '' };
@@ -666,6 +590,14 @@ function applySearchAndPage(rows, state) {
   return { total, items };
 }
 
+async function patchOrder(id, payload){
+  await postNoCors({ method:'PATCH', id, debug:'1', _ts: Date.now() }, payload);
+}
+
+async function deleteOrder(id){
+  await postNoCors({ method:'DELETE', id, debug:'1', _ts: Date.now() }, {});
+}
+
 function renderOpen() {
   const openRows = allRows.filter(r => !r.__erhalten);
   const { total, items } = applySearchAndPage(openRows, openState);
@@ -682,16 +614,8 @@ function renderOpen() {
       <table>
         <thead>
           <tr>
-            <th>ID</th>
-            <th>Kunde</th>
-            <th>Mitarbeiter</th>
-            <th>Anzahl</th>
-            <th>Prozent</th>
-            <th>Kosten</th>
-            <th>AbholDatum</th>
-            <th>Erhalten?</th>
-            <th>Info</th>
-            <th></th>
+            <th>ID</th><th>Kunde</th><th>Mitarbeiter</th><th>Anzahl</th><th>Prozent</th><th>Kosten</th>
+            <th>AbholDatum</th><th>Erhalten?</th><th>Info</th><th></th>
           </tr>
         </thead>
         <tbody>
@@ -729,22 +653,16 @@ function renderOpen() {
       const erhalten = wrap.querySelector('.open-erhalten[data-id="' + id + '"]').value;
       const abhol = wrap.querySelector('.open-abhol[data-id="' + id + '"]').value;
 
-      if (abhol && isDateBeforeToday(abhol)) {
-        showMsg('error', 'AbholDatum darf nicht in der Vergangenheit liegen.');
-        return;
-      }
-      if (erhalten === '1' && !abhol) {
-        showMsg('error', 'Bitte zuerst ein AbholDatum auswählen (Pflicht), bevor "Erhalten = Ja" gesetzt wird.');
-        return;
-      }
+      if (abhol && isDateBeforeToday(abhol)) { showMsg('error', 'AbholDatum darf nicht in der Vergangenheit liegen.'); return; }
+      if (erhalten === '1' && !abhol) { showMsg('error', 'Bitte zuerst ein AbholDatum auswählen (Pflicht), bevor "Erhalten = Ja" gesetzt wird.'); return; }
 
       btn.disabled = true;
       const old = btn.textContent;
       btn.textContent = 'Speichert…';
 
       try {
-        postForm({ method:'PATCH', id, debug:'1', _ts: Date.now() }, { Info: info, Erhalten: erhalten, AbholDatum: abhol });
-        showMsg('ok', 'Änderung gesendet. ID: ' + id + '\nLade LIVE neu…');
+        await patchOrder(id, { Info: info, Erhalten: erhalten, AbholDatum: abhol });
+        showMsg('ok', 'Änderung gesendet. ID: ' + id + '\nAktualisiere…');
         await loadAllFromGViz(true);
         renderOpen();
       } catch (e) {
@@ -773,17 +691,8 @@ function renderDone() {
       <table>
         <thead>
           <tr>
-            <th>ID</th>
-            <th>AuftragsDatum</th>
-            <th>Kunde</th>
-            <th>Mitarbeiter</th>
-            <th>Anzahl</th>
-            <th>Prozent</th>
-            <th>Kosten</th>
-            <th>AbholDatum</th>
-            <th>Erhalten?</th>
-            <th>Info</th>
-            <th></th>
+            <th>ID</th><th>AuftragsDatum</th><th>Kunde</th><th>Mitarbeiter</th><th>Anzahl</th><th>Prozent</th>
+            <th>Kosten</th><th>AbholDatum</th><th>Erhalten?</th><th>Info</th><th></th>
           </tr>
         </thead>
         <tbody>
@@ -817,8 +726,8 @@ function renderDone() {
       btn.textContent = 'Löscht…';
 
       try {
-        postForm({ method:'DELETE', id, debug:'1', _ts: Date.now() }, {});
-        showMsg('ok', 'Löschung gesendet. ID: ' + id + '\nLade LIVE neu…');
+        await deleteOrder(id);
+        showMsg('ok', 'Löschung gesendet. ID: ' + id + '\nAktualisiere…');
         await loadAllFromGViz(true);
         renderDone();
       } catch (e) {
@@ -865,13 +774,12 @@ $('btnReload').addEventListener('click', async () => {
 
 hookKostenAuto();
 
-// Boot
 (async function init(){
   try{
     await loadAllFromGViz(true);
     setTab('create');
   } catch(e){
-    showMsg('error', 'GViz konnte nicht geladen werden.\n' + e.message + '\n\nTipp: Sheet muss "jeder mit Link" lesbar sein.');
+    showMsg('error', 'GViz konnte nicht geladen werden.\n' + e.message);
   }
 })();
 </script>
