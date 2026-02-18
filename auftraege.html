@@ -320,7 +320,7 @@ function setTab(tab) {
     $('view-' + t).classList.toggle('hidden', t !== tab);
   }
 
-  // ✅ Anforderung: beim Tab-Wechsel IMMER neu laden (live, ohne cache)
+  // ✅ Tab-Wechsel: IMMER neu lesen (live, ohne cache)
   if (tab === 'open') { loadAllFromAPI_JSONP(true).then(renderOpen).catch(e => showMsg('error', e.message)); }
   if (tab === 'done') { loadAllFromAPI_JSONP(true).then(renderDone).catch(e => showMsg('error', e.message)); }
 }
@@ -386,25 +386,26 @@ function moneyEUR(n) {
 }
 
 /** =========================
- * JSONP Loader (no CORS)
+ * JSONP Loader (no CORS) – mit besserer Fehlermeldung
  * ========================= */
-function jsonp(url, { timeoutMs = 12000 } = {}) {
+function jsonp(url, { timeoutMs = 15000 } = {}) {
   return new Promise((resolve, reject) => {
     const cbName = '__cb_' + Math.random().toString(36).slice(2);
     const script = document.createElement('script');
-
-    const t = setTimeout(() => {
-      cleanup();
-      reject(new Error('JSONP Timeout'));
-    }, timeoutMs);
+    const started = Date.now();
 
     function cleanup() {
-      clearTimeout(t);
       try { delete window[cbName]; } catch {}
       if (script && script.parentNode) script.parentNode.removeChild(script);
     }
 
+    const t = setTimeout(() => {
+      cleanup();
+      reject(new Error('JSONP Timeout nach ' + timeoutMs + 'ms\nURL: ' + url));
+    }, timeoutMs);
+
     window[cbName] = (data) => {
+      clearTimeout(t);
       cleanup();
       resolve(data);
     };
@@ -412,13 +413,25 @@ function jsonp(url, { timeoutMs = 12000 } = {}) {
     const u = new URL(url);
     u.searchParams.set('callback', cbName);
 
-    script.src = u.toString();
     script.async = true;
+    script.referrerPolicy = "no-referrer";
+    script.src = u.toString();
+
     script.onerror = () => {
+      clearTimeout(t);
       cleanup();
-      reject(new Error('JSONP Script Load Error'));
+      const ms = Date.now() - started;
+      reject(new Error(
+        'JSONP Script Load Error (oft 403/Permissions)\n' +
+        'Dauer: ' + ms + 'ms\n' +
+        'URL: ' + script.src + '\n\n' +
+        'Fix: Apps Script Deploy → Web App\n' +
+        'Execute as: Me\n' +
+        'Who has access: Anyone\n'
+      ));
     };
 
+    console.log('[GH-JSONP] JSONP SCRIPT SRC:', script.src);
     document.head.appendChild(script);
   });
 }
@@ -433,13 +446,17 @@ async function loadAllFromAPI_JSONP(forceNoCache) {
   const u = new URL(API_BASE);
   u.searchParams.set('status', 'all');
   u.searchParams.set('page', '1');
-  u.searchParams.set('limit', '1000'); // client-side pagination
+  u.searchParams.set('limit', '1000');
+  u.searchParams.set('debug', '1'); // ✅ mehr Server-Debug zurückgeben
   if (forceNoCache) u.searchParams.set('_ts', String(Date.now()));
 
   log('JSONP GET', u.toString());
   const json = await jsonp(u.toString());
 
-  if (!json || !json.ok) throw new Error((json && json.error) ? json.error : 'API Fehler');
+  if (!json || !json.ok) {
+    const dbg = json && (json._serverDebug || json.debug) ? JSON.stringify(json._serverDebug || json.debug, null, 2) : '';
+    throw new Error((json && json.error ? json.error : 'API Fehler') + (dbg ? '\n\nSERVER DEBUG:\n' + dbg : ''));
+  }
 
   allRows = (json.items || []).map(r => {
     r.ID = toInt(r.ID);
@@ -526,8 +543,8 @@ async function createOrder() {
       Info: $('fInfo').value.trim()
     };
 
+    // POST (wir können Response nicht lesen → no CORS)
     postForm({ _ts: Date.now() }, body);
-
     showMsg('ok', 'Auftrag gesendet.\nLade LIVE neu…');
 
     $('fKunde').value = '';
@@ -537,9 +554,21 @@ async function createOrder() {
     $('fInfo').value = '';
     $('fKosten').value = '';
 
-    await loadAllFromAPI_JSONP(true);
+    // Reload live – wenn das wegen 403 scheitert, klare Meldung
+    try {
+      await loadAllFromAPI_JSONP(true);
+    } catch (e) {
+      console.warn('[GH-JSONP] Reload nach Speichern fehlgeschlagen:', e);
+      showMsg('error',
+        'Der Auftrag wurde gesendet, aber LIVE-Reload ist fehlgeschlagen.\n' +
+        e.message
+      );
+      return;
+    }
+
     if ($('tab-open').classList.contains('active')) renderOpen();
     if ($('tab-done').classList.contains('active')) renderDone();
+
   } catch (e) {
     showMsg('error', e.message);
   } finally {
@@ -641,7 +670,7 @@ function renderOpen() {
     btn.addEventListener('click', async () => {
       const id = btn.getAttribute('data-id');
       const info = wrap.querySelector('.open-info[data-id="' + id + '"]').value;
-      const erhalten = wrap.querySelector('.open-erhalten[data-id="' + id + '"]').value; // 1/0
+      const erhalten = wrap.querySelector('.open-erhalten[data-id="' + id + '"]').value;
       const abhol = wrap.querySelector('.open-abhol[data-id="' + id + '"]').value;
 
       if (abhol && isDateBeforeToday(abhol)) {
@@ -664,8 +693,10 @@ function renderOpen() {
         );
 
         showMsg('ok', 'Änderung gesendet. ID: ' + id + '\nLade LIVE neu…');
+
         await loadAllFromAPI_JSONP(true);
         renderOpen();
+
       } catch (e) {
         showMsg('error', e.message);
       } finally {
@@ -776,7 +807,7 @@ $('btnReload').addEventListener('click', async () => {
     if ($('tab-done').classList.contains('active')) renderDone();
     showMsg('ok', 'LIVE neu geladen.');
   } catch (e) {
-    showMsg('error', 'Neu laden fehlgeschlagen: ' + e.message);
+    showMsg('error', 'Neu laden fehlgeschlagen:\n' + e.message);
   } finally {
     $('btnReload').disabled = false;
   }
@@ -784,7 +815,7 @@ $('btnReload').addEventListener('click', async () => {
 
 hookKostenAuto();
 
-// Boot: initial load once (create tab is active; open/done will load on click)
+// Boot
 (async function init(){
   try{
     await loadAllFromAPI_JSONP(true);
