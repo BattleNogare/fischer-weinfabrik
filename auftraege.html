@@ -182,7 +182,7 @@
         <img alt="Logo" src="https://raw.githubusercontent.com/BattleNogare/h-h_weinfabrik/main/fischer_weinfabrik_logo.png">
         <div>
           <h2>Aufträge</h2>
-          <p class="sub">Backend: Supabase Edge Function · Key ohne Login</p>
+          <p class="sub">Backend: Supabase Edge Function · OPEN (ohne Key)</p>
         </div>
       </div>
 
@@ -194,7 +194,6 @@
 
       <div class="actions">
         <span id="syncPill" class="pill">Sync: –</span>
-        <button id="btnKey" class="btn tiny">🔑 Key</button>
         <button id="btnReload" class="btn tiny">↻ Neu laden</button>
         <span class="pill">Sortierung: ID ↑</span>
       </div>
@@ -269,7 +268,7 @@ const DEBUG = true;
  * Helpers
  * ========================= */
 const $ = (id) => document.getElementById(id);
-function log(...args){ if (DEBUG) console.log('[SB]', ...args); }
+function log(...args){ if (DEBUG) console.log('[SB-OPEN]', ...args); }
 
 function showMsg(type, text) {
   const el = $('msg');
@@ -285,8 +284,8 @@ function setTab(tab) {
     $('tab-' + t).classList.toggle('active', t === tab);
     $('view-' + t).classList.toggle('hidden', t !== tab);
   }
-  if (tab === 'open') { loadAndRenderOpen(true).catch(e => showMsg('error', e.message)); }
-  if (tab === 'done') { loadAndRenderDone(true).catch(e => showMsg('error', e.message)); }
+  if (tab === 'open') { loadAndRenderOpen().catch(e => showMsg('error', e.message)); }
+  if (tab === 'done') { loadAndRenderDone().catch(e => showMsg('error', e.message)); }
 }
 
 function todayISO() {
@@ -325,32 +324,11 @@ function moneyEUR(n) {
 }
 
 /** =========================
- * Key handling
- * ========================= */
-function getAppKey() {
-  let k = localStorage.getItem("APP_KEY") || "";
-  if (!k) {
-    k = prompt("Bitte App-Key eingeben:") || "";
-    if (k) localStorage.setItem("APP_KEY", k);
-  }
-  return k;
-}
-function setAppKey() {
-  const current = localStorage.getItem("APP_KEY") || "";
-  const k = prompt("App-Key setzen/ändern:", current) || "";
-  if (k) localStorage.setItem("APP_KEY", k);
-  else localStorage.removeItem("APP_KEY");
-}
-
-/** =========================
- * API client
+ * API client (OPEN mode – no key)
  * ========================= */
 async function apiFetch(path, { method="GET", body=null } = {}) {
-  const key = getAppKey();
-  if (!key) throw new Error("Kein App-Key gesetzt.");
-
   const url = API_URL + path;
-  const headers = { "x-app-key": key };
+  const headers = {};
   const init = { method, headers };
 
   if (body !== null) {
@@ -418,14 +396,14 @@ function setSyncPill(){
   else $('syncPill').textContent = 'Sync: ' + lastSync.toLocaleString('de-DE');
 }
 
-async function loadAndRenderOpen(force){
+async function loadAndRenderOpen(){
   const out = await apiList('open', 1000, 0);
   allOpen = out.items || [];
   lastSync = new Date();
   setSyncPill();
   renderOpen();
 }
-async function loadAndRenderDone(force){
+async function loadAndRenderDone(){
   const out = await apiList('done', 1000, 0);
   allDone = out.items || [];
   lastSync = new Date();
@@ -525,7 +503,7 @@ function renderOpen() {
           erhalten: (erhalten === '1')
         });
         showMsg('ok', 'Gespeichert. ID: ' + id);
-        await loadAndRenderOpen(true);
+        await loadAndRenderOpen();
       } catch (e) {
         showMsg('error', e.message);
       } finally {
@@ -599,7 +577,7 @@ function renderDone() {
       try {
         await apiDelete(id);
         showMsg('ok', 'Gelöscht. ID: ' + id);
-        await loadAndRenderDone(true);
+        await loadAndRenderDone();
       } catch (e) {
         showMsg('error', e.message);
       } finally {
@@ -659,7 +637,7 @@ async function createOrder() {
     $('fKosten').value = '';
 
     // refresh open list so the new item shows up
-    await loadAndRenderOpen(true);
+    await loadAndRenderOpen();
 
   } catch (e) {
     showMsg('error', e.message);
@@ -699,18 +677,11 @@ $('btnReload').addEventListener('click', async () => {
   }
 });
 
-$('btnKey').addEventListener('click', () => {
-  setAppKey();
-  showMsg('ok', 'Key gespeichert/aktualisiert.');
-});
-
 hookKostenAuto();
 
 // Boot
 (async function init(){
   try{
-    // force key prompt early
-    getAppKey();
     await loadAllForReload();
     setTab('create');
   } catch(e){
