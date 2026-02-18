@@ -31,7 +31,7 @@
       color: var(--text);
     }
 
-    .app{ width:92%; max-width:1800px; margin:22px auto 40px; }
+    .app{ width:85%; max-width:1300px; margin:22px auto 40px; }
 
     .topbar{
       display:flex; gap:14px; align-items:center; justify-content:space-between;
@@ -159,15 +159,14 @@
     }
     .tiny{ padding: 8px 10px; border-radius: 10px; font-weight: 750; }
 
-    /* ✅ Sticky header setup */
+    /* sticky header */
     .table-wrap{
       border:1px solid var(--border);
       border-radius: 12px;
       overflow:auto;
-      max-height: 70vh; /* scroll inside table */
+      max-height: 70vh;
       background: color-mix(in srgb, var(--card) 85%, transparent);
     }
-
     table{ width:100%; border-collapse: separate; border-spacing: 0; min-width: 900px; }
     thead th{
       position: sticky;
@@ -180,14 +179,8 @@
       padding: 10px 10px;
       white-space: nowrap;
     }
-    tbody td{
-      border-bottom: 1px solid var(--border);
-      padding: 10px 10px;
-      vertical-align: top;
-      background: transparent;
-    }
+    tbody td{ border-bottom: 1px solid var(--border); padding: 10px 10px; vertical-align: top; }
     tbody tr:hover td{ background: rgba(225,29,72,.06); }
-    .row-actions{ display:flex; gap:8px; align-items:center; }
 
     iframe#sinkFrame{ display:none; width:0; height:0; border:0; }
     .date-cell input[type="date"]{ padding:8px 10px; border-radius:10px; }
@@ -209,7 +202,7 @@
         <img alt="Logo" src="https://raw.githubusercontent.com/BattleNogare/h-h_weinfabrik/main/fischer_weinfabrik_logo.png">
         <div>
           <h2>Aufträge</h2>
-          <p class="sub">GitHub UI · CSV Read · Apps Script Write</p>
+          <p class="sub">GitHub UI · LIVE Read (JSONP) · Write (Form POST)</p>
         </div>
       </div>
 
@@ -258,7 +251,7 @@
         </div>
 
         <div class="muted" style="margin-top:10px;">
-          Es kann verzögert sein dass ein neuer Auftrag unter offenen Aufträgen auftaucht (ca 1-2 min)
+          Live-Sync: Lesen per JSONP (sofort aktuell), Schreiben per Form-POST.
         </div>
       </section>
 
@@ -298,22 +291,19 @@
 
 <script>
 /** =========================
- * CONFIG (DU MUSST NUR HIER EINMAL ANPASSEN)
+ * CONFIG (HIER EINTRAGEN)
  * ========================= */
 const WEBAPP_EXEC_URL = 'https://script.google.com/macros/s/AKfycbyrbnoenHlCFKW1Lk1bI_GOf9WFlw7IR9Y_fxZAsaOfG57Ddy4Ei2ENTTNCSN1IyypmzQ/exec'; // z.B. https://script.google.com/macros/s/.../exec
 const API_BASE = WEBAPP_EXEC_URL + '?api=1';
-
-// Public CSV (read-only)
-const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQF3gShRvJeEt3T4Za6wm_2mOzWhJU1Zj07iEs19fKJAypT-PEHn728dDzsWHTwLaVl4G1YC7rXMGil/pub?gid=345717060&single=true&output=csv';
 
 const PAGE_SIZE = 50;
 const DEBUG = true;
 
 /** =========================
- * UI HELPERS
+ * Helpers
  * ========================= */
 const $ = (id) => document.getElementById(id);
-function log(...args){ if (DEBUG) console.log('[GH-APP]', ...args); }
+function log(...args){ if (DEBUG) console.log('[GH-JSONP]', ...args); }
 
 function showMsg(type, text) {
   const el = $('msg');
@@ -329,13 +319,12 @@ function setTab(tab) {
     $('tab-' + t).classList.toggle('active', t === tab);
     $('view-' + t).classList.toggle('hidden', t !== tab);
   }
-  if (tab === 'open') renderOpen();
-  if (tab === 'done') renderDone();
+
+  // ✅ Anforderung: beim Tab-Wechsel IMMER neu laden (live, ohne cache)
+  if (tab === 'open') { loadAllFromAPI_JSONP(true).then(renderOpen).catch(e => showMsg('error', e.message)); }
+  if (tab === 'done') { loadAllFromAPI_JSONP(true).then(renderDone).catch(e => showMsg('error', e.message)); }
 }
 
-/** =========================
- * DATE HELPERS (Client)
- * ========================= */
 function todayISO() {
   const d = new Date();
   const yyyy = d.getFullYear();
@@ -349,56 +338,13 @@ function isDateBeforeToday(dateStr) {
   return dateStr < TODAY_MIN;
 }
 
-/** =========================
- * ✅ FIX: robust DE number parser
- * ========================= */
 function parseNumberDE(value) {
   if (typeof value === 'number' && Number.isFinite(value)) return value;
-
-  const s = String(value ?? '')
-    .trim()
-    .replace(/\s/g, '')
-    .replace(/€/g, '');
-
+  const s = String(value ?? '').trim().replace(/\s/g, '').replace(/€/g, '');
   if (!s) return 0;
-
   const normalized = s.replace(/\./g, '').replace(',', '.');
   const n = Number(normalized);
   return Number.isFinite(n) ? n : 0;
-}
-
-/** =========================
- * DATA: CSV LOAD + PARSE
- * ========================= */
-let allRows = [];
-let lastSync = null;
-
-function parseCSV(text) {
-  const rows = [];
-  let cur = '';
-  let inQuotes = false;
-  let row = [];
-
-  for (let i = 0; i < text.length; i++) {
-    const ch = text[i];
-    const next = text[i+1];
-
-    if (ch === '"' && inQuotes && next === '"') { cur += '"'; i++; continue; }
-    if (ch === '"') { inQuotes = !inQuotes; continue; }
-
-    if (ch === ',' && !inQuotes) { row.push(cur); cur = ''; continue; }
-    if ((ch === '\n' || ch === '\r') && !inQuotes) {
-      if (ch === '\r' && next === '\n') i++;
-      row.push(cur); cur = '';
-      if (row.length > 1 || (row.length === 1 && row[0] !== '')) rows.push(row);
-      row = [];
-      continue;
-    }
-    cur += ch;
-  }
-  row.push(cur);
-  if (row.length > 1 || (row.length === 1 && row[0] !== '')) rows.push(row);
-  return rows;
 }
 
 function toBool(v){
@@ -417,7 +363,6 @@ function escapeHtml(s) {
     .replaceAll('"', '&quot;')
     .replaceAll("'", '&#039;');
 }
-
 function normalizeDateOnlyForInput(v){
   const s = String(v ?? '').trim();
   if (!s) return '';
@@ -427,49 +372,95 @@ function normalizeDateOnlyForInput(v){
   return '';
 }
 
-async function loadCSV() {
-  const url = CSV_URL + '&_ts=' + Date.now();
-  log('Loading CSV', url);
-
-  const res = await fetch(url, { method:'GET', cache:'no-store' });
-  const text = await res.text();
-  const raw = parseCSV(text);
-
-  if (!raw.length) throw new Error('CSV leer / nicht erreichbar.');
-
-  const header = raw[0].map(h => String(h).trim());
-  const dataRows = raw.slice(1);
-
-  const items = dataRows
-    .filter(r => r.some(cell => String(cell).trim() !== ''))
-    .map(r => {
-      const obj = {};
-      for (let i = 0; i < header.length; i++) obj[header[i]] = r[i] ?? '';
-
-      obj.ID = toInt(obj.ID);
-      obj.Anzahl = toInt(obj.Anzahl);
-      obj.Prozent = toInt(obj.Prozent);
-
-      // ✅ FIX: robust cost parsing
-      obj.Kosten = parseNumberDE(obj.Kosten);
-
-      obj.AuftragsDatum = String(obj.AuftragsDatum ?? '').trim();
-      obj.AbholDatum = String(obj.AbholDatum ?? '').trim();
-      obj.__abholInput = normalizeDateOnlyForInput(obj.AbholDatum);
-
-      obj.__erhalten = toBool(obj['Kunde hat alle Weinflaschen erhalten?']);
-      return obj;
-    })
-    .sort((a,b) => a.ID - b.ID);
-
-  allRows = items;
-  lastSync = new Date();
-  $('syncPill').textContent = 'Sync: ' + lastSync.toLocaleString('de-DE');
-  log('CSV loaded rows=', allRows.length);
+function computeKosten(anzahl, prozent) {
+  const a = Number(anzahl);
+  const p = Number(prozent);
+  if (!Number.isFinite(a) || !Number.isFinite(p)) return '';
+  const val = (a * 8 * 1299) * (p / 100);
+  return Math.round(val).toLocaleString('de-DE') + ' €';
+}
+function moneyEUR(n) {
+  const v = Number(n);
+  if (!Number.isFinite(v)) return '';
+  return Math.round(v).toLocaleString('de-DE') + ' €';
 }
 
 /** =========================
- * WRITE: Cross-Origin Form POST (No CORS)
+ * JSONP Loader (no CORS)
+ * ========================= */
+function jsonp(url, { timeoutMs = 12000 } = {}) {
+  return new Promise((resolve, reject) => {
+    const cbName = '__cb_' + Math.random().toString(36).slice(2);
+    const script = document.createElement('script');
+
+    const t = setTimeout(() => {
+      cleanup();
+      reject(new Error('JSONP Timeout'));
+    }, timeoutMs);
+
+    function cleanup() {
+      clearTimeout(t);
+      try { delete window[cbName]; } catch {}
+      if (script && script.parentNode) script.parentNode.removeChild(script);
+    }
+
+    window[cbName] = (data) => {
+      cleanup();
+      resolve(data);
+    };
+
+    const u = new URL(url);
+    u.searchParams.set('callback', cbName);
+
+    script.src = u.toString();
+    script.async = true;
+    script.onerror = () => {
+      cleanup();
+      reject(new Error('JSONP Script Load Error'));
+    };
+
+    document.head.appendChild(script);
+  });
+}
+
+/** =========================
+ * LIVE Read from Apps Script API (JSONP)
+ * ========================= */
+let allRows = [];
+let lastSync = null;
+
+async function loadAllFromAPI_JSONP(forceNoCache) {
+  const u = new URL(API_BASE);
+  u.searchParams.set('status', 'all');
+  u.searchParams.set('page', '1');
+  u.searchParams.set('limit', '1000'); // client-side pagination
+  if (forceNoCache) u.searchParams.set('_ts', String(Date.now()));
+
+  log('JSONP GET', u.toString());
+  const json = await jsonp(u.toString());
+
+  if (!json || !json.ok) throw new Error((json && json.error) ? json.error : 'API Fehler');
+
+  allRows = (json.items || []).map(r => {
+    r.ID = toInt(r.ID);
+    r.Anzahl = toInt(r.Anzahl);
+    r.Prozent = toInt(r.Prozent);
+    r.Kosten = parseNumberDE(r.Kosten);
+
+    r.AuftragsDatum = String(r.AuftragsDatum ?? '').trim();
+    r.AbholDatum = String(r.AbholDatum ?? '').trim();
+    r.__abholInput = normalizeDateOnlyForInput(r.AbholDatum);
+
+    r.__erhalten = !!r['Kunde hat alle Weinflaschen erhalten?'] || toBool(r['Kunde hat alle Weinflaschen erhalten?']);
+    return r;
+  }).sort((a,b) => a.ID - b.ID);
+
+  lastSync = new Date();
+  $('syncPill').textContent = 'Sync: ' + lastSync.toLocaleString('de-DE');
+}
+
+/** =========================
+ * Write: Form POST (no CORS)
  * ========================= */
 function postForm(paramsObj, bodyObj) {
   const url = new URL(API_BASE);
@@ -497,23 +488,7 @@ function postForm(paramsObj, bodyObj) {
 }
 
 /** =========================
- * BUSINESS: Costs
- * ========================= */
-function computeKosten(anzahl, prozent) {
-  const a = Number(anzahl);
-  const p = Number(prozent);
-  if (!Number.isFinite(a) || !Number.isFinite(p)) return '';
-  const val = (a * 8 * 1299) * (p / 100);
-  return Math.round(val).toLocaleString('de-DE') + ' €';
-}
-function moneyEUR(n) {
-  const v = Number(n);
-  if (!Number.isFinite(v)) return '';
-  return Math.round(v).toLocaleString('de-DE') + ' €';
-}
-
-/** =========================
- * VIEW: Create
+ * Create
  * ========================= */
 function validateCreateForm() {
   const kunde = $('fKunde').value.trim();
@@ -551,12 +526,9 @@ async function createOrder() {
       Info: $('fInfo').value.trim()
     };
 
-    postForm({}, body);
+    postForm({ _ts: Date.now() }, body);
 
-    showMsg('ok',
-      'Auftrag gesendet.\n' +
-      'Hinweis: Die CSV-Ansicht kann verzögert sein – wir versuchen automatisch nachzuladen.'
-    );
+    showMsg('ok', 'Auftrag gesendet.\nLade LIVE neu…');
 
     $('fKunde').value = '';
     $('fMitarbeiter').value = '';
@@ -565,7 +537,9 @@ async function createOrder() {
     $('fInfo').value = '';
     $('fKosten').value = '';
 
-    await refreshWithRetry();
+    await loadAllFromAPI_JSONP(true);
+    if ($('tab-open').classList.contains('active')) renderOpen();
+    if ($('tab-done').classList.contains('active')) renderDone();
   } catch (e) {
     showMsg('error', e.message);
   } finally {
@@ -575,7 +549,7 @@ async function createOrder() {
 }
 
 /** =========================
- * TABLES + Pagination/Search
+ * Pagination + Search
  * ========================= */
 let openState = { page: 1, search: '' };
 let doneState = { page: 1, search: '' };
@@ -600,7 +574,6 @@ function applySearchAndPage(rows, state) {
   return { total, items };
 }
 
-/** OFFENE: AuftragsDatum NICHT anzeigen */
 function renderOpen() {
   const openRows = allRows.filter(r => !r.__erhalten);
   const { total, items } = applySearchAndPage(openRows, openState);
@@ -652,11 +625,11 @@ function renderOpen() {
                   <option value="0" selected>Nein</option>
                   <option value="1">Ja</option>
                 </select>
-                <div class="muted">Ja nur mit Abholdatum möglich</div>
+                <div class="muted">Ja nur mit AbholDatum</div>
               </td>
 
               <td><textarea data-id="${r.ID}" class="open-info" rows="2">${escapeHtml(r.Info || '')}</textarea></td>
-              <td class="row-actions"><button data-id="${r.ID}" class="btn tiny btn-primary open-save">Speichern</button></td>
+              <td><button data-id="${r.ID}" class="btn tiny btn-primary open-save">Speichern</button></td>
             </tr>
           `).join('')}
         </tbody>
@@ -669,7 +642,7 @@ function renderOpen() {
       const id = btn.getAttribute('data-id');
       const info = wrap.querySelector('.open-info[data-id="' + id + '"]').value;
       const erhalten = wrap.querySelector('.open-erhalten[data-id="' + id + '"]').value; // 1/0
-      const abhol = wrap.querySelector('.open-abhol[data-id="' + id + '"]').value; // yyyy-MM-dd or ""
+      const abhol = wrap.querySelector('.open-abhol[data-id="' + id + '"]').value;
 
       if (abhol && isDateBeforeToday(abhol)) {
         showMsg('error', 'AbholDatum darf nicht in der Vergangenheit liegen.');
@@ -686,12 +659,13 @@ function renderOpen() {
 
       try {
         postForm(
-          { method:'PATCH', id, debug:'1' },
+          { method:'PATCH', id, debug:'1', _ts: Date.now() },
           { Info: info, Erhalten: erhalten, AbholDatum: abhol }
         );
 
-        showMsg('ok', 'Änderung gesendet. ID: ' + id + '\nHinweis: Liste aktualisiert sich automatisch (kann verzögert sein).');
-        await refreshWithRetry();
+        showMsg('ok', 'Änderung gesendet. ID: ' + id + '\nLade LIVE neu…');
+        await loadAllFromAPI_JSONP(true);
+        renderOpen();
       } catch (e) {
         showMsg('error', e.message);
       } finally {
@@ -702,7 +676,6 @@ function renderOpen() {
   });
 }
 
-/** FERTIGE: AuftragsDatum + AbholDatum anzeigen */
 function renderDone() {
   const doneRows = allRows.filter(r => r.__erhalten);
   const { total, items } = applySearchAndPage(doneRows, doneState);
@@ -745,7 +718,7 @@ function renderDone() {
               <td>${escapeHtml(r.AbholDatum || '')}</td>
               <td>Ja</td>
               <td>${escapeHtml(r.Info || '')}</td>
-              <td class="row-actions"><button data-id="${r.ID}" class="btn tiny btn-danger done-del">Löschen</button></td>
+              <td><button data-id="${r.ID}" class="btn tiny btn-danger done-del">Löschen</button></td>
             </tr>
           `).join('')}
         </tbody>
@@ -763,9 +736,10 @@ function renderDone() {
       btn.textContent = 'Löscht…';
 
       try {
-        postForm({ method:'DELETE', id, debug:'1' }, {});
-        showMsg('ok', 'Löschung gesendet. ID: ' + id + '\nHinweis: Liste aktualisiert sich automatisch (kann verzögert sein).');
-        await refreshWithRetry();
+        postForm({ method:'DELETE', id, debug:'1', _ts: Date.now() }, {});
+        showMsg('ok', 'Löschung gesendet. ID: ' + id + '\nLade LIVE neu…');
+        await loadAllFromAPI_JSONP(true);
+        renderDone();
       } catch (e) {
         showMsg('error', e.message);
       } finally {
@@ -774,35 +748,6 @@ function renderDone() {
       }
     });
   });
-}
-
-/** =========================
- * Refresh with retry (CSV can lag)
- * ========================= */
-async function refreshWithRetry() {
-  const tries = 9;
-  const delays = [800, 1200, 1800, 2600, 3600, 5200, 7200, 9000, 11000];
-
-  $('syncPill').textContent = 'Sync: aktualisiert…';
-
-  for (let i = 0; i < tries; i++) {
-    await new Promise(r => setTimeout(r, delays[i]));
-    try {
-      await loadCSV();
-      if ($('tab-open').classList.contains('active')) renderOpen();
-      if ($('tab-done').classList.contains('active')) renderDone();
-      return;
-    } catch (e) {
-      log('refresh try failed', i + 1, e);
-    }
-  }
-
-  showMsg(
-    'error',
-    'Aktualisierung dauert länger als erwartet.\n' +
-    'Bitte kurz warten und dann „Neu laden“ drücken oder Seite neu laden.'
-  );
-  $('syncPill').textContent = 'Sync: verzögert';
 }
 
 /** =========================
@@ -826,10 +771,10 @@ $('btnReload').addEventListener('click', async () => {
   try {
     $('btnReload').disabled = true;
     $('syncPill').textContent = 'Sync: aktualisiert…';
-    await loadCSV();
+    await loadAllFromAPI_JSONP(true);
     if ($('tab-open').classList.contains('active')) renderOpen();
     if ($('tab-done').classList.contains('active')) renderDone();
-    showMsg('ok', 'Neu geladen.');
+    showMsg('ok', 'LIVE neu geladen.');
   } catch (e) {
     showMsg('error', 'Neu laden fehlgeschlagen: ' + e.message);
   } finally {
@@ -839,13 +784,13 @@ $('btnReload').addEventListener('click', async () => {
 
 hookKostenAuto();
 
-// Boot
+// Boot: initial load once (create tab is active; open/done will load on click)
 (async function init(){
   try{
-    await loadCSV();
+    await loadAllFromAPI_JSONP(true);
     setTab('create');
   } catch(e){
-    showMsg('error', 'CSV konnte nicht geladen werden.\n' + e.message);
+    showMsg('error', 'API konnte nicht geladen werden.\n' + e.message);
   }
 })();
 </script>
