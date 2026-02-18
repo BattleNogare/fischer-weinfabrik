@@ -159,7 +159,6 @@
     }
     .tiny{ padding: 8px 10px; border-radius: 10px; font-weight: 750; }
 
-    /* sticky header */
     .table-wrap{
       border:1px solid var(--border);
       border-radius: 12px;
@@ -202,7 +201,7 @@
         <img alt="Logo" src="https://raw.githubusercontent.com/BattleNogare/h-h_weinfabrik/main/fischer_weinfabrik_logo.png">
         <div>
           <h2>Aufträge</h2>
-          <p class="sub">GitHub UI · LIVE Read (JSONP) · Write (Form POST)</p>
+          <p class="sub">LIVE Read: Google Sheets GVIZ JSONP · Write: Apps Script</p>
         </div>
       </div>
 
@@ -251,7 +250,7 @@
         </div>
 
         <div class="muted" style="margin-top:10px;">
-          Live-Sync: Lesen per JSONP (sofort aktuell), Schreiben per Form-POST.
+          Hinweis: Lesen ist „live“ aus der Tabelle (GViz). Schreiben geht per Apps Script (Form POST).
         </div>
       </section>
 
@@ -291,10 +290,14 @@
 
 <script>
 /** =========================
- * CONFIG (HIER EINTRAGEN)
+ * CONFIG
  * ========================= */
-const WEBAPP_EXEC_URL = 'https://script.google.com/macros/s/AKfycbwdmRIAvTa05Rty0E5E9zintH15VerIP5dPgvOzD4Ymk77mCyuE0IPqzrX3XGzNmNHoyg/exec'; // z.B. https://script.google.com/macros/s/.../exec
+const WEBAPP_EXEC_URL = 'https://script.google.com/macros/s/AKfycbwdmRIAvTa05Rty0E5E9zintH15VerIP5dPgvOzD4Ymk77mCyuE0IPqzrX3XGzNmNHoyg/exec';
 const API_BASE = WEBAPP_EXEC_URL + '?api=1';
+
+// Google Sheet config (READ via GViz JSONP)
+const SPREADSHEET_ID = '18Q64WpaE2NAEmva0Y8dABSamcMfzcbVp2CJ1ToZ9Il8';
+const SHEET_GID = '345717060'; // <- das ist dein GID aus der alten CSV URL
 
 const PAGE_SIZE = 50;
 const DEBUG = true;
@@ -303,7 +306,7 @@ const DEBUG = true;
  * Helpers
  * ========================= */
 const $ = (id) => document.getElementById(id);
-function log(...args){ if (DEBUG) console.log('[GH-JSONP]', ...args); }
+function log(...args){ if (DEBUG) console.log('[GH-GVIZ]', ...args); }
 
 function showMsg(type, text) {
   const el = $('msg');
@@ -320,9 +323,9 @@ function setTab(tab) {
     $('view-' + t).classList.toggle('hidden', t !== tab);
   }
 
-  // ✅ Tab-Wechsel: IMMER neu lesen (live, ohne cache)
-  if (tab === 'open') { loadAllFromAPI_JSONP(true).then(renderOpen).catch(e => showMsg('error', e.message)); }
-  if (tab === 'done') { loadAllFromAPI_JSONP(true).then(renderDone).catch(e => showMsg('error', e.message)); }
+  // ✅ Tab-Wechsel: immer live neu lesen (GViz + cache-bust)
+  if (tab === 'open') { loadAllFromGViz(true).then(renderOpen).catch(e => showMsg('error', e.message)); }
+  if (tab === 'done') { loadAllFromGViz(true).then(renderDone).catch(e => showMsg('error', e.message)); }
 }
 
 function todayISO() {
@@ -346,7 +349,6 @@ function parseNumberDE(value) {
   const n = Number(normalized);
   return Number.isFinite(n) ? n : 0;
 }
-
 function toBool(v){
   const s = String(v ?? '').trim().toLowerCase();
   return (s === 'true' || s === '1' || s === 'ja' || s === 'yes');
@@ -386,7 +388,7 @@ function moneyEUR(n) {
 }
 
 /** =========================
- * JSONP Loader (no CORS) – mit besserer Fehlermeldung
+ * JSONP Loader (generic)
  * ========================= */
 function jsonp(url, { timeoutMs = 15000 } = {}) {
   return new Promise((resolve, reject) => {
@@ -417,48 +419,120 @@ function jsonp(url, { timeoutMs = 15000 } = {}) {
     script.referrerPolicy = "no-referrer";
     script.src = u.toString();
 
+    log('JSONP SCRIPT SRC:', script.src);
+
     script.onerror = () => {
       clearTimeout(t);
       cleanup();
       const ms = Date.now() - started;
-      reject(new Error(
-        'JSONP Script Load Error (oft 403/Permissions)\n' +
-        'Dauer: ' + ms + 'ms\n' +
-        'URL: ' + script.src + '\n\n' +
-        'Fix: Apps Script Deploy → Web App\n' +
-        'Execute as: Me\n' +
-        'Who has access: Anyone\n'
-      ));
+      reject(new Error('JSONP Script Load Error\nDauer: ' + ms + 'ms\nURL: ' + script.src));
     };
 
-    console.log('[GH-JSONP] JSONP SCRIPT SRC:', script.src);
     document.head.appendChild(script);
   });
 }
 
 /** =========================
- * LIVE Read from Apps Script API (JSONP)
+ * LIVE READ via Google Sheets GViz
  * ========================= */
 let allRows = [];
 let lastSync = null;
 
-async function loadAllFromAPI_JSONP(forceNoCache) {
-  const u = new URL(API_BASE);
-  u.searchParams.set('status', 'all');
-  u.searchParams.set('page', '1');
-  u.searchParams.set('limit', '1000');
-  u.searchParams.set('debug', '1'); // ✅ mehr Server-Debug zurückgeben
+// GViz returns: google.visualization.Query.setResponse({...})
+// We load it via JSONP-ish "callback=..." and then parse payload.
+async function loadAllFromGViz(forceNoCache) {
+  const base = `https://docs.google.com/spreadsheets/d/${encodeURIComponent(SPREADSHEET_ID)}/gviz/tq`;
+  const u = new URL(base);
+  u.searchParams.set('gid', SHEET_GID);
+  u.searchParams.set('tqx', 'out:json'); // returns JS wrapper string
   if (forceNoCache) u.searchParams.set('_ts', String(Date.now()));
 
-  log('JSONP GET', u.toString());
-  const json = await jsonp(u.toString());
+  // We cannot use fetch reliably cross-origin without CORS;
+  // so we do JSONP by loading the endpoint as script and capturing string via callback.
+  // Trick: Use the "tqx=out:json" response as a string passed to our callback by requesting
+  // docs.google.com via our own JSONP wrapper endpoint? Not possible.
+  //
+  // Instead: Load GViz with a normal <script> and intercept by defining google.visualization.Query.setResponse.
+  // We'll do that safely below.
 
-  if (!json || !json.ok) {
-    const dbg = json && (json._serverDebug || json.debug) ? JSON.stringify(json._serverDebug || json.debug, null, 2) : '';
-    throw new Error((json && json.error ? json.error : 'API Fehler') + (dbg ? '\n\nSERVER DEBUG:\n' + dbg : ''));
+  const url = u.toString();
+  log('GVIZ LOAD', url);
+
+  // Remove previous hook if any
+  if (!window.google) window.google = {};
+  if (!window.google.visualization) window.google.visualization = {};
+
+  // We'll intercept setResponse once for this load
+  const prev = window.google.visualization.Query && window.google.visualization.Query.setResponse;
+  let resolveFn, rejectFn;
+  const p = new Promise((resolve, reject) => { resolveFn = resolve; rejectFn = reject; });
+
+  const timeout = setTimeout(() => {
+    cleanup();
+    rejectFn(new Error('GViz Timeout (keine Antwort)\nURL: ' + url));
+  }, 15000);
+
+  function cleanup() {
+    clearTimeout(timeout);
+    // restore previous handler
+    if (prev) {
+      window.google.visualization.Query.setResponse = prev;
+    } else {
+      // keep minimal object
+      if (window.google && window.google.visualization && window.google.visualization.Query) {
+        // noop
+      }
+    }
   }
 
-  allRows = (json.items || []).map(r => {
+  // ensure Query exists
+  if (!window.google.visualization.Query) window.google.visualization.Query = {};
+  window.google.visualization.Query.setResponse = (resp) => {
+    try {
+      cleanup();
+      resolveFn(resp);
+    } catch (e) {
+      cleanup();
+      rejectFn(e);
+    }
+  };
+
+  // load script
+  const script = document.createElement('script');
+  script.async = true;
+  script.referrerPolicy = "no-referrer";
+  script.src = url;
+  script.onerror = () => {
+    cleanup();
+    rejectFn(new Error('GViz Script Load Error\nURL: ' + url));
+  };
+  document.head.appendChild(script);
+
+  const resp = await p;
+
+  // Parse rows into objects by column labels
+  const table = resp && resp.table;
+  if (!table || !table.cols || !table.rows) throw new Error('GViz: ungültige Antwortstruktur');
+
+  const cols = table.cols.map(c => (c && c.label ? String(c.label).trim() : ''));
+  const rows = table.rows;
+
+  const items = rows.map(r => {
+    const obj = {};
+    const cells = r.c || [];
+    for (let i = 0; i < cols.length; i++) {
+      const key = cols[i];
+      if (!key) continue;
+      const cell = cells[i];
+      // prefer formatted value if present; else raw value
+      const v = (cell && cell.v !== undefined) ? cell.v : '';
+      const f = (cell && cell.f !== undefined) ? cell.f : undefined;
+      obj[key] = (f !== undefined && f !== null && f !== '') ? f : v;
+    }
+    return obj;
+  });
+
+  allRows = items.map(r => {
     r.ID = toInt(r.ID);
     r.Anzahl = toInt(r.Anzahl);
     r.Prozent = toInt(r.Prozent);
@@ -477,7 +551,7 @@ async function loadAllFromAPI_JSONP(forceNoCache) {
 }
 
 /** =========================
- * Write: Form POST (no CORS)
+ * WRITE via Apps Script (Form POST no CORS)
  * ========================= */
 function postForm(paramsObj, bodyObj) {
   const url = new URL(API_BASE);
@@ -543,7 +617,6 @@ async function createOrder() {
       Info: $('fInfo').value.trim()
     };
 
-    // POST (wir können Response nicht lesen → no CORS)
     postForm({ _ts: Date.now() }, body);
     showMsg('ok', 'Auftrag gesendet.\nLade LIVE neu…');
 
@@ -554,18 +627,8 @@ async function createOrder() {
     $('fInfo').value = '';
     $('fKosten').value = '';
 
-    // Reload live – wenn das wegen 403 scheitert, klare Meldung
-    try {
-      await loadAllFromAPI_JSONP(true);
-    } catch (e) {
-      console.warn('[GH-JSONP] Reload nach Speichern fehlgeschlagen:', e);
-      showMsg('error',
-        'Der Auftrag wurde gesendet, aber LIVE-Reload ist fehlgeschlagen.\n' +
-        e.message
-      );
-      return;
-    }
-
+    // live reload from sheet
+    await loadAllFromGViz(true);
     if ($('tab-open').classList.contains('active')) renderOpen();
     if ($('tab-done').classList.contains('active')) renderDone();
 
@@ -640,15 +703,9 @@ function renderOpen() {
               <td>${r.Anzahl}</td>
               <td>${r.Prozent}</td>
               <td>${moneyEUR(r.Kosten)}</td>
-
               <td class="date-cell">
-                <input type="date"
-                       min="${TODAY_MIN}"
-                       data-id="${r.ID}"
-                       class="open-abhol"
-                       value="${escapeHtml(r.__abholInput || '')}">
+                <input type="date" min="${TODAY_MIN}" data-id="${r.ID}" class="open-abhol" value="${escapeHtml(r.__abholInput || '')}">
               </td>
-
               <td>
                 <select data-id="${r.ID}" class="open-erhalten">
                   <option value="0" selected>Nein</option>
@@ -656,7 +713,6 @@ function renderOpen() {
                 </select>
                 <div class="muted">Ja nur mit AbholDatum</div>
               </td>
-
               <td><textarea data-id="${r.ID}" class="open-info" rows="2">${escapeHtml(r.Info || '')}</textarea></td>
               <td><button data-id="${r.ID}" class="btn tiny btn-primary open-save">Speichern</button></td>
             </tr>
@@ -687,16 +743,10 @@ function renderOpen() {
       btn.textContent = 'Speichert…';
 
       try {
-        postForm(
-          { method:'PATCH', id, debug:'1', _ts: Date.now() },
-          { Info: info, Erhalten: erhalten, AbholDatum: abhol }
-        );
-
+        postForm({ method:'PATCH', id, debug:'1', _ts: Date.now() }, { Info: info, Erhalten: erhalten, AbholDatum: abhol });
         showMsg('ok', 'Änderung gesendet. ID: ' + id + '\nLade LIVE neu…');
-
-        await loadAllFromAPI_JSONP(true);
+        await loadAllFromGViz(true);
         renderOpen();
-
       } catch (e) {
         showMsg('error', e.message);
       } finally {
@@ -769,7 +819,7 @@ function renderDone() {
       try {
         postForm({ method:'DELETE', id, debug:'1', _ts: Date.now() }, {});
         showMsg('ok', 'Löschung gesendet. ID: ' + id + '\nLade LIVE neu…');
-        await loadAllFromAPI_JSONP(true);
+        await loadAllFromGViz(true);
         renderDone();
       } catch (e) {
         showMsg('error', e.message);
@@ -802,7 +852,7 @@ $('btnReload').addEventListener('click', async () => {
   try {
     $('btnReload').disabled = true;
     $('syncPill').textContent = 'Sync: aktualisiert…';
-    await loadAllFromAPI_JSONP(true);
+    await loadAllFromGViz(true);
     if ($('tab-open').classList.contains('active')) renderOpen();
     if ($('tab-done').classList.contains('active')) renderDone();
     showMsg('ok', 'LIVE neu geladen.');
@@ -818,10 +868,10 @@ hookKostenAuto();
 // Boot
 (async function init(){
   try{
-    await loadAllFromAPI_JSONP(true);
+    await loadAllFromGViz(true);
     setTab('create');
   } catch(e){
-    showMsg('error', 'API konnte nicht geladen werden.\n' + e.message);
+    showMsg('error', 'GViz konnte nicht geladen werden.\n' + e.message + '\n\nTipp: Sheet muss "jeder mit Link" lesbar sein.');
   }
 })();
 </script>
