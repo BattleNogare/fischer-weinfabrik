@@ -93,7 +93,6 @@
     .msg.show{ display:block; }
     .msg.ok{ border-color: rgba(34,197,94,.35); }
     .msg.error{ border-color: rgba(239,68,68,.40); }
-
     .muted{ color:var(--muted); font-size:.92em; }
     .hidden{ display:none !important; }
 
@@ -152,7 +151,7 @@
       max-height: 70vh;
       background: color-mix(in srgb, var(--card) 85%, transparent);
     }
-    table{ width:100%; border-collapse: separate; border-spacing: 0; min-width: 900px; }
+    table{ width:100%; border-collapse: separate; border-spacing: 0; min-width: 980px; }
     thead th{
       position: sticky; top: 0; z-index: 3;
       font-size:12px; text-transform: uppercase; letter-spacing:.2px;
@@ -164,7 +163,6 @@
     }
     tbody td{ border-bottom: 1px solid var(--border); padding: 10px 10px; vertical-align: top; }
     tbody tr:hover td{ background: rgba(225,29,72,.06); }
-
     .date-cell input[type="date"]{ padding:8px 10px; border-radius:10px; }
 
     @media (max-width: 920px){
@@ -172,7 +170,7 @@
       .pager{ margin-left: 0; }
       .actions{ min-width:auto; }
       .brand{ min-width:auto; }
-      table{ min-width: 860px; }
+      table{ min-width: 920px; }
     }
   </style>
 </head>
@@ -184,7 +182,7 @@
         <img alt="Logo" src="https://raw.githubusercontent.com/BattleNogare/h-h_weinfabrik/main/fischer_weinfabrik_logo.png">
         <div>
           <h2>Aufträge</h2>
-          <p class="sub">LIVE Read: Google Sheets GViz · Write: Apps Script (no-cors)</p>
+          <p class="sub">Backend: Supabase Edge Function · Key ohne Login</p>
         </div>
       </div>
 
@@ -196,6 +194,7 @@
 
       <div class="actions">
         <span id="syncPill" class="pill">Sync: –</span>
+        <button id="btnKey" class="btn tiny">🔑 Key</button>
         <button id="btnReload" class="btn tiny">↻ Neu laden</button>
         <span class="pill">Sortierung: ID ↑</span>
       </div>
@@ -213,23 +212,16 @@
           <div><label>Anzahl Fässer*<input id="fAnzahl" type="number" min="0" step="1" required /></label></div>
           <div><label>Prozent* (1–100)<input id="fProzent" type="number" min="1" max="100" step="1" required /></label></div>
           <div><label>Kosten (automatisch)<input id="fKosten" type="text" readonly /></label></div>
-
-          <div>
-            <label>Kunde hat alle Weinflaschen erhalten?
-              <select id="fErhalten" disabled>
-                <option value="false" selected>Nein</option>
-                <option value="true">Ja</option>
-              </select>
-            </label>
-            <div class="muted">Neue Aufträge werden immer als „Nein“ gespeichert.</div>
-          </div>
-
           <div><label>Info<textarea id="fInfo" rows="3"></textarea></label></div>
         </div>
 
         <div style="margin-top: 14px; display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
           <button id="btnCreate" class="btn btn-primary">💾 Speichern</button>
           <span class="muted">* Pflichtfelder</span>
+        </div>
+
+        <div class="muted" style="margin-top:10px;">
+          Hinweis: AuftragsDatum wird automatisch gesetzt. Neue Aufträge starten immer mit „Erhalten = Nein“.
         </div>
       </section>
 
@@ -269,12 +261,7 @@
 /** =========================
  * CONFIG
  * ========================= */
-const WEBAPP_EXEC_URL = 'https://script.google.com/macros/s/AKfycbwdmRIAvTa05Rty0E5E9zintH15VerIP5dPgvOzD4Ymk77mCyuE0IPqzrX3XGzNmNHoyg/exec';
-const API_BASE = WEBAPP_EXEC_URL + '?api=1';
-
-const SPREADSHEET_ID = '18Q64WpaE2NAEmva0Y8dABSamcMfzcbVp2CJ1ToZ9Il8';
-const SHEET_GID = '345717060';
-
+const API_URL = 'https://mtyaczfezilcnllnwgqq.supabase.co/functions/v1/auftraege-api';
 const PAGE_SIZE = 50;
 const DEBUG = true;
 
@@ -282,7 +269,7 @@ const DEBUG = true;
  * Helpers
  * ========================= */
 const $ = (id) => document.getElementById(id);
-function log(...args){ if (DEBUG) console.log('[GH]', ...args); }
+function log(...args){ if (DEBUG) console.log('[SB]', ...args); }
 
 function showMsg(type, text) {
   const el = $('msg');
@@ -298,8 +285,8 @@ function setTab(tab) {
     $('tab-' + t).classList.toggle('active', t === tab);
     $('view-' + t).classList.toggle('hidden', t !== tab);
   }
-  if (tab === 'open') { loadAllFromGViz(true).then(renderOpen).catch(e => showMsg('error', e.message)); }
-  if (tab === 'done') { loadAllFromGViz(true).then(renderDone).catch(e => showMsg('error', e.message)); }
+  if (tab === 'open') { loadAndRenderOpen(true).catch(e => showMsg('error', e.message)); }
+  if (tab === 'done') { loadAndRenderDone(true).catch(e => showMsg('error', e.message)); }
 }
 
 function todayISO() {
@@ -312,19 +299,6 @@ function todayISO() {
 const TODAY_MIN = todayISO();
 function isDateBeforeToday(dateStr) { return !!dateStr && dateStr < TODAY_MIN; }
 
-function parseNumberDE(value) {
-  if (typeof value === 'number' && Number.isFinite(value)) return value;
-  const s = String(value ?? '').trim().replace(/\s/g, '').replace(/€/g, '');
-  if (!s) return 0;
-  const normalized = s.replace(/\./g, '').replace(',', '.');
-  const n = Number(normalized);
-  return Number.isFinite(n) ? n : 0;
-}
-function toBool(v){
-  if (typeof v === 'boolean') return v;
-  const s = String(v ?? '').trim().toLowerCase();
-  return (s === 'true' || s === '1' || s === 'ja' || s === 'yes');
-}
 function toInt(v){
   const n = Math.trunc(Number(String(v ?? '').replace(',', '.')));
   return Number.isFinite(n) ? n : 0;
@@ -336,13 +310,6 @@ function escapeHtml(s) {
     .replaceAll('>', '&gt;')
     .replaceAll('"', '&quot;')
     .replaceAll("'", '&#039;');
-}
-function normalizeDateOnlyForInput(v){
-  const s = String(v ?? '').trim();
-  if (!s) return '';
-  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
-  const m = s.match(/(\d{4}-\d{2}-\d{2})/);
-  return m ? m[1] : '';
 }
 function computeKosten(anzahl, prozent) {
   const a = Number(anzahl);
@@ -356,114 +323,295 @@ function moneyEUR(n) {
   if (!Number.isFinite(v)) return '';
   return Math.round(v).toLocaleString('de-DE') + ' €';
 }
-function sleep(ms){ return new Promise(r => setTimeout(r, ms)); }
 
 /** =========================
- * LIVE READ via GViz
+ * Key handling
  * ========================= */
-let allRows = [];
-let lastSync = null;
+function getAppKey() {
+  let k = localStorage.getItem("APP_KEY") || "";
+  if (!k) {
+    k = prompt("Bitte App-Key eingeben:") || "";
+    if (k) localStorage.setItem("APP_KEY", k);
+  }
+  return k;
+}
+function setAppKey() {
+  const current = localStorage.getItem("APP_KEY") || "";
+  const k = prompt("App-Key setzen/ändern:", current) || "";
+  if (k) localStorage.setItem("APP_KEY", k);
+  else localStorage.removeItem("APP_KEY");
+}
 
-async function loadAllFromGViz(forceNoCache) {
-  const base = `https://docs.google.com/spreadsheets/d/${encodeURIComponent(SPREADSHEET_ID)}/gviz/tq`;
-  const u = new URL(base);
-  u.searchParams.set('gid', SHEET_GID);
-  u.searchParams.set('tqx', 'out:json');
-  if (forceNoCache) u.searchParams.set('_ts', String(Date.now()));
-  const url = u.toString();
-  log('GVIZ LOAD', url);
+/** =========================
+ * API client
+ * ========================= */
+async function apiFetch(path, { method="GET", body=null } = {}) {
+  const key = getAppKey();
+  if (!key) throw new Error("Kein App-Key gesetzt.");
 
-  if (!window.google) window.google = {};
-  if (!window.google.visualization) window.google.visualization = {};
-  if (!window.google.visualization.Query) window.google.visualization.Query = {};
+  const url = API_URL + path;
+  const headers = { "x-app-key": key };
+  const init = { method, headers };
 
-  const prev = window.google.visualization.Query.setResponse;
-  let resolveFn, rejectFn;
-  const p = new Promise((resolve, reject) => { resolveFn = resolve; rejectFn = reject; });
-
-  const timeout = setTimeout(() => {
-    cleanup();
-    rejectFn(new Error('GViz Timeout (keine Antwort)\nURL: ' + url));
-  }, 15000);
-
-  function cleanup() {
-    clearTimeout(timeout);
-    if (prev) window.google.visualization.Query.setResponse = prev;
+  if (body !== null) {
+    headers["content-type"] = "application/json";
+    init.body = JSON.stringify(body);
   }
 
-  window.google.visualization.Query.setResponse = (resp) => {
-    try { cleanup(); resolveFn(resp); } catch (e) { cleanup(); rejectFn(e); }
-  };
+  log('FETCH', method, url, body || '');
+  const res = await fetch(url, init);
 
-  const script = document.createElement('script');
-  script.async = true;
-  script.referrerPolicy = "no-referrer";
-  script.src = url;
-  script.onerror = () => { cleanup(); rejectFn(new Error('GViz Script Load Error\nURL: ' + url)); };
-  document.head.appendChild(script);
+  let json;
+  try { json = await res.json(); }
+  catch { throw new Error("Antwort ist kein JSON (Server/CORS)."); }
 
-  const resp = await p;
-  const table = resp && resp.table;
-  if (!table || !table.cols || !table.rows) throw new Error('GViz: ungültige Antwortstruktur');
+  if (!res.ok || !json.ok) {
+    throw new Error((json && json.error ? json.error : 'Request failed') + (json && json.detail ? `\n${json.detail}` : ''));
+  }
+  return json;
+}
 
-  const cols = table.cols.map(c => (c && c.label ? String(c.label).trim() : ''));
-  const items = table.rows.map(r => {
-    const obj = {};
-    const cells = r.c || [];
-    for (let i = 0; i < cols.length; i++) {
-      const key = cols[i];
-      if (!key) continue;
-      const cell = cells[i];
-      const v = (cell && cell.v !== undefined) ? cell.v : '';
-      const f = (cell && cell.f !== undefined) ? cell.f : undefined;
-      obj[key] = (f !== undefined && f !== null && f !== '') ? f : v;
-    }
-    return obj;
-  });
-
-  allRows = items.map(r => {
-    r.ID = toInt(r.ID);
-    r.Anzahl = toInt(r.Anzahl);
-    r.Prozent = toInt(r.Prozent);
-    r.Kosten = parseNumberDE(r.Kosten);
-
-    r.AuftragsDatum = String(r.AuftragsDatum ?? '').trim();
-    r.AbholDatum = String(r.AbholDatum ?? '').trim();
-    r.__abholInput = normalizeDateOnlyForInput(r.AbholDatum);
-
-    // ✅ FIX: Kein "!!" mehr – sonst wird "FALSE" (String) zu true
-    const erh = r['Kunde hat alle Weinflaschen erhalten?'];
-    r.__erhalten = (typeof erh === 'boolean') ? erh : toBool(erh);
-
-    return r;
-  }).sort((a,b) => a.ID - b.ID);
-
-  lastSync = new Date();
-  $('syncPill').textContent = 'Sync: ' + lastSync.toLocaleString('de-DE');
+async function apiList(status, limit=1000, offset=0){
+  return apiFetch(`?action=list&status=${encodeURIComponent(status)}&limit=${limit}&offset=${offset}`);
+}
+async function apiCreate(payload){
+  return apiFetch(`?action=create`, { method:"POST", body: payload });
+}
+async function apiPatch(payload){
+  return apiFetch(`?action=patch`, { method:"POST", body: payload });
+}
+async function apiDelete(id){
+  return apiFetch(`?action=delete`, { method:"POST", body: { id } });
 }
 
 /** =========================
- * WRITE via Apps Script (no-cors)
+ * Data + pagination/search
  * ========================= */
-async function postNoCors(paramsObj, bodyObj){
-  const url = new URL(API_BASE);
-  Object.entries(paramsObj || {}).forEach(([k,v]) => url.searchParams.set(k, String(v)));
+let allOpen = [];
+let allDone = [];
+let lastSync = null;
 
-  // ✅ FIX: body als URLSearchParams Objekt + KEINE headers setzen
-  const body = new URLSearchParams();
-  for (const [k,v] of Object.entries(bodyObj || {})) body.set(k, String(v));
+let openState = { page: 1, search: '' };
+let doneState = { page: 1, search: '' };
 
-  log('POST no-cors', url.toString(), Object.fromEntries(body.entries()));
+function applySearchAndPage(rows, state) {
+  const q = String(state.search || '').trim().toLowerCase();
+  let filtered = rows;
 
-  await fetch(url.toString(), {
-    method: 'POST',
-    mode: 'no-cors',
-    body
+  if (q) {
+    filtered = rows.filter(r =>
+      String(r.kunde || '').toLowerCase().includes(q) ||
+      String(r.mitarbeiter || '').toLowerCase().includes(q)
+    );
+  }
+
+  filtered.sort((a,b) => (a.id||0) - (b.id||0));
+
+  const total = filtered.length;
+  const start = (state.page - 1) * PAGE_SIZE;
+  const items = filtered.slice(start, start + PAGE_SIZE);
+  return { total, items };
+}
+
+function setSyncPill(){
+  if (!lastSync) $('syncPill').textContent = 'Sync: –';
+  else $('syncPill').textContent = 'Sync: ' + lastSync.toLocaleString('de-DE');
+}
+
+async function loadAndRenderOpen(force){
+  const out = await apiList('open', 1000, 0);
+  allOpen = out.items || [];
+  lastSync = new Date();
+  setSyncPill();
+  renderOpen();
+}
+async function loadAndRenderDone(force){
+  const out = await apiList('done', 1000, 0);
+  allDone = out.items || [];
+  lastSync = new Date();
+  setSyncPill();
+  renderDone();
+}
+async function loadAllForReload(){
+  const [o,d] = await Promise.all([apiList('open', 1000, 0), apiList('done', 1000, 0)]);
+  allOpen = o.items || [];
+  allDone = d.items || [];
+  lastSync = new Date();
+  setSyncPill();
+  if ($('tab-open').classList.contains('active')) renderOpen();
+  if ($('tab-done').classList.contains('active')) renderDone();
+}
+
+/** =========================
+ * UI render
+ * ========================= */
+function renderOpen() {
+  const { total, items } = applySearchAndPage(allOpen, openState);
+
+  $('openPageInfo').textContent = `Seite ${openState.page} · ${total} Treffer`;
+  $('openPrev').disabled = openState.page <= 1;
+  $('openNext').disabled = (openState.page * PAGE_SIZE) >= total;
+
+  const wrap = $('openTableWrap');
+  if (!items.length) { wrap.innerHTML = '<div class="muted">Keine offenen Aufträge gefunden.</div>'; return; }
+
+  wrap.innerHTML = `
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Kunde</th>
+            <th>Mitarbeiter</th>
+            <th>Anzahl</th>
+            <th>Prozent</th>
+            <th>Kosten</th>
+            <th>AbholDatum</th>
+            <th>Erhalten?</th>
+            <th>Info</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          ${items.map(r => {
+            const abhol = (r.abhol_datum || '') ? String(r.abhol_datum).slice(0,10) : '';
+            return `
+              <tr>
+                <td>${r.id}</td>
+                <td>${escapeHtml(r.kunde)}</td>
+                <td>${escapeHtml(r.mitarbeiter)}</td>
+                <td>${toInt(r.anzahl)}</td>
+                <td>${toInt(r.prozent)}</td>
+                <td>${moneyEUR(r.kosten)}</td>
+                <td class="date-cell">
+                  <input type="date" min="${TODAY_MIN}" data-id="${r.id}" class="open-abhol" value="${escapeHtml(abhol)}">
+                </td>
+                <td>
+                  <select data-id="${r.id}" class="open-erhalten">
+                    <option value="0" selected>Nein</option>
+                    <option value="1">Ja</option>
+                  </select>
+                  <div class="muted">Ja nur mit AbholDatum</div>
+                </td>
+                <td><textarea data-id="${r.id}" class="open-info" rows="2">${escapeHtml(r.info || '')}</textarea></td>
+                <td><button data-id="${r.id}" class="btn tiny btn-primary open-save">Speichern</button></td>
+              </tr>
+            `;
+          }).join('')}
+        </tbody>
+      </table>
+    </div>
+  `;
+
+  wrap.querySelectorAll('.open-save').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const id = Number(btn.getAttribute('data-id'));
+      const info = wrap.querySelector('.open-info[data-id="' + id + '"]').value;
+      const erhalten = wrap.querySelector('.open-erhalten[data-id="' + id + '"]').value;
+      const abhol = wrap.querySelector('.open-abhol[data-id="' + id + '"]').value;
+
+      if (abhol && isDateBeforeToday(abhol)) { showMsg('error', 'AbholDatum darf nicht in der Vergangenheit liegen.'); return; }
+      if (erhalten === '1' && !abhol) { showMsg('error', 'Bitte zuerst ein AbholDatum auswählen (Pflicht), bevor "Erhalten = Ja" gesetzt wird.'); return; }
+
+      btn.disabled = true;
+      const old = btn.textContent;
+      btn.textContent = 'Speichert…';
+
+      try {
+        await apiPatch({
+          id,
+          info,
+          abhol_datum: abhol || null,
+          erhalten: (erhalten === '1')
+        });
+        showMsg('ok', 'Gespeichert. ID: ' + id);
+        await loadAndRenderOpen(true);
+      } catch (e) {
+        showMsg('error', e.message);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = old;
+      }
+    });
+  });
+}
+
+function renderDone() {
+  const { total, items } = applySearchAndPage(allDone, doneState);
+
+  $('donePageInfo').textContent = `Seite ${doneState.page} · ${total} Treffer`;
+  $('donePrev').disabled = doneState.page <= 1;
+  $('doneNext').disabled = (doneState.page * PAGE_SIZE) >= total;
+
+  const wrap = $('doneTableWrap');
+  if (!items.length) { wrap.innerHTML = '<div class="muted">Keine fertigen Aufträge gefunden.</div>'; return; }
+
+  wrap.innerHTML = `
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>AuftragsDatum</th>
+            <th>Kunde</th>
+            <th>Mitarbeiter</th>
+            <th>Anzahl</th>
+            <th>Prozent</th>
+            <th>Kosten</th>
+            <th>AbholDatum</th>
+            <th>Info</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          ${items.map(r => {
+            const auftrags = r.auftrags_datum ? new Date(r.auftrags_datum).toLocaleString('de-DE') : '';
+            const abhol = (r.abhol_datum || '') ? String(r.abhol_datum).slice(0,10) : '';
+            return `
+              <tr>
+                <td>${r.id}</td>
+                <td>${escapeHtml(auftrags)}</td>
+                <td>${escapeHtml(r.kunde)}</td>
+                <td>${escapeHtml(r.mitarbeiter)}</td>
+                <td>${toInt(r.anzahl)}</td>
+                <td>${toInt(r.prozent)}</td>
+                <td>${moneyEUR(r.kosten)}</td>
+                <td>${escapeHtml(abhol)}</td>
+                <td>${escapeHtml(r.info || '')}</td>
+                <td><button data-id="${r.id}" class="btn tiny btn-danger done-del">Löschen</button></td>
+              </tr>
+            `;
+          }).join('')}
+        </tbody>
+      </table>
+    </div>
+  `;
+
+  wrap.querySelectorAll('.done-del').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const id = Number(btn.getAttribute('data-id'));
+      if (!confirm('Auftrag ID ' + id + ' wirklich löschen?')) return;
+
+      btn.disabled = true;
+      const old = btn.textContent;
+      btn.textContent = 'Löscht…';
+
+      try {
+        await apiDelete(id);
+        showMsg('ok', 'Gelöscht. ID: ' + id);
+        await loadAndRenderDone(true);
+      } catch (e) {
+        showMsg('error', e.message);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = old;
+      }
+    });
   });
 }
 
 /** =========================
- * Create + Retry reload
+ * Create
  * ========================= */
 function validateCreateForm() {
   const kunde = $('fKunde').value.trim();
@@ -484,17 +632,6 @@ function hookKostenAuto() {
   recalc();
 }
 
-async function reloadWithRetry(prevMaxId, tries = 8){
-  for (let i=0; i<tries; i++){
-    await loadAllFromGViz(true);
-    const maxId = allRows.reduce((m,r)=> Math.max(m, r.ID||0), 0);
-    log('RELOAD CHECK', {prevMaxId, maxId, attempt:i+1});
-    if (maxId > prevMaxId) return true;
-    await sleep(300 + i*220);
-  }
-  return false;
-}
-
 async function createOrder() {
   const btn = $('btnCreate');
   btn.disabled = true;
@@ -504,18 +641,15 @@ async function createOrder() {
   try {
     validateCreateForm();
 
-    const body = {
-      Kunde: $('fKunde').value.trim(),
-      Mitarbeiter: $('fMitarbeiter').value.trim(),
-      Anzahl: toInt($('fAnzahl').value),
-      Prozent: toInt($('fProzent').value),
-      Info: $('fInfo').value.trim()
-    };
+    const kunde = $('fKunde').value.trim();
+    const mitarbeiter = $('fMitarbeiter').value.trim();
+    const anzahl = toInt($('fAnzahl').value);
+    const prozent = toInt($('fProzent').value);
+    const info = $('fInfo').value.trim();
 
-    const prevMaxId = allRows.reduce((m,r)=> Math.max(m, r.ID||0), 0);
+    await apiCreate({ kunde, mitarbeiter, anzahl, prozent, info });
 
-    await postNoCors({ _ts: Date.now() }, body);
-    showMsg('ok', 'Auftrag gesendet.\nAktualisiere…');
+    showMsg('ok', 'Gespeichert.');
 
     $('fKunde').value = '';
     $('fMitarbeiter').value = '';
@@ -524,18 +658,8 @@ async function createOrder() {
     $('fInfo').value = '';
     $('fKosten').value = '';
 
-    const ok = await reloadWithRetry(prevMaxId);
-    if (!ok) {
-      showMsg('error',
-        'POST wurde gesendet, aber GViz hat nach mehreren Versuchen noch keinen neuen Datensatz gezeigt.\n' +
-        'Bitte einmal auf „Neu laden“ klicken.'
-      );
-      return;
-    }
-
-    if ($('tab-open').classList.contains('active')) renderOpen();
-    if ($('tab-done').classList.contains('active')) renderDone();
-    showMsg('ok', 'Gespeichert & live aktualisiert.');
+    // refresh open list so the new item shows up
+    await loadAndRenderOpen(true);
 
   } catch (e) {
     showMsg('error', e.message);
@@ -543,180 +667,6 @@ async function createOrder() {
     btn.disabled = false;
     btn.textContent = old;
   }
-}
-
-/** =========================
- * Pagination + Search + Render
- * ========================= */
-let openState = { page: 1, search: '' };
-let doneState = { page: 1, search: '' };
-
-function applySearchAndPage(rows, state) {
-  const q = String(state.search || '').trim().toLowerCase();
-  let filtered = rows;
-
-  if (q) {
-    filtered = rows.filter(r =>
-      String(r.Kunde || '').toLowerCase().includes(q) ||
-      String(r.Mitarbeiter || '').toLowerCase().includes(q)
-    );
-  }
-
-  filtered.sort((a,b) => a.ID - b.ID);
-
-  const total = filtered.length;
-  const start = (state.page - 1) * PAGE_SIZE;
-  const items = filtered.slice(start, start + PAGE_SIZE);
-  return { total, items };
-}
-
-async function patchOrder(id, payload){
-  await postNoCors({ method:'PATCH', id, debug:'1', _ts: Date.now() }, payload);
-}
-async function deleteOrder(id){
-  await postNoCors({ method:'DELETE', id, debug:'1', _ts: Date.now() }, {});
-}
-
-function renderOpen() {
-  const openRows = allRows.filter(r => !r.__erhalten);
-  const { total, items } = applySearchAndPage(openRows, openState);
-
-  $('openPageInfo').textContent = `Seite ${openState.page} · ${total} Treffer`;
-  $('openPrev').disabled = openState.page <= 1;
-  $('openNext').disabled = (openState.page * PAGE_SIZE) >= total;
-
-  const wrap = $('openTableWrap');
-  if (!items.length) { wrap.innerHTML = '<div class="muted">Keine offenen Aufträge gefunden.</div>'; return; }
-
-  wrap.innerHTML = `
-    <div class="table-wrap">
-      <table>
-        <thead>
-          <tr>
-            <th>ID</th><th>Kunde</th><th>Mitarbeiter</th><th>Anzahl</th><th>Prozent</th><th>Kosten</th>
-            <th>AbholDatum</th><th>Erhalten?</th><th>Info</th><th></th>
-          </tr>
-        </thead>
-        <tbody>
-          ${items.map(r => `
-            <tr>
-              <td>${r.ID}</td>
-              <td>${escapeHtml(r.Kunde)}</td>
-              <td>${escapeHtml(r.Mitarbeiter)}</td>
-              <td>${r.Anzahl}</td>
-              <td>${r.Prozent}</td>
-              <td>${moneyEUR(r.Kosten)}</td>
-              <td class="date-cell">
-                <input type="date" min="${TODAY_MIN}" data-id="${r.ID}" class="open-abhol" value="${escapeHtml(r.__abholInput || '')}">
-              </td>
-              <td>
-                <select data-id="${r.ID}" class="open-erhalten">
-                  <option value="0" selected>Nein</option>
-                  <option value="1">Ja</option>
-                </select>
-                <div class="muted">Ja nur mit AbholDatum</div>
-              </td>
-              <td><textarea data-id="${r.ID}" class="open-info" rows="2">${escapeHtml(r.Info || '')}</textarea></td>
-              <td><button data-id="${r.ID}" class="btn tiny btn-primary open-save">Speichern</button></td>
-            </tr>
-          `).join('')}
-        </tbody>
-      </table>
-    </div>
-  `;
-
-  wrap.querySelectorAll('.open-save').forEach(btn => {
-    btn.addEventListener('click', async () => {
-      const id = btn.getAttribute('data-id');
-      const info = wrap.querySelector('.open-info[data-id="' + id + '"]').value;
-      const erhalten = wrap.querySelector('.open-erhalten[data-id="' + id + '"]').value;
-      const abhol = wrap.querySelector('.open-abhol[data-id="' + id + '"]').value;
-
-      if (abhol && isDateBeforeToday(abhol)) { showMsg('error', 'AbholDatum darf nicht in der Vergangenheit liegen.'); return; }
-      if (erhalten === '1' && !abhol) { showMsg('error', 'Bitte zuerst ein AbholDatum auswählen (Pflicht), bevor "Erhalten = Ja" gesetzt wird.'); return; }
-
-      btn.disabled = true;
-      const old = btn.textContent;
-      btn.textContent = 'Speichert…';
-
-      try {
-        await patchOrder(id, { Info: info, Erhalten: erhalten, AbholDatum: abhol });
-        showMsg('ok', 'Änderung gesendet. ID: ' + id + '\nAktualisiere…');
-        await loadAllFromGViz(true);
-        renderOpen();
-      } catch (e) {
-        showMsg('error', e.message);
-      } finally {
-        btn.disabled = false;
-        btn.textContent = old;
-      }
-    });
-  });
-}
-
-function renderDone() {
-  const doneRows = allRows.filter(r => r.__erhalten);
-  const { total, items } = applySearchAndPage(doneRows, doneState);
-
-  $('donePageInfo').textContent = `Seite ${doneState.page} · ${total} Treffer`;
-  $('donePrev').disabled = doneState.page <= 1;
-  $('doneNext').disabled = (doneState.page * PAGE_SIZE) >= total;
-
-  const wrap = $('doneTableWrap');
-  if (!items.length) { wrap.innerHTML = '<div class="muted">Keine fertigen Aufträge gefunden.</div>'; return; }
-
-  wrap.innerHTML = `
-    <div class="table-wrap">
-      <table>
-        <thead>
-          <tr>
-            <th>ID</th><th>AuftragsDatum</th><th>Kunde</th><th>Mitarbeiter</th><th>Anzahl</th><th>Prozent</th>
-            <th>Kosten</th><th>AbholDatum</th><th>Erhalten?</th><th>Info</th><th></th>
-          </tr>
-        </thead>
-        <tbody>
-          ${items.map(r => `
-            <tr>
-              <td>${r.ID}</td>
-              <td>${escapeHtml(r.AuftragsDatum || '')}</td>
-              <td>${escapeHtml(r.Kunde)}</td>
-              <td>${escapeHtml(r.Mitarbeiter)}</td>
-              <td>${r.Anzahl}</td>
-              <td>${r.Prozent}</td>
-              <td>${moneyEUR(r.Kosten)}</td>
-              <td>${escapeHtml(r.AbholDatum || '')}</td>
-              <td>Ja</td>
-              <td>${escapeHtml(r.Info || '')}</td>
-              <td><button data-id="${r.ID}" class="btn tiny btn-danger done-del">Löschen</button></td>
-            </tr>
-          `).join('')}
-        </tbody>
-      </table>
-    </div>
-  `;
-
-  wrap.querySelectorAll('.done-del').forEach(btn => {
-    btn.addEventListener('click', async () => {
-      const id = btn.getAttribute('data-id');
-      if (!confirm('Auftrag ID ' + id + ' wirklich löschen?')) return;
-
-      btn.disabled = true;
-      const old = btn.textContent;
-      btn.textContent = 'Löscht…';
-
-      try {
-        await deleteOrder(id);
-        showMsg('ok', 'Löschung gesendet. ID: ' + id + '\nAktualisiere…');
-        await loadAllFromGViz(true);
-        renderDone();
-      } catch (e) {
-        showMsg('error', e.message);
-      } finally {
-        btn.disabled = false;
-        btn.textContent = old;
-      }
-    });
-  });
 }
 
 /** =========================
@@ -740,25 +690,31 @@ $('btnReload').addEventListener('click', async () => {
   try {
     $('btnReload').disabled = true;
     $('syncPill').textContent = 'Sync: aktualisiert…';
-    await loadAllFromGViz(true);
-    if ($('tab-open').classList.contains('active')) renderOpen();
-    if ($('tab-done').classList.contains('active')) renderDone();
-    showMsg('ok', 'LIVE neu geladen.');
+    await loadAllForReload();
+    showMsg('ok', 'Neu geladen.');
   } catch (e) {
-    showMsg('error', 'Neu laden fehlgeschlagen:\n' + e.message);
+    showMsg('error', e.message);
   } finally {
     $('btnReload').disabled = false;
   }
 });
 
+$('btnKey').addEventListener('click', () => {
+  setAppKey();
+  showMsg('ok', 'Key gespeichert/aktualisiert.');
+});
+
 hookKostenAuto();
 
+// Boot
 (async function init(){
   try{
-    await loadAllFromGViz(true);
+    // force key prompt early
+    getAppKey();
+    await loadAllForReload();
     setTab('create');
   } catch(e){
-    showMsg('error', 'GViz konnte nicht geladen werden.\n' + e.message);
+    showMsg('error', e.message);
   }
 })();
 </script>
