@@ -69,7 +69,7 @@
     .topbar{
       position: sticky;
       top: 16px;
-      z-index: 20;
+      z-index: 40;
       display:flex;
       align-items:center;
       justify-content:space-between;
@@ -80,6 +80,7 @@
       border: 1px solid var(--border);
       box-shadow: var(--shadow2);
       backdrop-filter: blur(12px);
+      flex-wrap: wrap;
     }
 
     .brand{
@@ -215,7 +216,7 @@
       width:100%;
     }
     .center-card{
-      width: min(760px, 100%);
+      width: min(980px, 100%);
     }
 
     .form{
@@ -261,7 +262,7 @@
       width:100%;
       border-collapse: separate;
       border-spacing: 0;
-      min-width: 1180px;
+      min-width: 1280px;
     }
     thead th{
       position: sticky;
@@ -342,7 +343,125 @@
     }
     .modal-backdrop.show{ display:flex; }
     .modal{
-      width:min(520px, 100%);
+      width:min(640px, 100%);
+    }
+
+    .settings-grid{
+      display:grid;
+      gap:12px;
+      grid-template-columns: repeat(2, minmax(0,1fr));
+    }
+
+    .settings-box{
+      padding:14px;
+      border:1px solid rgba(255,255,255,.08);
+      border-radius:14px;
+      background: rgba(255,255,255,.02);
+    }
+
+    .settings-box h4{
+      margin:0 0 10px 0;
+      font-size:13px;
+    }
+
+    .services-wrap{
+      display:grid;
+      gap:12px;
+      margin-top:10px;
+    }
+
+    .service-card{
+      border:1px solid rgba(255,255,255,.08);
+      border-radius:16px;
+      background: rgba(255,255,255,.03);
+      padding:14px;
+    }
+
+    .service-head{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:12px;
+      margin-bottom:12px;
+      flex-wrap:wrap;
+    }
+
+    .service-grid{
+      display:grid;
+      gap:12px;
+      grid-template-columns: 1.3fr 1fr 1fr 220px;
+      align-items:end;
+    }
+
+    .service-price{
+      border:1px solid rgba(225,29,72,.28);
+      background: rgba(225,29,72,.08);
+      border-radius:14px;
+      padding:12px;
+      min-height:56px;
+      display:flex;
+      flex-direction:column;
+      justify-content:center;
+    }
+
+    .service-price b{
+      font-size:14px;
+    }
+
+    .service-price span{
+      color:var(--muted);
+      font-size:11px;
+      margin-bottom:4px;
+    }
+
+    .sticky-total{
+      position: sticky;
+      bottom: 14px;
+      z-index: 15;
+      margin-top: 16px;
+      border:1px solid rgba(225,29,72,.30);
+      background: linear-gradient(180deg, rgba(225,29,72,.18), rgba(225,29,72,.10));
+      border-radius: 16px;
+      padding: 14px 16px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap: 12px;
+      backdrop-filter: blur(10px);
+      box-shadow: var(--shadow2);
+      flex-wrap:wrap;
+    }
+
+    .sticky-total strong{
+      font-size:20px;
+      letter-spacing:.2px;
+    }
+
+    .service-summary{
+      font-size:12px;
+      color: var(--muted);
+      white-space: pre-line;
+      min-width: 260px;
+    }
+
+    .readonly-box{
+      border:1px solid rgba(255,255,255,.08);
+      border-radius:12px;
+      padding:10px 12px;
+      background: rgba(255,255,255,.02);
+      white-space: pre-line;
+      min-width: 240px;
+      font-size:12px;
+      line-height:1.45;
+    }
+
+    @media (max-width: 1200px){
+      .service-grid{
+        grid-template-columns: 1fr 1fr;
+      }
+      .settings-grid{
+        grid-template-columns: 1fr;
+      }
     }
 
     @media (max-width: 980px){
@@ -350,6 +469,9 @@
       .brand, .actions{ min-width:auto; }
       .actions{ justify-content:flex-end; }
       table{ min-width: 1120px; }
+      .service-grid{
+        grid-template-columns: 1fr;
+      }
     }
   </style>
 </head>
@@ -412,6 +534,7 @@
         <button id="tab-create" class="tab active" type="button"><span class="dot"></span>Auftrag erstellen</button>
         <button id="tab-open" class="tab" type="button"><span class="dot"></span>Offene Aufträge</button>
         <button id="tab-done" class="tab" type="button"><span class="dot"></span>Fertige Aufträge</button>
+        <button id="tab-settings" class="tab hidden" type="button"><span class="dot"></span>Einstellungen</button>
       </div>
 
       <div class="actions">
@@ -432,16 +555,49 @@
         <div class="card center-card">
           <div class="card-hd">
             <h3>Auftrag erstellen</h3>
-            <span class="pill">Kosten: auto · €</span>
+            <span class="pill">Mehrere Leistungen möglich</span>
           </div>
           <div class="card-bd">
             <div class="form">
-              <div><label>Kunde*<input id="fKunde" type="text" required /></label></div>
               <div><label>Mitarbeiter*<input id="fMitarbeiter" type="text" required readonly /></label></div>
-              <div><label>Anzahl Fässer*<input id="fAnzahl" type="number" min="0" step="1" required /></label></div>
-              <div><label>Prozent* (1–100)<input id="fProzent" type="number" min="1" max="100" step="1" required /></label></div>
-              <div><label>Kosten (automatisch)<input id="fKosten" type="text" readonly /></label></div>
-              <div><label>Info<textarea id="fInfo" rows="3"></textarea></label></div>
+              <div><label>Kunde*<input id="fKunde" type="text" required /></label></div>
+
+              <div>
+                <label>Kundenart*
+                  <select id="fKundenart">
+                    <option value="Standard">Standard</option>
+                    <option value="Stammkunden">Stammkunden</option>
+                    <option value="VIP">VIP</option>
+                    <option value="Custom">Custom</option>
+                  </select>
+                </label>
+              </div>
+
+              <div id="customProzentWrap" class="hidden">
+                <label>Custom Prozent / Multiplikator*
+                  <input id="fCustomProzent" type="number" min="0" step="1" />
+                </label>
+                <div class="muted">Wird nur auf „Verarbeitung von Wein“ angewendet. 100 = normal, 110 = +10%.</div>
+              </div>
+            </div>
+
+            <div style="margin-top:18px; display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap;">
+              <h4 style="margin:0;">Leistungen</h4>
+              <button id="btnAddService" class="btn" type="button">＋ Leistung hinzufügen</button>
+            </div>
+
+            <div id="servicesWrap" class="services-wrap"></div>
+
+            <div class="sticky-total">
+              <div>
+                <div class="muted">Gesamtpreis automatisch</div>
+                <strong id="fGesamtpreis">0 €</strong>
+              </div>
+              <div id="serviceSummary" class="service-summary">Noch keine Leistungen.</div>
+            </div>
+
+            <div style="margin-top:16px;">
+              <label>Info<textarea id="fInfo" rows="4"></textarea></label>
             </div>
 
             <div style="margin-top: 14px; display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
@@ -486,6 +642,71 @@
         </div>
 
         <div id="doneTableWrap" class="table-wrap"></div>
+      </section>
+
+      <section id="view-settings" class="card hidden">
+        <div class="card-hd">
+          <h3>Einstellungen</h3>
+          <span class="pill">Nur Geschäftsführer</span>
+        </div>
+
+        <div class="card-bd">
+          <div class="settings-grid">
+            <div class="settings-box">
+              <h4>Verarbeitung von Wein</h4>
+              <label>Preis für 800 Fässer (€)
+                <input id="s_verarbeitung_wein_preis_800_faesser" type="number" min="0" step="0.01" />
+              </label>
+            </div>
+
+            <div class="settings-box">
+              <h4>Lagern von Kunden Wein</h4>
+              <label>Preis pro Tag für 800 Fässer (€)
+                <input id="s_lagerung_preis_pro_tag_800_faesser" type="number" min="0" step="0.01" />
+              </label>
+            </div>
+
+            <div class="settings-box">
+              <h4>Ankauf Fässer</h4>
+              <label>Preis pro Fass (€)
+                <input id="s_ankauf_faesser_preis_pro_fass" type="number" min="0" step="0.01" />
+              </label>
+            </div>
+
+            <div class="settings-box">
+              <h4>Ankauf Trauben</h4>
+              <label>Stückpreis (€)
+                <input id="s_ankauf_trauben_stueckpreis" type="number" min="0" step="0.01" />
+              </label>
+            </div>
+
+            <div class="settings-box">
+              <h4>Lieferservice</h4>
+              <label>Preis pro KM (€)
+                <input id="s_lieferservice_preis_pro_km" type="number" min="0" step="0.01" />
+              </label>
+            </div>
+
+            <div class="settings-box">
+              <h4>Kundenstufen</h4>
+              <label>Standard (%)
+                <input id="s_standard_prozent" type="number" min="0" step="1" />
+              </label>
+              <label style="margin-top:10px;">Stammkunden (%)
+                <input id="s_stammkunden_prozent" type="number" min="0" step="1" />
+              </label>
+              <label style="margin-top:10px;">VIP (%)
+                <input id="s_vip_prozent" type="number" min="0" step="1" />
+              </label>
+              <div class="muted" style="margin-top:10px;">Diese Prozentwerte wirken nur auf „Verarbeitung von Wein“. 100 = normal.</div>
+            </div>
+          </div>
+
+          <div style="margin-top:16px; display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+            <button id="btnSaveSettings" class="btn btn-primary" type="button">Einstellungen speichern</button>
+            <button id="btnReloadSettings" class="btn" type="button">Einstellungen neu laden</button>
+          </div>
+        </div>
       </section>
     </div>
   </div>
@@ -544,6 +765,23 @@ let lastSync = null;
 let openState = { page: 1, search: '' };
 let doneState = { page: 1, search: '' };
 
+let settingsState = {
+  pricing: {
+    verarbeitung_wein_preis_800_faesser: 0,
+    lagerung_preis_pro_tag_800_faesser: 0,
+    ankauf_faesser_preis_pro_fass: 0,
+    ankauf_trauben_stueckpreis: 0,
+    lieferservice_preis_pro_km: 0
+  },
+  kundenarten: {
+    standard_prozent: 100,
+    stammkunden_prozent: 100,
+    vip_prozent: 100
+  }
+};
+
+let servicesDraft = [];
+
 const $ = (id) => document.getElementById(id);
 function log(...args){ if (DEBUG) console.log('[UI]', ...args); }
 
@@ -588,13 +826,16 @@ function setAuthMode(mode) {
 }
 
 function setTab(tab) {
-  const tabs = ['create','open','done'];
+  const tabs = ['create','open','done','settings'];
   for (const t of tabs) {
-    $('tab-' + t).classList.toggle('active', t === tab);
-    $('view-' + t).classList.toggle('hidden', t !== tab);
+    const tabBtn = $('tab-' + t);
+    const view = $('view-' + t);
+    if (tabBtn) tabBtn.classList.toggle('active', t === tab);
+    if (view) view.classList.toggle('hidden', t !== tab);
   }
   if (tab === 'open') { loadAndRenderOpen().catch(e => showMsg('error', e.message)); }
   if (tab === 'done') { loadAndRenderDone().catch(e => showMsg('error', e.message)); }
+  if (tab === 'settings') { loadSettings().catch(e => showMsg('error', e.message)); }
 }
 
 function todayISO() {
@@ -615,6 +856,11 @@ function toInt(v){
   return Number.isFinite(n) ? n : 0;
 }
 
+function toNum(v){
+  const n = Number(String(v ?? '').replace(',', '.'));
+  return Number.isFinite(n) ? n : 0;
+}
+
 function escapeHtml(s) {
   return String(s ?? '')
     .replaceAll('&', '&amp;')
@@ -624,18 +870,15 @@ function escapeHtml(s) {
     .replaceAll("'", '&#039;');
 }
 
-function computeKosten(anzahl, prozent) {
-  const a = Number(anzahl);
-  const p = Number(prozent);
-  if (!Number.isFinite(a) || !Number.isFinite(p)) return '';
-  const val = (a * 8 * 1299) * (p / 100);
-  return Math.round(val).toLocaleString('de-DE') + ' €';
+function round2(n){
+  return Math.round((Number(n) + Number.EPSILON) * 100) / 100;
 }
 
 function moneyEUR(n) {
   const v = Number(n);
   if (!Number.isFinite(v)) return '';
-  return Math.round(v).toLocaleString('de-DE') + ' €';
+  return Math.round(v * 100) / 100
+    .toLocaleString('de-DE', { minimumFractionDigits: 0, maximumFractionDigits: 2 }) + ' €';
 }
 
 function requireManager() {
@@ -644,6 +887,11 @@ function requireManager() {
 
 function syncMitarbeiterField() {
   $('fMitarbeiter').value = currentProfile?.username || '';
+}
+
+function setManagerVisibility() {
+  const visible = requireManager();
+  $('tab-settings').classList.toggle('hidden', !visible);
 }
 
 function applySearchAndPage(rows, state) {
@@ -724,6 +972,7 @@ async function loadOwnProfile() {
   currentProfile = data;
   setUserPill();
   syncMitarbeiterField();
+  setManagerVisibility();
 }
 
 async function handleRegister() {
@@ -795,7 +1044,8 @@ async function handleLogin() {
 
     await loadOwnProfile();
     showApp();
-    await loadAllForReload();
+    await Promise.allSettled([loadAllForReload(), loadSettings()]);
+    resetCreateForm();
     setTab('create');
     clearAuthForm();
     showMsg('ok', 'Erfolgreich eingeloggt.');
@@ -817,6 +1067,21 @@ async function handleLogout() {
     currentProfile = null;
     allOpen = [];
     allDone = [];
+    settingsState = {
+      pricing: {
+        verarbeitung_wein_preis_800_faesser: 0,
+        lagerung_preis_pro_tag_800_faesser: 0,
+        ankauf_faesser_preis_pro_fass: 0,
+        ankauf_trauben_stueckpreis: 0,
+        lieferservice_preis_pro_km: 0
+      },
+      kundenarten: {
+        standard_prozent: 100,
+        stammkunden_prozent: 100,
+        vip_prozent: 100
+      }
+    };
+    servicesDraft = [];
     $('fMitarbeiter').value = '';
     showAuth();
   } catch (e) {
@@ -875,7 +1140,8 @@ async function restoreSession() {
   if (currentUser) {
     await loadOwnProfile();
     showApp();
-    await loadAllForReload();
+    await Promise.allSettled([loadAllForReload(), loadSettings()]);
+    resetCreateForm();
     setTab('create');
   } else {
     showAuth();
@@ -930,6 +1196,12 @@ async function apiPatch(payload){
 async function apiDelete(id){
   return apiFetch(`?action=delete`, { method:"POST", body: { id } });
 }
+async function apiSettingsGet(){
+  return apiFetch(`?action=settings_get`);
+}
+async function apiSettingsSave(payload){
+  return apiFetch(`?action=settings_save`, { method:"POST", body: payload });
+}
 
 async function loadAndRenderOpen(){
   const out = await apiList('open', 1000, 0);
@@ -962,6 +1234,405 @@ async function loadAllForReload(){
   if ($('tab-done').classList.contains('active')) renderDone();
 }
 
+async function loadSettings(){
+  try {
+    const out = await apiSettingsGet();
+    const s = out.settings || {};
+    settingsState = {
+      pricing: {
+        verarbeitung_wein_preis_800_faesser: toNum(s.pricing?.verarbeitung_wein_preis_800_faesser),
+        lagerung_preis_pro_tag_800_faesser: toNum(s.pricing?.lagerung_preis_pro_tag_800_faesser),
+        ankauf_faesser_preis_pro_fass: toNum(s.pricing?.ankauf_faesser_preis_pro_fass),
+        ankauf_trauben_stueckpreis: toNum(s.pricing?.ankauf_trauben_stueckpreis),
+        lieferservice_preis_pro_km: toNum(s.pricing?.lieferservice_preis_pro_km),
+      },
+      kundenarten: {
+        standard_prozent: toNum(s.kundenarten?.standard_prozent || 100),
+        stammkunden_prozent: toNum(s.kundenarten?.stammkunden_prozent || 100),
+        vip_prozent: toNum(s.kundenarten?.vip_prozent || 100),
+      }
+    };
+    fillSettingsForm();
+    renderServices();
+  } catch (e) {
+    if (requireManager()) throw e;
+  }
+}
+
+function fillSettingsForm(){
+  $('s_verarbeitung_wein_preis_800_faesser').value = settingsState.pricing.verarbeitung_wein_preis_800_faesser;
+  $('s_lagerung_preis_pro_tag_800_faesser').value = settingsState.pricing.lagerung_preis_pro_tag_800_faesser;
+  $('s_ankauf_faesser_preis_pro_fass').value = settingsState.pricing.ankauf_faesser_preis_pro_fass;
+  $('s_ankauf_trauben_stueckpreis').value = settingsState.pricing.ankauf_trauben_stueckpreis;
+  $('s_lieferservice_preis_pro_km').value = settingsState.pricing.lieferservice_preis_pro_km;
+
+  $('s_standard_prozent').value = settingsState.kundenarten.standard_prozent;
+  $('s_stammkunden_prozent').value = settingsState.kundenarten.stammkunden_prozent;
+  $('s_vip_prozent').value = settingsState.kundenarten.vip_prozent;
+}
+
+function readSettingsForm(){
+  return {
+    pricing: {
+      verarbeitung_wein_preis_800_faesser: toNum($('s_verarbeitung_wein_preis_800_faesser').value),
+      lagerung_preis_pro_tag_800_faesser: toNum($('s_lagerung_preis_pro_tag_800_faesser').value),
+      ankauf_faesser_preis_pro_fass: toNum($('s_ankauf_faesser_preis_pro_fass').value),
+      ankauf_trauben_stueckpreis: toNum($('s_ankauf_trauben_stueckpreis').value),
+      lieferservice_preis_pro_km: toNum($('s_lieferservice_preis_pro_km').value),
+    },
+    kundenarten: {
+      standard_prozent: toNum($('s_standard_prozent').value),
+      stammkunden_prozent: toNum($('s_stammkunden_prozent').value),
+      vip_prozent: toNum($('s_vip_prozent').value),
+    }
+  };
+}
+
+function getKundenMultiplikator() {
+  const art = $('fKundenart').value;
+  if (art === 'Custom') return toNum($('fCustomProzent').value || 100);
+  if (art === 'Stammkunden') return toNum(settingsState.kundenarten.stammkunden_prozent || 100);
+  if (art === 'VIP') return toNum(settingsState.kundenarten.vip_prozent || 100);
+  return toNum(settingsState.kundenarten.standard_prozent || 100);
+}
+
+function createEmptyService() {
+  return {
+    id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now() + Math.random()),
+    type: 'verarbeitung_wein',
+    anzahl_faesser: '',
+    tage: '',
+    anzahl_stueck: '',
+    km: ''
+  };
+}
+
+function resetCreateForm() {
+  $('fKunde').value = '';
+  syncMitarbeiterField();
+  $('fKundenart').value = 'Standard';
+  $('fCustomProzent').value = '';
+  $('fInfo').value = '';
+  servicesDraft = [createEmptyService()];
+  toggleCustomProzent();
+  renderServices();
+}
+
+function toggleCustomProzent() {
+  $('customProzentWrap').classList.toggle('hidden', $('fKundenart').value !== 'Custom');
+  renderServices();
+}
+
+function getServicePrice(service) {
+  const type = service.type;
+  const mult = getKundenMultiplikator();
+
+  if (type === 'verarbeitung_wein') {
+    const anzahl = toNum(service.anzahl_faesser);
+    return round2((anzahl / 800) * settingsState.pricing.verarbeitung_wein_preis_800_faesser * (mult / 100));
+  }
+  if (type === 'lagerung_kunden_wein') {
+    const anzahl = toNum(service.anzahl_faesser);
+    const tage = toNum(service.tage);
+    return round2((anzahl / 800) * settingsState.pricing.lagerung_preis_pro_tag_800_faesser * tage);
+  }
+  if (type === 'ankauf_faesser') {
+    const anzahl = toNum(service.anzahl_faesser);
+    return round2(anzahl * settingsState.pricing.ankauf_faesser_preis_pro_fass);
+  }
+  if (type === 'ankauf_trauben') {
+    const anzahl = toNum(service.anzahl_stueck);
+    return round2(anzahl * settingsState.pricing.ankauf_trauben_stueckpreis);
+  }
+  if (type === 'lieferservice') {
+    const km = toNum(service.km);
+    return round2(km * settingsState.pricing.lieferservice_preis_pro_km);
+  }
+  return 0;
+}
+
+function serviceToApi(service) {
+  const base = { type: service.type };
+
+  if (service.type === 'verarbeitung_wein') {
+    return { ...base, anzahl_faesser: toNum(service.anzahl_faesser) };
+  }
+  if (service.type === 'lagerung_kunden_wein') {
+    return { ...base, anzahl_faesser: toNum(service.anzahl_faesser), tage: toNum(service.tage) };
+  }
+  if (service.type === 'ankauf_faesser') {
+    return { ...base, anzahl_faesser: toNum(service.anzahl_faesser) };
+  }
+  if (service.type === 'ankauf_trauben') {
+    return { ...base, anzahl_stueck: toNum(service.anzahl_stueck) };
+  }
+  if (service.type === 'lieferservice') {
+    return { ...base, km: toNum(service.km) };
+  }
+  return base;
+}
+
+function getServiceSummaryLine(service) {
+  const price = moneyEUR(getServicePrice(service));
+  if (service.type === 'verarbeitung_wein') return `Verarbeitung von Wein · ${toNum(service.anzahl_faesser)} Fässer · ${price}`;
+  if (service.type === 'lagerung_kunden_wein') return `Lagern von Kunden Wein · ${toNum(service.anzahl_faesser)} Fässer · ${toNum(service.tage)} Tage · ${price}`;
+  if (service.type === 'ankauf_faesser') return `Ankauf Fässer · ${toNum(service.anzahl_faesser)} Fässer · ${price}`;
+  if (service.type === 'ankauf_trauben') return `Ankauf Trauben · ${toNum(service.anzahl_stueck)} Stück · ${price}`;
+  if (service.type === 'lieferservice') return `Lieferservice · ${toNum(service.km)} KM · ${price}`;
+  return `Leistung · ${price}`;
+}
+
+function updateTotalsUI() {
+  const total = servicesDraft.reduce((sum, s) => sum + getServicePrice(s), 0);
+  $('fGesamtpreis').textContent = moneyEUR(total);
+
+  if (!servicesDraft.length) {
+    $('serviceSummary').textContent = 'Noch keine Leistungen.';
+    return;
+  }
+
+  const lines = servicesDraft.map(getServiceSummaryLine);
+  $('serviceSummary').textContent = lines.join('\n');
+}
+
+function renderServiceFields(service) {
+  if (service.type === 'verarbeitung_wein') {
+    return `
+      <div>
+        <label>Leistung
+          <select data-role="type">
+            <option value="verarbeitung_wein" selected>Verarbeitung von Wein</option>
+            <option value="lagerung_kunden_wein">Lagern von Kunden Wein</option>
+            <option value="ankauf_faesser">Ankauf Fässer</option>
+            <option value="ankauf_trauben">Ankauf Trauben</option>
+            <option value="lieferservice">Lieferservice</option>
+          </select>
+        </label>
+      </div>
+      <div>
+        <label>Anzahl Fässer
+          <input data-role="anzahl_faesser" type="number" min="0" step="1" value="${escapeHtml(service.anzahl_faesser)}">
+        </label>
+      </div>
+      <div class="readonly-box">
+        Multiplikator: ${escapeHtml(String(getKundenMultiplikator()))} %\n
+        Preis für 800 Fässer: ${escapeHtml(moneyEUR(settingsState.pricing.verarbeitung_wein_preis_800_faesser))}
+      </div>
+    `;
+  }
+
+  if (service.type === 'lagerung_kunden_wein') {
+    return `
+      <div>
+        <label>Leistung
+          <select data-role="type">
+            <option value="verarbeitung_wein">Verarbeitung von Wein</option>
+            <option value="lagerung_kunden_wein" selected>Lagern von Kunden Wein</option>
+            <option value="ankauf_faesser">Ankauf Fässer</option>
+            <option value="ankauf_trauben">Ankauf Trauben</option>
+            <option value="lieferservice">Lieferservice</option>
+          </select>
+        </label>
+      </div>
+      <div>
+        <label>Anzahl Fässer
+          <input data-role="anzahl_faesser" type="number" min="0" step="1" value="${escapeHtml(service.anzahl_faesser)}">
+        </label>
+      </div>
+      <div>
+        <label>Tage
+          <input data-role="tage" type="number" min="0" step="1" value="${escapeHtml(service.tage)}">
+        </label>
+      </div>
+    `;
+  }
+
+  if (service.type === 'ankauf_faesser') {
+    return `
+      <div>
+        <label>Leistung
+          <select data-role="type">
+            <option value="verarbeitung_wein">Verarbeitung von Wein</option>
+            <option value="lagerung_kunden_wein">Lagern von Kunden Wein</option>
+            <option value="ankauf_faesser" selected>Ankauf Fässer</option>
+            <option value="ankauf_trauben">Ankauf Trauben</option>
+            <option value="lieferservice">Lieferservice</option>
+          </select>
+        </label>
+      </div>
+      <div>
+        <label>Anzahl Fässer
+          <input data-role="anzahl_faesser" type="number" min="0" step="1" value="${escapeHtml(service.anzahl_faesser)}">
+        </label>
+      </div>
+      <div class="readonly-box">
+        Preis pro Fass: ${escapeHtml(moneyEUR(settingsState.pricing.ankauf_faesser_preis_pro_fass))}
+      </div>
+    `;
+  }
+
+  if (service.type === 'ankauf_trauben') {
+    return `
+      <div>
+        <label>Leistung
+          <select data-role="type">
+            <option value="verarbeitung_wein">Verarbeitung von Wein</option>
+            <option value="lagerung_kunden_wein">Lagern von Kunden Wein</option>
+            <option value="ankauf_faesser">Ankauf Fässer</option>
+            <option value="ankauf_trauben" selected>Ankauf Trauben</option>
+            <option value="lieferservice">Lieferservice</option>
+          </select>
+        </label>
+      </div>
+      <div>
+        <label>Anzahl Stück
+          <input data-role="anzahl_stueck" type="number" min="0" step="1" value="${escapeHtml(service.anzahl_stueck)}">
+        </label>
+      </div>
+      <div class="readonly-box">
+        Stückpreis: ${escapeHtml(moneyEUR(settingsState.pricing.ankauf_trauben_stueckpreis))}
+      </div>
+    `;
+  }
+
+  if (service.type === 'lieferservice') {
+    return `
+      <div>
+        <label>Leistung
+          <select data-role="type">
+            <option value="verarbeitung_wein">Verarbeitung von Wein</option>
+            <option value="lagerung_kunden_wein">Lagern von Kunden Wein</option>
+            <option value="ankauf_faesser">Ankauf Fässer</option>
+            <option value="ankauf_trauben">Ankauf Trauben</option>
+            <option value="lieferservice" selected>Lieferservice</option>
+          </select>
+        </label>
+      </div>
+      <div>
+        <label>KM
+          <input data-role="km" type="number" min="0" step="0.01" value="${escapeHtml(service.km)}">
+        </label>
+      </div>
+      <div class="readonly-box">
+        Preis pro KM: ${escapeHtml(moneyEUR(settingsState.pricing.lieferservice_preis_pro_km))}
+      </div>
+    `;
+  }
+
+  return '';
+}
+
+function renderServices() {
+  const wrap = $('servicesWrap');
+  wrap.innerHTML = '';
+
+  servicesDraft.forEach((service, idx) => {
+    const el = document.createElement('div');
+    el.className = 'service-card';
+    el.dataset.id = service.id;
+    el.innerHTML = `
+      <div class="service-head">
+        <strong>Leistung ${idx + 1}</strong>
+        <button class="btn tiny btn-danger" type="button" data-action="remove">Entfernen</button>
+      </div>
+      <div class="service-grid">
+        ${renderServiceFields(service)}
+        <div class="service-price">
+          <span>Einzelpreis</span>
+          <b>${moneyEUR(getServicePrice(service))}</b>
+        </div>
+      </div>
+    `;
+
+    const removeBtn = el.querySelector('[data-action="remove"]');
+    removeBtn.addEventListener('click', () => {
+      if (servicesDraft.length <= 1) {
+        showMsg('error', 'Mindestens eine Leistung muss vorhanden sein.');
+        return;
+      }
+      servicesDraft = servicesDraft.filter(s => s.id !== service.id);
+      renderServices();
+    });
+
+    el.querySelectorAll('select, input').forEach(input => {
+      input.addEventListener('input', () => {
+        const role = input.getAttribute('data-role');
+        if (role === 'type') {
+          service.type = input.value;
+          service.anzahl_faesser = '';
+          service.tage = '';
+          service.anzahl_stueck = '';
+          service.km = '';
+          renderServices();
+          return;
+        }
+        service[role] = input.value;
+        renderServices();
+      });
+    });
+
+    wrap.appendChild(el);
+  });
+
+  updateTotalsUI();
+}
+
+function validateCreateForm() {
+  const kunde = $('fKunde').value.trim();
+  const mitarbeiter = $('fMitarbeiter').value.trim();
+  const kundenart = $('fKundenart').value;
+  const custom = toNum($('fCustomProzent').value);
+
+  if (!mitarbeiter) throw new Error('Mitarbeiter ist Pflichtfeld.');
+  if (!kunde) throw new Error('Kunde ist Pflichtfeld.');
+
+  if (!['Standard','Stammkunden','VIP','Custom'].includes(kundenart)) {
+    throw new Error('Kundenart ist ungültig.');
+  }
+
+  if (kundenart === 'Custom' && custom < 0) {
+    throw new Error('Custom Prozent ist ungültig.');
+  }
+
+  if (!Array.isArray(servicesDraft) || servicesDraft.length < 1) {
+    throw new Error('Mindestens eine Leistung ist erforderlich.');
+  }
+
+  servicesDraft.forEach((s, idx) => {
+    if (s.type === 'verarbeitung_wein' && toNum(s.anzahl_faesser) < 0) {
+      throw new Error(`Leistung ${idx+1}: Anzahl Fässer ungültig.`);
+    }
+    if (s.type === 'lagerung_kunden_wein') {
+      if (toNum(s.anzahl_faesser) < 0) throw new Error(`Leistung ${idx+1}: Anzahl Fässer ungültig.`);
+      if (toNum(s.tage) < 0) throw new Error(`Leistung ${idx+1}: Tage ungültig.`);
+    }
+    if (s.type === 'ankauf_faesser' && toNum(s.anzahl_faesser) < 0) {
+      throw new Error(`Leistung ${idx+1}: Anzahl Fässer ungültig.`);
+    }
+    if (s.type === 'ankauf_trauben' && toNum(s.anzahl_stueck) < 0) {
+      throw new Error(`Leistung ${idx+1}: Anzahl Stück ungültig.`);
+    }
+    if (s.type === 'lieferservice' && toNum(s.km) < 0) {
+      throw new Error(`Leistung ${idx+1}: KM ungültig.`);
+    }
+  });
+}
+
+function renderServicesSummaryCell(services) {
+  if (!Array.isArray(services) || !services.length) return '';
+  return services.map(s => {
+    const item = s || {};
+    const type = item.label || item.type || 'Leistung';
+    const preis = moneyEUR(item.einzelpreis || 0);
+    if (item.type === 'verarbeitung_wein') return `${type}: ${item.anzahl_faesser || 0} Fässer · ${preis}`;
+    if (item.type === 'lagerung_kunden_wein') return `${type}: ${item.anzahl_faesser || 0} Fässer · ${item.tage || 0} Tage · ${preis}`;
+    if (item.type === 'ankauf_faesser') return `${type}: ${item.anzahl_faesser || 0} Fässer · ${preis}`;
+    if (item.type === 'ankauf_trauben') return `${type}: ${item.anzahl_stueck || 0} Stück · ${preis}`;
+    if (item.type === 'lieferservice') return `${type}: ${item.km || 0} KM · ${preis}`;
+    return `${type}: ${preis}`;
+  }).join('\n');
+}
+
 function renderOpen() {
   const { total, items } = applySearchAndPage(allOpen, openState);
 
@@ -983,8 +1654,8 @@ function renderOpen() {
           <th>AuftragsDatum</th>
           <th>Kunde</th>
           <th>Mitarbeiter</th>
-          <th>Anzahl</th>
-          <th>Prozent</th>
+          <th>Kundenart</th>
+          <th>Leistungen</th>
           <th>Kosten</th>
           <th>AbholDatum</th>
           <th>Erhalten?</th>
@@ -1002,8 +1673,8 @@ function renderOpen() {
               <td>${escapeHtml(auftrags)}</td>
               <td>${escapeHtml(r.kunde)}</td>
               <td>${escapeHtml(r.mitarbeiter)}</td>
-              <td>${toInt(r.anzahl)}</td>
-              <td>${toInt(r.prozent)}</td>
+              <td>${escapeHtml(r.kundenart || '')}</td>
+              <td style="white-space:pre-line;">${escapeHtml(renderServicesSummaryCell(r.services))}</td>
               <td>${moneyEUR(r.kosten)}</td>
               <td class="date-cell">
                 <input type="date" min="${TODAY_MIN}" data-id="${r.id}" class="open-abhol" value="${escapeHtml(abhol)}">
@@ -1085,8 +1756,8 @@ function renderDone() {
           <th>AuftragsDatum</th>
           <th>Kunde</th>
           <th>Mitarbeiter</th>
-          <th>Anzahl</th>
-          <th>Prozent</th>
+          <th>Kundenart</th>
+          <th>Leistungen</th>
           <th>Kosten</th>
           <th>AbholDatum</th>
           <th>Info</th>
@@ -1105,8 +1776,8 @@ function renderDone() {
               <td>${escapeHtml(auftrags)}</td>
               <td>${escapeHtml(r.kunde)}</td>
               <td>${escapeHtml(r.mitarbeiter)}</td>
-              <td>${toInt(r.anzahl)}</td>
-              <td>${toInt(r.prozent)}</td>
+              <td>${escapeHtml(r.kundenart || '')}</td>
+              <td style="white-space:pre-line;">${escapeHtml(renderServicesSummaryCell(r.services))}</td>
               <td>${moneyEUR(r.kosten)}</td>
               <td>${escapeHtml(abhol)}</td>
               <td>${escapeHtml(r.info || '')}</td>
@@ -1152,27 +1823,6 @@ function renderDone() {
   });
 }
 
-function validateCreateForm() {
-  const kunde = $('fKunde').value.trim();
-  const mitarbeiter = $('fMitarbeiter').value.trim();
-  const anzahl = toInt($('fAnzahl').value);
-  const prozent = toInt($('fProzent').value);
-
-  if (!kunde) throw new Error('Kunde ist Pflichtfeld.');
-  if (!mitarbeiter) throw new Error('Mitarbeiter ist Pflichtfeld.');
-  if (!Number.isInteger(anzahl) || anzahl < 0) throw new Error('Anzahl muss eine nicht-negative Ganzzahl sein.');
-  if (!Number.isInteger(prozent) || prozent < 1 || prozent > 100) throw new Error('Prozent muss 1–100 (Ganzzahl) sein.');
-}
-
-function hookKostenAuto() {
-  const recalc = () => {
-    $('fKosten').value = computeKosten($('fAnzahl').value, $('fProzent').value);
-  };
-  $('fAnzahl').addEventListener('input', recalc);
-  $('fProzent').addEventListener('input', recalc);
-  recalc();
-}
-
 async function createOrder() {
   const btn = $('btnCreate');
   btn.disabled = true;
@@ -1184,21 +1834,15 @@ async function createOrder() {
 
     const kunde = $('fKunde').value.trim();
     const mitarbeiter = $('fMitarbeiter').value.trim();
-    const anzahl = toInt($('fAnzahl').value);
-    const prozent = toInt($('fProzent').value);
+    const kundenart = $('fKundenart').value;
+    const custom_prozent = kundenart === 'Custom' ? toNum($('fCustomProzent').value) : null;
     const info = $('fInfo').value.trim();
+    const services = servicesDraft.map(serviceToApi);
 
-    await apiCreate({ kunde, mitarbeiter, anzahl, prozent, info });
+    await apiCreate({ kunde, mitarbeiter, kundenart, custom_prozent, services, info });
 
     showMsg('ok', 'Gespeichert.');
-
-    $('fKunde').value = '';
-    $('fAnzahl').value = '';
-    $('fProzent').value = '';
-    $('fInfo').value = '';
-    $('fKosten').value = '';
-    syncMitarbeiterField();
-
+    resetCreateForm();
     await loadAndRenderOpen();
     setTab('open');
   } catch (e) {
@@ -1219,6 +1863,7 @@ $('authSubmit').addEventListener('click', async () => {
 $('tab-create').addEventListener('click', () => setTab('create'));
 $('tab-open').addEventListener('click', () => setTab('open'));
 $('tab-done').addEventListener('click', () => setTab('done'));
+$('tab-settings').addEventListener('click', () => setTab('settings'));
 
 $('btnCreate').addEventListener('click', createOrder);
 $('btnLogout').addEventListener('click', handleLogout);
@@ -1263,12 +1908,54 @@ $('btnReload').addEventListener('click', async () => {
   try {
     $('btnReload').disabled = true;
     $('syncPill').textContent = 'Sync: aktualisiert…';
-    await loadAllForReload();
+    await Promise.allSettled([loadAllForReload(), loadSettings()]);
     showMsg('ok', 'Neu geladen.');
   } catch (e) {
     showMsg('error', e.message);
   } finally {
     $('btnReload').disabled = false;
+  }
+});
+
+$('btnAddService').addEventListener('click', () => {
+  servicesDraft.push(createEmptyService());
+  renderServices();
+});
+
+$('fKundenart').addEventListener('change', toggleCustomProzent);
+$('fCustomProzent').addEventListener('input', renderServices);
+
+$('btnReloadSettings').addEventListener('click', async () => {
+  try {
+    $('btnReloadSettings').disabled = true;
+    await loadSettings();
+    showMsg('ok', 'Einstellungen geladen.');
+  } catch (e) {
+    showMsg('error', e.message);
+  } finally {
+    $('btnReloadSettings').disabled = false;
+  }
+});
+
+$('btnSaveSettings').addEventListener('click', async () => {
+  const btn = $('btnSaveSettings');
+  const old = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = 'Speichert…';
+
+  try {
+    if (!requireManager()) throw new Error('Nur Geschäftsführer dürfen Einstellungen speichern.');
+    const payload = readSettingsForm();
+    const out = await apiSettingsSave(payload);
+    settingsState = out.settings || payload;
+    fillSettingsForm();
+    renderServices();
+    showMsg('ok', 'Einstellungen gespeichert.');
+  } catch (e) {
+    showMsg('error', e.message);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = old;
   }
 });
 
@@ -1283,11 +1970,11 @@ sb.auth.onAuthStateChange(async (_event, session) => {
   }
 });
 
-hookKostenAuto();
 setAuthMode('login');
 
 (async function init(){
   try {
+    resetCreateForm();
     await restoreSession();
   } catch (e) {
     console.error(e);
