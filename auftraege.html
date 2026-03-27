@@ -358,7 +358,6 @@
   <div class="bg-noise"></div>
   <img class="bg-logo" alt="" src="https://raw.githubusercontent.com/BattleNogare/h-h_weinfabrik/main/fischer_weinfabrik_logo.png">
 
-  <!-- AUTH -->
   <div id="authShell" class="auth-shell">
     <div class="card auth-card">
       <div class="card-hd">
@@ -367,8 +366,8 @@
       </div>
       <div class="card-bd">
         <div class="auth-switch">
-          <button id="authModeLogin" class="btn btn-primary">Login</button>
-          <button id="authModeRegister" class="btn">Registrierung</button>
+          <button id="authModeLogin" class="btn btn-primary" type="button">Login</button>
+          <button id="authModeRegister" class="btn" type="button">Registrierung</button>
         </div>
 
         <div class="form">
@@ -392,14 +391,13 @@
         </div>
 
         <div style="margin-top:14px; display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
-          <button id="authSubmit" class="btn btn-primary">Einloggen</button>
+          <button id="authSubmit" class="btn btn-primary" type="button">Einloggen</button>
           <span id="authInfo" class="muted">Benutzername wird intern zu benutzername@lfc.de</span>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- APP -->
   <div id="appShell" class="app hidden">
     <div class="topbar">
       <div class="brand">
@@ -411,26 +409,25 @@
       </div>
 
       <div class="tabs">
-        <button id="tab-create" class="tab active"><span class="dot"></span>Auftrag erstellen</button>
-        <button id="tab-open" class="tab"><span class="dot"></span>Offene Aufträge</button>
-        <button id="tab-done" class="tab"><span class="dot"></span>Fertige Aufträge</button>
+        <button id="tab-create" class="tab active" type="button"><span class="dot"></span>Auftrag erstellen</button>
+        <button id="tab-open" class="tab" type="button"><span class="dot"></span>Offene Aufträge</button>
+        <button id="tab-done" class="tab" type="button"><span class="dot"></span>Fertige Aufträge</button>
       </div>
 
       <div class="actions">
         <span id="syncPill" class="pill">Sync: –</span>
         <div class="userbox">
           <span id="userPill" class="pill">–</span>
-          <button id="btnChangePw" class="btn tiny icon-btn" title="Passwort ändern">🔑</button>
-          <button id="btnLogout" class="btn tiny icon-btn" title="Logout">⎋</button>
+          <button id="btnChangePw" class="btn tiny icon-btn" title="Passwort ändern" type="button">🔑</button>
+          <button id="btnLogout" class="btn tiny icon-btn" title="Logout" type="button">⎋</button>
         </div>
-        <button id="btnReload" class="btn tiny">↻ Neu laden</button>
+        <button id="btnReload" class="btn tiny" type="button">↻ Neu laden</button>
       </div>
     </div>
 
     <div id="msg" class="msg"></div>
 
     <div class="grid">
-      <!-- CREATE -->
       <section id="view-create" class="center-wrap">
         <div class="card center-card">
           <div class="card-hd">
@@ -448,14 +445,13 @@
             </div>
 
             <div style="margin-top: 14px; display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
-              <button id="btnCreate" class="btn btn-primary">💾 Speichern</button>
+              <button id="btnCreate" class="btn btn-primary" type="button">💾 Speichern</button>
               <span class="muted">AuftragsDatum wird automatisch gesetzt · Erhalten startet mit „Nein“</span>
             </div>
           </div>
         </div>
       </section>
 
-      <!-- OPEN -->
       <section id="view-open" class="card hidden">
         <div class="card-hd">
           <h3>Offene Aufträge</h3>
@@ -465,16 +461,15 @@
         <div class="toolbar">
           <input id="openSearch" type="text" placeholder="Suche Kunde/Mitarbeiter…" />
           <div class="pager">
-            <button id="openPrev" class="btn tiny">◀</button>
+            <button id="openPrev" class="btn tiny" type="button">◀</button>
             <span id="openPageInfo" class="pill"></span>
-            <button id="openNext" class="btn tiny">▶</button>
+            <button id="openNext" class="btn tiny" type="button">▶</button>
           </div>
         </div>
 
         <div id="openTableWrap" class="table-wrap"></div>
       </section>
 
-      <!-- DONE -->
       <section id="view-done" class="card hidden">
         <div class="card-hd">
           <h3>Fertige Aufträge</h3>
@@ -484,9 +479,9 @@
         <div class="toolbar">
           <input id="doneSearch" type="text" placeholder="Suche Kunde/Mitarbeiter…" />
           <div class="pager">
-            <button id="donePrev" class="btn tiny">◀</button>
+            <button id="donePrev" class="btn tiny" type="button">◀</button>
             <span id="donePageInfo" class="pill"></span>
-            <button id="doneNext" class="btn tiny">▶</button>
+            <button id="doneNext" class="btn tiny" type="button">▶</button>
           </div>
         </div>
 
@@ -495,12 +490,11 @@
     </div>
   </div>
 
-  <!-- CHANGE PASSWORD MODAL -->
   <div id="pwModal" class="modal-backdrop">
     <div class="card modal">
       <div class="card-hd">
         <h3>Passwort ändern</h3>
-        <button id="btnClosePwModal" class="btn tiny">✕</button>
+        <button id="btnClosePwModal" class="btn tiny" type="button">✕</button>
       </div>
       <div class="card-bd">
         <div class="form">
@@ -522,7 +516,7 @@
         </div>
 
         <div style="margin-top:14px; display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
-          <button id="btnSavePw" class="btn btn-primary">Passwort speichern</button>
+          <button id="btnSavePw" class="btn btn-primary" type="button">Passwort speichern</button>
           <span class="muted">Altes Passwort wird geprüft</span>
         </div>
       </div>
@@ -530,20 +524,14 @@
   </div>
 
 <script>
-/** =========================
- * CONFIG
- * ========================= */
 const SUPABASE_URL = 'https://mtyaczfezilcnllnwgqq.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im10eWFjemZlemlsY25sbG53Z3FxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE0Mzc3NDgsImV4cCI6MjA4NzAxMzc0OH0.mWEqO0wFUbaUlCPeuoGqd8-SbKrZ4_jZhbldi05QGXU';
 const API_URL = 'https://mtyaczfezilcnllnwgqq.supabase.co/functions/v1/auftraege-api';
 const PAGE_SIZE = 50;
 const DEBUG = false;
 
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-/** =========================
- * State
- * ========================= */
 let authMode = 'login';
 let currentSession = null;
 let currentUser = null;
@@ -556,9 +544,6 @@ let lastSync = null;
 let openState = { page: 1, search: '' };
 let doneState = { page: 1, search: '' };
 
-/** =========================
- * Helpers
- * ========================= */
 const $ = (id) => document.getElementById(id);
 function log(...args){ if (DEBUG) console.log('[UI]', ...args); }
 
@@ -615,8 +600,8 @@ function setTab(tab) {
 function todayISO() {
   const d = new Date();
   const yyyy = d.getFullYear();
-  const mm = String(d.getMonth()+1).padStart(2,'0');
-  const dd = String(d.getDate()).padStart(2,'0');
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  const dd = String(d.getDate()).padStart(2, '0');
   return `${yyyy}-${mm}-${dd}`;
 }
 const TODAY_MIN = todayISO();
@@ -668,7 +653,7 @@ function applySearchAndPage(rows, state) {
     );
   }
 
-  filtered.sort((a,b) => (a.id||0) - (b.id||0));
+  filtered.sort((a,b) => (a.id || 0) - (b.id || 0));
 
   const total = filtered.length;
   const maxPage = Math.max(1, Math.ceil(total / PAGE_SIZE));
@@ -723,11 +708,9 @@ function closePwModal() {
   $('pwModal').classList.remove('show');
 }
 
-/** =========================
- * Auth
- * ========================= */
 async function loadOwnProfile() {
-  const { data, error } = await supabase
+  if (!currentUser?.id) throw new Error('Kein Benutzer geladen.');
+  const { data, error } = await sb
     .from('profiles')
     .select('id, username, rang')
     .eq('id', currentUser.id)
@@ -757,7 +740,7 @@ async function handleRegister() {
     if (password.length < 6) throw new Error('Passwort muss mindestens 6 Zeichen haben.');
     if (password !== password2) throw new Error('Die Passwörter stimmen nicht überein.');
 
-    const { error } = await supabase.auth.signUp({
+    const { error } = await sb.auth.signUp({
       email,
       password,
       options: {
@@ -794,7 +777,7 @@ async function handleLogin() {
     if (!username) throw new Error('Benutzername ist Pflicht.');
     if (!password) throw new Error('Passwort ist Pflicht.');
 
-    const { data, error } = await supabase.auth.signInWithPassword({
+    const { data, error } = await sb.auth.signInWithPassword({
       email,
       password
     });
@@ -821,7 +804,7 @@ async function handleLogin() {
 
 async function handleLogout() {
   try {
-    const { error } = await supabase.auth.signOut();
+    const { error } = await sb.auth.signOut();
     if (error) throw error;
 
     currentSession = null;
@@ -855,13 +838,13 @@ async function handleChangePassword() {
 
     const email = usernameToEmail(currentProfile.username);
 
-    const { error: reauthError } = await supabase.auth.signInWithPassword({
+    const { error: reauthError } = await sb.auth.signInWithPassword({
       email,
       password: oldPassword
     });
     if (reauthError) throw new Error('Altes Passwort ist nicht korrekt.');
 
-    const { error: updateError } = await supabase.auth.updateUser({
+    const { error: updateError } = await sb.auth.updateUser({
       password: newPassword1
     });
     if (updateError) throw updateError;
@@ -877,7 +860,7 @@ async function handleChangePassword() {
 }
 
 async function restoreSession() {
-  const { data, error } = await supabase.auth.getSession();
+  const { data, error } = await sb.auth.getSession();
   if (error) throw error;
 
   currentSession = data.session || null;
@@ -893,9 +876,6 @@ async function restoreSession() {
   }
 }
 
-/** =========================
- * API client
- * ========================= */
 async function apiFetch(path, { method="GET", body=null } = {}) {
   if (!currentSession?.access_token) {
     throw new Error('Nicht eingeloggt.');
@@ -945,9 +925,6 @@ async function apiDelete(id){
   return apiFetch(`?action=delete`, { method:"POST", body: { id } });
 }
 
-/** =========================
- * Data
- * ========================= */
 async function loadAndRenderOpen(){
   const out = await apiList('open', 1000, 0);
   allOpen = out.items || [];
@@ -965,7 +942,7 @@ async function loadAndRenderDone(){
 }
 
 async function loadAllForReload(){
-  const [o,d] = await Promise.all([
+  const [o, d] = await Promise.all([
     apiList('open', 1000, 0),
     apiList('done', 1000, 0)
   ]);
@@ -979,9 +956,6 @@ async function loadAllForReload(){
   if ($('tab-done').classList.contains('active')) renderDone();
 }
 
-/** =========================
- * UI render
- * ========================= */
 function renderOpen() {
   const { total, items } = applySearchAndPage(allOpen, openState);
 
@@ -1033,7 +1007,7 @@ function renderOpen() {
                 <div class="muted">Ja nur mit AbholDatum</div>
               </td>
               <td><textarea data-id="${r.id}" class="open-info" rows="2">${escapeHtml(r.info || '')}</textarea></td>
-              <td><button data-id="${r.id}" class="btn tiny btn-primary open-save">Speichern</button></td>
+              <td><button data-id="${r.id}" class="btn tiny btn-primary open-save" type="button">Speichern</button></td>
             </tr>
           `;
         }).join('')}
@@ -1130,7 +1104,7 @@ function renderDone() {
               <td>
                 ${
                   canDelete
-                    ? `<button data-id="${r.id}" class="btn tiny btn-danger done-del">Löschen</button>`
+                    ? `<button data-id="${r.id}" class="btn tiny btn-danger done-del" type="button">Löschen</button>`
                     : `<span class="muted">Nur Geschäftsführer</span>`
                 }
               </td>
@@ -1169,9 +1143,6 @@ function renderDone() {
   });
 }
 
-/** =========================
- * Create
- * ========================= */
 function validateCreateForm() {
   const kunde = $('fKunde').value.trim();
   const mitarbeiter = $('fMitarbeiter').value.trim();
@@ -1229,9 +1200,6 @@ async function createOrder() {
   }
 }
 
-/** =========================
- * Wire up
- * ========================= */
 $('authModeLogin').addEventListener('click', () => setAuthMode('login'));
 $('authModeRegister').addEventListener('click', () => setAuthMode('register'));
 $('authSubmit').addEventListener('click', async () => {
@@ -1295,7 +1263,7 @@ $('btnReload').addEventListener('click', async () => {
   }
 });
 
-supabase.auth.onAuthStateChange(async (_event, session) => {
+sb.auth.onAuthStateChange(async (_event, session) => {
   currentSession = session || null;
   currentUser = session?.user || null;
 
@@ -1305,9 +1273,6 @@ supabase.auth.onAuthStateChange(async (_event, session) => {
   }
 });
 
-/** =========================
- * Boot
- * ========================= */
 hookKostenAuto();
 setAuthMode('login');
 
