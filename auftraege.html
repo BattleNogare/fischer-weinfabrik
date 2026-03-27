@@ -1164,7 +1164,8 @@ async function apiFetch(path, { method="GET", body=null } = {}) {
     init.body = JSON.stringify(body);
   }
 
-  log('FETCH', method, url, body || '');
+  console.log('API REQUEST', { method, url, body });
+
   const res = await fetch(url, init);
 
   let json;
@@ -1173,6 +1174,8 @@ async function apiFetch(path, { method="GET", body=null } = {}) {
   } catch {
     throw new Error("Antwort ist kein JSON (Server/CORS).");
   }
+
+  console.log('API RESPONSE', json);
 
   if (!res.ok || !json.ok) {
     throw new Error(
