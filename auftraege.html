@@ -236,6 +236,22 @@
       outline:none;
       transition: box-shadow .15s ease, border-color .15s ease, background .15s ease;
     }
+    select{
+      appearance: none;
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      background:
+        linear-gradient(180deg, rgba(0,0,0,.24), rgba(0,0,0,.20));
+      color: var(--text);
+    }
+    select option{
+      background: #0f1117;
+      color: var(--text);
+    }
+    select optgroup{
+      background: #0f1117;
+      color: var(--text);
+    }
     textarea{ min-height: 92px; resize: vertical; }
     input:focus, textarea:focus, select:focus{
       box-shadow: var(--focus);
@@ -262,7 +278,7 @@
       width:100%;
       border-collapse: separate;
       border-spacing: 0;
-      min-width: 1280px;
+      min-width: 1500px;
     }
     thead th{
       position: sticky;
@@ -881,6 +897,50 @@ function moneyEUR(n) {
     .toLocaleString('de-DE', { minimumFractionDigits: 0, maximumFractionDigits: 2 }) + ' €';
 }
 
+function hasServices(row) {
+  return Array.isArray(row?.services) && row.services.length > 0;
+}
+
+function getRowDisplayKosten(row) {
+  if (hasServices(row)) {
+    return round2(
+      row.services.reduce((sum, s) => sum + toNum(s?.einzelpreis), 0)
+    );
+  }
+  return toNum(row?.kosten);
+}
+
+function renderLeistungenFallback(row) {
+  if (hasServices(row)) {
+    return row.services.map(s => {
+      const item = s || {};
+      const type = item.label || item.type || 'Leistung';
+      const preis = moneyEUR(item.einzelpreis || 0);
+
+      if (item.type === 'verarbeitung_wein') {
+        return `${type}: ${item.anzahl_faesser || 0} Fässer · ${preis}`;
+      }
+      if (item.type === 'lagerung_kunden_wein') {
+        return `${type}: ${item.anzahl_faesser || 0} Fässer · ${item.tage || 0} Tage · ${preis}`;
+      }
+      if (item.type === 'ankauf_faesser') {
+        return `${type}: ${item.anzahl_faesser || 0} Fässer · ${preis}`;
+      }
+      if (item.type === 'ankauf_trauben') {
+        return `${type}: ${item.anzahl_stueck || 0} Stück · ${preis}`;
+      }
+      if (item.type === 'lieferservice') {
+        return `${type}: ${item.km || 0} KM · ${preis}`;
+      }
+      return `${type}: ${preis}`;
+    }).join('\n');
+  }
+
+  return `Altauftrag
+Anzahl: ${toNum(row?.anzahl)}
+Prozent: ${toNum(row?.prozent)} %`;
+}
+
 function requireManager() {
   return currentProfile && currentProfile.rang === 'Geschäftsführer';
 }
@@ -1418,8 +1478,9 @@ function renderServiceFields(service) {
         </label>
       </div>
       <div class="readonly-box">
-        Multiplikator: ${escapeHtml(String(getKundenMultiplikator()))} %\n
-        Preis für 800 Fässer: ${escapeHtml(moneyEUR(settingsState.pricing.verarbeitung_wein_preis_800_faesser))}
+        Multiplikator: ${escapeHtml(String(getKundenMultiplikator()))} %
+
+Preis für 800 Fässer: ${escapeHtml(moneyEUR(settingsState.pricing.verarbeitung_wein_preis_800_faesser))}
       </div>
     `;
   }
@@ -1557,18 +1618,30 @@ function renderServices() {
       renderServices();
     });
 
-    el.querySelectorAll('select, input').forEach(input => {
+    el.querySelectorAll('select[data-role="type"]').forEach(sel => {
+      sel.addEventListener('change', () => {
+        service.type = sel.value;
+        service.anzahl_faesser = '';
+        service.tage = '';
+        service.anzahl_stueck = '';
+        service.km = '';
+        renderServices();
+      });
+    });
+
+    el.querySelectorAll('input[data-role]').forEach(input => {
+      const role = input.getAttribute('data-role');
+
       input.addEventListener('input', () => {
-        const role = input.getAttribute('data-role');
-        if (role === 'type') {
-          service.type = input.value;
-          service.anzahl_faesser = '';
-          service.tage = '';
-          service.anzahl_stueck = '';
-          service.km = '';
-          renderServices();
-          return;
-        }
+        service[role] = input.value;
+      });
+
+      input.addEventListener('blur', () => {
+        service[role] = input.value;
+        renderServices();
+      });
+
+      input.addEventListener('change', () => {
         service[role] = input.value;
         renderServices();
       });
@@ -1621,21 +1694,6 @@ function validateCreateForm() {
   });
 }
 
-function renderServicesSummaryCell(services) {
-  if (!Array.isArray(services) || !services.length) return '';
-  return services.map(s => {
-    const item = s || {};
-    const type = item.label || item.type || 'Leistung';
-    const preis = moneyEUR(item.einzelpreis || 0);
-    if (item.type === 'verarbeitung_wein') return `${type}: ${item.anzahl_faesser || 0} Fässer · ${preis}`;
-    if (item.type === 'lagerung_kunden_wein') return `${type}: ${item.anzahl_faesser || 0} Fässer · ${item.tage || 0} Tage · ${preis}`;
-    if (item.type === 'ankauf_faesser') return `${type}: ${item.anzahl_faesser || 0} Fässer · ${preis}`;
-    if (item.type === 'ankauf_trauben') return `${type}: ${item.anzahl_stueck || 0} Stück · ${preis}`;
-    if (item.type === 'lieferservice') return `${type}: ${item.km || 0} KM · ${preis}`;
-    return `${type}: ${preis}`;
-  }).join('\n');
-}
-
 function renderOpen() {
   const { total, items } = applySearchAndPage(allOpen, openState);
 
@@ -1657,6 +1715,8 @@ function renderOpen() {
           <th>AuftragsDatum</th>
           <th>Kunde</th>
           <th>Mitarbeiter</th>
+          <th>Anzahl</th>
+          <th>Prozent</th>
           <th>Kundenart</th>
           <th>Leistungen</th>
           <th>Kosten</th>
@@ -1676,9 +1736,11 @@ function renderOpen() {
               <td>${escapeHtml(auftrags)}</td>
               <td>${escapeHtml(r.kunde)}</td>
               <td>${escapeHtml(r.mitarbeiter)}</td>
+              <td>${toInt(r.anzahl)}</td>
+              <td>${toInt(r.prozent)}</td>
               <td>${escapeHtml(r.kundenart || '')}</td>
-              <td style="white-space:pre-line;">${escapeHtml(renderServicesSummaryCell(r.services))}</td>
-              <td>${moneyEUR(r.kosten)}</td>
+              <td style="white-space:pre-line;">${escapeHtml(renderLeistungenFallback(r))}</td>
+              <td>${moneyEUR(getRowDisplayKosten(r))}</td>
               <td class="date-cell">
                 <input type="date" min="${TODAY_MIN}" data-id="${r.id}" class="open-abhol" value="${escapeHtml(abhol)}">
               </td>
@@ -1759,6 +1821,8 @@ function renderDone() {
           <th>AuftragsDatum</th>
           <th>Kunde</th>
           <th>Mitarbeiter</th>
+          <th>Anzahl</th>
+          <th>Prozent</th>
           <th>Kundenart</th>
           <th>Leistungen</th>
           <th>Kosten</th>
@@ -1779,9 +1843,11 @@ function renderDone() {
               <td>${escapeHtml(auftrags)}</td>
               <td>${escapeHtml(r.kunde)}</td>
               <td>${escapeHtml(r.mitarbeiter)}</td>
+              <td>${toInt(r.anzahl)}</td>
+              <td>${toInt(r.prozent)}</td>
               <td>${escapeHtml(r.kundenart || '')}</td>
-              <td style="white-space:pre-line;">${escapeHtml(renderServicesSummaryCell(r.services))}</td>
-              <td>${moneyEUR(r.kosten)}</td>
+              <td style="white-space:pre-line;">${escapeHtml(renderLeistungenFallback(r))}</td>
+              <td>${moneyEUR(getRowDisplayKosten(r))}</td>
               <td>${escapeHtml(abhol)}</td>
               <td>${escapeHtml(r.info || '')}</td>
               <td>
@@ -1926,7 +1992,8 @@ $('btnAddService').addEventListener('click', () => {
 });
 
 $('fKundenart').addEventListener('change', toggleCustomProzent);
-$('fCustomProzent').addEventListener('input', renderServices);
+$('fCustomProzent').addEventListener('blur', renderServices);
+$('fCustomProzent').addEventListener('change', renderServices);
 
 $('btnReloadSettings').addEventListener('click', async () => {
   try {
