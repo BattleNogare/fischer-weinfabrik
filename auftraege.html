@@ -500,7 +500,7 @@
     <div class="card auth-card">
       <div class="card-hd">
         <h3 id="authTitle">Anmelden</h3>
-        <span class="pill">Supabase Auth</span>
+        <span class="pill">Auth</span>
       </div>
       <div class="card-bd">
         <div class="auth-switch">
@@ -886,15 +886,14 @@ function escapeHtml(s) {
     .replaceAll("'", '&#039;');
 }
 
-function round2(n){
-  return Math.round((Number(n) + Number.EPSILON) * 100) / 100;
+function roundMoney(n){
+  return Math.round(Number(n) || 0);
 }
 
 function moneyEUR(n) {
-  const v = Number(n);
+  const v = roundMoney(n);
   if (!Number.isFinite(v)) return '';
-  return Math.round(v * 100) / 100
-    .toLocaleString('de-DE', { minimumFractionDigits: 0, maximumFractionDigits: 2 }) + ' €';
+  return v.toLocaleString('de-DE').replace(/\./g, ' ') + ' €';
 }
 
 function hasServices(row) {
@@ -903,11 +902,11 @@ function hasServices(row) {
 
 function getRowDisplayKosten(row) {
   if (hasServices(row)) {
-    return round2(
+    return roundMoney(
       row.services.reduce((sum, s) => sum + toNum(s?.einzelpreis), 0)
     );
   }
-  return toNum(row?.kosten);
+  return roundMoney(row?.kosten);
 }
 
 function renderLeistungenFallback(row) {
@@ -1392,24 +1391,24 @@ function getServicePrice(service) {
 
   if (type === 'verarbeitung_wein') {
     const anzahl = toNum(service.anzahl_faesser);
-    return round2((anzahl / 800) * settingsState.pricing.verarbeitung_wein_preis_800_faesser * (mult / 100));
+    return roundMoney((anzahl / 800) * settingsState.pricing.verarbeitung_wein_preis_800_faesser * (mult / 100));
   }
   if (type === 'lagerung_kunden_wein') {
     const anzahl = toNum(service.anzahl_faesser);
     const tage = toNum(service.tage);
-    return round2((anzahl / 800) * settingsState.pricing.lagerung_preis_pro_tag_800_faesser * tage);
+    return roundMoney((anzahl / 800) * settingsState.pricing.lagerung_preis_pro_tag_800_faesser * tage);
   }
   if (type === 'ankauf_faesser') {
     const anzahl = toNum(service.anzahl_faesser);
-    return round2(anzahl * settingsState.pricing.ankauf_faesser_preis_pro_fass);
+    return roundMoney(anzahl * settingsState.pricing.ankauf_faesser_preis_pro_fass);
   }
   if (type === 'ankauf_trauben') {
     const anzahl = toNum(service.anzahl_stueck);
-    return round2(anzahl * settingsState.pricing.ankauf_trauben_stueckpreis);
+    return roundMoney(anzahl * settingsState.pricing.ankauf_trauben_stueckpreis);
   }
   if (type === 'lieferservice') {
     const km = toNum(service.km);
-    return round2(km * settingsState.pricing.lieferservice_preis_pro_km);
+    return roundMoney(km * settingsState.pricing.lieferservice_preis_pro_km);
   }
   return 0;
 }
