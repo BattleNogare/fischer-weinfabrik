@@ -66,8 +66,6 @@
       z-index: 1;
     }
 
-    .hidden{ display:none !important; }
-
     .topbar{
       position: sticky;
       top: 16px;
@@ -136,7 +134,7 @@
 
     .actions{
       display:flex; align-items:center; gap:10px; justify-content:flex-end;
-      min-width: 320px;
+      min-width: 340px;
       flex-wrap: wrap;
     }
     .pill{
@@ -196,6 +194,7 @@
       letter-spacing: .2px;
     }
     .card-bd{ padding: 16px; }
+    .hidden{ display:none !important; }
 
     .msg{
       margin-top: 14px;
@@ -292,7 +291,6 @@
       min-width: 150px;
     }
 
-    /* Auth */
     .auth-shell{
       min-height: 100vh;
       display:flex;
@@ -313,11 +311,6 @@
     .auth-switch .btn{
       flex:1;
       justify-content:center;
-    }
-    .auth-hint{
-      margin-top:8px;
-      font-size:12px;
-      color:var(--muted);
     }
 
     .userbox{
@@ -575,7 +568,10 @@ function showMsg(type, text) {
   el.className = 'msg show ' + (type === 'error' ? 'error' : 'ok');
   el.textContent = text;
   clearTimeout(showMsg._t);
-  showMsg._t = setTimeout(() => { el.className = 'msg'; el.textContent=''; }, 5200);
+  showMsg._t = setTimeout(() => {
+    el.className = 'msg';
+    el.textContent = '';
+  }, 5200);
 }
 
 function normalizeUsername(username) {
@@ -625,12 +621,15 @@ function todayISO() {
 }
 const TODAY_MIN = todayISO();
 
-function isDateBeforeToday(dateStr) { return !!dateStr && dateStr < TODAY_MIN; }
+function isDateBeforeToday(dateStr) {
+  return !!dateStr && dateStr < TODAY_MIN;
+}
 
 function toInt(v){
   const n = Math.trunc(Number(String(v ?? '').replace(',', '.')));
   return Number.isFinite(n) ? n : 0;
 }
+
 function escapeHtml(s) {
   return String(s ?? '')
     .replaceAll('&', '&amp;')
@@ -639,6 +638,7 @@ function escapeHtml(s) {
     .replaceAll('"', '&quot;')
     .replaceAll("'", '&#039;');
 }
+
 function computeKosten(anzahl, prozent) {
   const a = Number(anzahl);
   const p = Number(prozent);
@@ -646,6 +646,7 @@ function computeKosten(anzahl, prozent) {
   const val = (a * 8 * 1299) * (p / 100);
   return Math.round(val).toLocaleString('de-DE') + ' €';
 }
+
 function moneyEUR(n) {
   const v = Number(n);
   if (!Number.isFinite(v)) return '';
@@ -670,6 +671,9 @@ function applySearchAndPage(rows, state) {
   filtered.sort((a,b) => (a.id||0) - (b.id||0));
 
   const total = filtered.length;
+  const maxPage = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  if (state.page > maxPage) state.page = maxPage;
+
   const start = (state.page - 1) * PAGE_SIZE;
   const items = filtered.slice(start, start + PAGE_SIZE);
   return { total, items };
@@ -751,15 +755,13 @@ async function handleRegister() {
     if (!username) throw new Error('Benutzername ist Pflicht.');
     if (!password) throw new Error('Passwort ist Pflicht.');
     if (password.length < 6) throw new Error('Passwort muss mindestens 6 Zeichen haben.');
-    if (password !== password2) throw new Error('Die neuen Passwörter stimmen nicht überein.');
+    if (password !== password2) throw new Error('Die Passwörter stimmen nicht überein.');
 
     const { error } = await supabase.auth.signUp({
       email,
       password,
       options: {
-        data: {
-          username
-        }
+        data: { username }
       }
     });
 
@@ -802,6 +804,7 @@ async function handleLogin() {
 
     currentSession = data.session;
     currentUser = data.user;
+
     await loadOwnProfile();
     showApp();
     await loadAllForReload();
@@ -820,9 +823,12 @@ async function handleLogout() {
   try {
     const { error } = await supabase.auth.signOut();
     if (error) throw error;
+
     currentSession = null;
     currentUser = null;
     currentProfile = null;
+    allOpen = [];
+    allDone = [];
     showAuth();
   } catch (e) {
     showMsg('error', e.message || 'Logout fehlgeschlagen.');
@@ -891,12 +897,15 @@ async function restoreSession() {
  * API client
  * ========================= */
 async function apiFetch(path, { method="GET", body=null } = {}) {
-  const url = API_URL + path;
-  const headers = {};
-  const init = { method, headers };
+  if (!currentSession?.access_token) {
+    throw new Error('Nicht eingeloggt.');
+  }
 
-  const token = currentSession?.access_token;
-  if (token) headers["Authorization"] = `Bearer ${token}`;
+  const url = API_URL + path;
+  const headers = {
+    "Authorization": `Bearer ${currentSession.access_token}`
+  };
+  const init = { method, headers };
 
   if (body !== null) {
     headers["Content-Type"] = "application/json";
@@ -907,12 +916,19 @@ async function apiFetch(path, { method="GET", body=null } = {}) {
   const res = await fetch(url, init);
 
   let json;
-  try { json = await res.json(); }
-  catch { throw new Error("Antwort ist kein JSON (Server/CORS)."); }
+  try {
+    json = await res.json();
+  } catch {
+    throw new Error("Antwort ist kein JSON (Server/CORS).");
+  }
 
   if (!res.ok || !json.ok) {
-    throw new Error((json && json.error ? json.error : 'Request failed') + (json && json.detail ? `\n${json.detail}` : ''));
+    throw new Error(
+      (json && json.error ? json.error : 'Request failed') +
+      (json && json.detail ? `\n${json.detail}` : '')
+    );
   }
+
   return json;
 }
 
@@ -939,6 +955,7 @@ async function loadAndRenderOpen(){
   setSyncPill();
   renderOpen();
 }
+
 async function loadAndRenderDone(){
   const out = await apiList('done', 1000, 0);
   allDone = out.items || [];
@@ -946,12 +963,18 @@ async function loadAndRenderDone(){
   setSyncPill();
   renderDone();
 }
+
 async function loadAllForReload(){
-  const [o,d] = await Promise.all([apiList('open', 1000, 0), apiList('done', 1000, 0)]);
+  const [o,d] = await Promise.all([
+    apiList('open', 1000, 0),
+    apiList('done', 1000, 0)
+  ]);
+
   allOpen = o.items || [];
   allDone = d.items || [];
   lastSync = new Date();
   setSyncPill();
+
   if ($('tab-open').classList.contains('active')) renderOpen();
   if ($('tab-done').classList.contains('active')) renderDone();
 }
@@ -1003,7 +1026,7 @@ function renderOpen() {
                 <input type="date" min="${TODAY_MIN}" data-id="${r.id}" class="open-abhol" value="${escapeHtml(abhol)}">
               </td>
               <td>
-                <select data-id="${r.id}" class="open-erhalten">
+                <select data-id="${r.id}" class="open-erhalten" ${r.erhalten ? 'disabled' : ''}>
                   <option value="0" ${r.erhalten ? '' : 'selected'}>Nein</option>
                   <option value="1" ${r.erhalten ? 'selected' : ''}>Ja</option>
                 </select>
@@ -1022,7 +1045,8 @@ function renderOpen() {
     btn.addEventListener('click', async () => {
       const id = Number(btn.getAttribute('data-id'));
       const info = wrap.querySelector('.open-info[data-id="' + id + '"]').value;
-      const erhalten = wrap.querySelector('.open-erhalten[data-id="' + id + '"]').value;
+      const erhaltenEl = wrap.querySelector('.open-erhalten[data-id="' + id + '"]');
+      const erhalten = erhaltenEl ? erhaltenEl.value : '0';
       const abhol = wrap.querySelector('.open-abhol[data-id="' + id + '"]').value;
 
       if (abhol && isDateBeforeToday(abhol)) {
@@ -1161,7 +1185,9 @@ function validateCreateForm() {
 }
 
 function hookKostenAuto() {
-  const recalc = () => { $('fKosten').value = computeKosten($('fAnzahl').value, $('fProzent').value); };
+  const recalc = () => {
+    $('fKosten').value = computeKosten($('fAnzahl').value, $('fProzent').value);
+  };
   $('fAnzahl').addEventListener('input', recalc);
   $('fProzent').addEventListener('input', recalc);
   recalc();
@@ -1195,7 +1221,6 @@ async function createOrder() {
 
     await loadAndRenderOpen();
     setTab('open');
-
   } catch (e) {
     showMsg('error', e.message);
   } finally {
@@ -1270,10 +1295,7 @@ $('btnReload').addEventListener('click', async () => {
   }
 });
 
-hookKostenAuto();
-setAuthMode('login');
-
-supabase.auth.onAuthStateChange(async (event, session) => {
+supabase.auth.onAuthStateChange(async (_event, session) => {
   currentSession = session || null;
   currentUser = session?.user || null;
 
@@ -1286,12 +1308,15 @@ supabase.auth.onAuthStateChange(async (event, session) => {
 /** =========================
  * Boot
  * ========================= */
+hookKostenAuto();
+setAuthMode('login');
+
 (async function init(){
-  try{
+  try {
     await restoreSession();
-  } catch(e){
-    showAuth();
+  } catch (e) {
     console.error(e);
+    showAuth();
   }
 })();
 </script>
