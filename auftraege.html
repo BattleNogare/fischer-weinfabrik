@@ -241,7 +241,7 @@
       border-color: rgba(225,29,72,.45);
       background: rgba(0,0,0,.26);
     }
-    input[readonly]{ opacity:.9; }
+    input[readonly]{ opacity:.9; cursor:not-allowed; }
 
     .muted{ color: var(--muted); font-size: 12px; }
 
@@ -261,7 +261,7 @@
       width:100%;
       border-collapse: separate;
       border-spacing: 0;
-      min-width: 980px;
+      min-width: 1180px;
     }
     thead th{
       position: sticky;
@@ -349,7 +349,7 @@
       .topbar{ border-radius: 18px; padding: 12px; }
       .brand, .actions{ min-width:auto; }
       .actions{ justify-content:flex-end; }
-      table{ min-width: 920px; }
+      table{ min-width: 1120px; }
     }
   </style>
 </head>
@@ -437,7 +437,7 @@
           <div class="card-bd">
             <div class="form">
               <div><label>Kunde*<input id="fKunde" type="text" required /></label></div>
-              <div><label>Mitarbeiter*<input id="fMitarbeiter" type="text" required /></label></div>
+              <div><label>Mitarbeiter*<input id="fMitarbeiter" type="text" required readonly /></label></div>
               <div><label>Anzahl Fässer*<input id="fAnzahl" type="number" min="0" step="1" required /></label></div>
               <div><label>Prozent* (1–100)<input id="fProzent" type="number" min="1" max="100" step="1" required /></label></div>
               <div><label>Kosten (automatisch)<input id="fKosten" type="text" readonly /></label></div>
@@ -642,6 +642,10 @@ function requireManager() {
   return currentProfile && currentProfile.rang === 'Geschäftsführer';
 }
 
+function syncMitarbeiterField() {
+  $('fMitarbeiter').value = currentProfile?.username || '';
+}
+
 function applySearchAndPage(rows, state) {
   const q = String(state.search || '').trim().toLowerCase();
   let filtered = rows;
@@ -719,6 +723,7 @@ async function loadOwnProfile() {
   if (error) throw error;
   currentProfile = data;
   setUserPill();
+  syncMitarbeiterField();
 }
 
 async function handleRegister() {
@@ -812,6 +817,7 @@ async function handleLogout() {
     currentProfile = null;
     allOpen = [];
     allDone = [];
+    $('fMitarbeiter').value = '';
     showAuth();
   } catch (e) {
     showMsg('error', e.message || 'Logout fehlgeschlagen.');
@@ -974,6 +980,7 @@ function renderOpen() {
       <thead>
         <tr>
           <th>ID</th>
+          <th>AuftragsDatum</th>
           <th>Kunde</th>
           <th>Mitarbeiter</th>
           <th>Anzahl</th>
@@ -987,10 +994,12 @@ function renderOpen() {
       </thead>
       <tbody>
         ${items.map(r => {
+          const auftrags = r.auftrags_datum ? new Date(r.auftrags_datum).toLocaleString('de-DE') : '';
           const abhol = (r.abhol_datum || '') ? String(r.abhol_datum).slice(0,10) : '';
           return `
             <tr>
               <td style="font-family:var(--mono);">${r.id}</td>
+              <td>${escapeHtml(auftrags)}</td>
               <td>${escapeHtml(r.kunde)}</td>
               <td>${escapeHtml(r.mitarbeiter)}</td>
               <td>${toInt(r.anzahl)}</td>
@@ -1184,11 +1193,11 @@ async function createOrder() {
     showMsg('ok', 'Gespeichert.');
 
     $('fKunde').value = '';
-    $('fMitarbeiter').value = '';
     $('fAnzahl').value = '';
     $('fProzent').value = '';
     $('fInfo').value = '';
     $('fKosten').value = '';
+    syncMitarbeiterField();
 
     await loadAndRenderOpen();
     setTab('open');
@@ -1269,6 +1278,7 @@ sb.auth.onAuthStateChange(async (_event, session) => {
 
   if (!session) {
     currentProfile = null;
+    $('fMitarbeiter').value = '';
     showAuth();
   }
 });
