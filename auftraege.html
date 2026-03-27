@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Fischer Weinfabrik · Aufträge</title>
   <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/BattleNogare/h-h_weinfabrik/main/fischer_weinfabrik_logo.png">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <style>
     :root{
@@ -36,7 +37,6 @@
       overflow-x:hidden;
     }
 
-    /* Subtle noise */
     .bg-noise{
       position: fixed;
       inset: 0;
@@ -48,7 +48,6 @@
       z-index: 0;
     }
 
-    /* Big background logo (transparent PNG supported) */
     .bg-logo{
       position: fixed;
       right: -120px;
@@ -56,12 +55,10 @@
       width: min(900px, 70vw);
       opacity: .10;
       transform: rotate(-8deg);
-      filter: blur(0px);
       pointer-events:none;
       z-index: 0;
     }
 
-    /* Layout */
     .app{
       width: min(93vw, 1800px);
       margin: 26px auto 44px;
@@ -69,7 +66,8 @@
       z-index: 1;
     }
 
-    /* Topbar */
+    .hidden{ display:none !important; }
+
     .topbar{
       position: sticky;
       top: 16px;
@@ -138,7 +136,8 @@
 
     .actions{
       display:flex; align-items:center; gap:10px; justify-content:flex-end;
-      min-width: 260px;
+      min-width: 320px;
+      flex-wrap: wrap;
     }
     .pill{
       display:inline-flex; align-items:center; gap:8px;
@@ -178,7 +177,6 @@
     }
     .tiny{ padding: 8px 10px; border-radius: 12px; font-weight: 780; }
 
-    /* Cards */
     .grid{ margin-top: 14px; display:grid; gap: 14px; }
     .card{
       border: 1px solid var(--border);
@@ -198,9 +196,7 @@
       letter-spacing: .2px;
     }
     .card-bd{ padding: 16px; }
-    .hidden{ display:none !important; }
 
-    /* Message */
     .msg{
       margin-top: 14px;
       padding: 12px 14px;
@@ -214,8 +210,6 @@
     .msg.ok{ border-color: rgba(34,197,94,.28); }
     .msg.error{ border-color: rgba(239,68,68,.34); }
 
-    /* ======= View layouts ======= */
-    /* Create: centered form card */
     .center-wrap{
       display:flex;
       justify-content:center;
@@ -225,7 +219,6 @@
       width: min(760px, 100%);
     }
 
-    /* Form */
     .form{
       display:grid;
       gap: 12px;
@@ -253,7 +246,6 @@
 
     .muted{ color: var(--muted); font-size: 12px; }
 
-    /* Toolbar / Pagination */
     .toolbar{
       display:flex; gap:10px; align-items:center; flex-wrap:wrap;
       padding: 12px 16px;
@@ -262,7 +254,6 @@
     .toolbar input{ max-width: 360px; }
     .pager{ margin-left:auto; display:flex; gap:8px; align-items:center; }
 
-    /* Tables full width */
     .table-wrap{
       max-height: 72vh;
       overflow:auto;
@@ -301,10 +292,70 @@
       min-width: 150px;
     }
 
+    /* Auth */
+    .auth-shell{
+      min-height: 100vh;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding: 24px;
+      position: relative;
+      z-index: 1;
+    }
+    .auth-card{
+      width:min(460px, 100%);
+    }
+    .auth-switch{
+      display:flex;
+      gap:8px;
+      margin-bottom:14px;
+    }
+    .auth-switch .btn{
+      flex:1;
+      justify-content:center;
+    }
+    .auth-hint{
+      margin-top:8px;
+      font-size:12px;
+      color:var(--muted);
+    }
+
+    .userbox{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      flex-wrap:wrap;
+      justify-content:flex-end;
+    }
+
+    .icon-btn{
+      width:38px;
+      height:38px;
+      justify-content:center;
+      padding:0;
+      font-size:16px;
+    }
+
+    .modal-backdrop{
+      position:fixed;
+      inset:0;
+      background:rgba(0,0,0,.55);
+      backdrop-filter: blur(6px);
+      display:none;
+      align-items:center;
+      justify-content:center;
+      z-index:100;
+      padding:20px;
+    }
+    .modal-backdrop.show{ display:flex; }
+    .modal{
+      width:min(520px, 100%);
+    }
+
     @media (max-width: 980px){
       .topbar{ border-radius: 18px; padding: 12px; }
       .brand, .actions{ min-width:auto; }
-      .actions{ flex-wrap:wrap; justify-content:flex-end; }
+      .actions{ justify-content:flex-end; }
       table{ min-width: 920px; }
     }
   </style>
@@ -314,7 +365,49 @@
   <div class="bg-noise"></div>
   <img class="bg-logo" alt="" src="https://raw.githubusercontent.com/BattleNogare/h-h_weinfabrik/main/fischer_weinfabrik_logo.png">
 
-  <div class="app">
+  <!-- AUTH -->
+  <div id="authShell" class="auth-shell">
+    <div class="card auth-card">
+      <div class="card-hd">
+        <h3 id="authTitle">Anmelden</h3>
+        <span class="pill">Supabase Auth</span>
+      </div>
+      <div class="card-bd">
+        <div class="auth-switch">
+          <button id="authModeLogin" class="btn btn-primary">Login</button>
+          <button id="authModeRegister" class="btn">Registrierung</button>
+        </div>
+
+        <div class="form">
+          <div>
+            <label>Benutzername*
+              <input id="authUsername" type="text" autocomplete="username" />
+            </label>
+          </div>
+
+          <div>
+            <label>Passwort*
+              <input id="authPassword" type="password" autocomplete="current-password" />
+            </label>
+          </div>
+
+          <div id="registerRepeatWrap" class="hidden">
+            <label>Passwort wiederholen*
+              <input id="authPassword2" type="password" autocomplete="new-password" />
+            </label>
+          </div>
+        </div>
+
+        <div style="margin-top:14px; display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+          <button id="authSubmit" class="btn btn-primary">Einloggen</button>
+          <span id="authInfo" class="muted">Benutzername wird intern zu benutzername@lfc.de</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- APP -->
+  <div id="appShell" class="app hidden">
     <div class="topbar">
       <div class="brand">
         <img alt="Logo" src="https://raw.githubusercontent.com/BattleNogare/h-h_weinfabrik/main/fischer_weinfabrik_logo.png">
@@ -332,6 +425,11 @@
 
       <div class="actions">
         <span id="syncPill" class="pill">Sync: –</span>
+        <div class="userbox">
+          <span id="userPill" class="pill">–</span>
+          <button id="btnChangePw" class="btn tiny icon-btn" title="Passwort ändern">🔑</button>
+          <button id="btnLogout" class="btn tiny icon-btn" title="Logout">⎋</button>
+        </div>
         <button id="btnReload" class="btn tiny">↻ Neu laden</button>
       </div>
     </div>
@@ -339,7 +437,7 @@
     <div id="msg" class="msg"></div>
 
     <div class="grid">
-      <!-- CREATE (centered) -->
+      <!-- CREATE -->
       <section id="view-create" class="center-wrap">
         <div class="card center-card">
           <div class="card-hd">
@@ -364,7 +462,7 @@
         </div>
       </section>
 
-      <!-- OPEN (full width) -->
+      <!-- OPEN -->
       <section id="view-open" class="card hidden">
         <div class="card-hd">
           <h3>Offene Aufträge</h3>
@@ -383,11 +481,11 @@
         <div id="openTableWrap" class="table-wrap"></div>
       </section>
 
-      <!-- DONE (full width) -->
+      <!-- DONE -->
       <section id="view-done" class="card hidden">
         <div class="card-hd">
           <h3>Fertige Aufträge</h3>
-          <span class="pill">Löschen möglich</span>
+          <span class="pill">Löschen nur Geschäftsführer</span>
         </div>
 
         <div class="toolbar">
@@ -404,13 +502,66 @@
     </div>
   </div>
 
+  <!-- CHANGE PASSWORD MODAL -->
+  <div id="pwModal" class="modal-backdrop">
+    <div class="card modal">
+      <div class="card-hd">
+        <h3>Passwort ändern</h3>
+        <button id="btnClosePwModal" class="btn tiny">✕</button>
+      </div>
+      <div class="card-bd">
+        <div class="form">
+          <div>
+            <label>Altes Passwort*
+              <input id="pwOld" type="password" autocomplete="current-password" />
+            </label>
+          </div>
+          <div>
+            <label>Neues Passwort*
+              <input id="pwNew1" type="password" autocomplete="new-password" />
+            </label>
+          </div>
+          <div>
+            <label>Neues Passwort wiederholen*
+              <input id="pwNew2" type="password" autocomplete="new-password" />
+            </label>
+          </div>
+        </div>
+
+        <div style="margin-top:14px; display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+          <button id="btnSavePw" class="btn btn-primary">Passwort speichern</button>
+          <span class="muted">Altes Passwort wird geprüft</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
 <script>
 /** =========================
  * CONFIG
  * ========================= */
+const SUPABASE_URL = 'https://mtyaczfezilcnllnwgqq.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im10eWFjemZlemlsY25sbG53Z3FxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE0Mzc3NDgsImV4cCI6MjA4NzAxMzc0OH0.mWEqO0wFUbaUlCPeuoGqd8-SbKrZ4_jZhbldi05QGXU';
 const API_URL = 'https://mtyaczfezilcnllnwgqq.supabase.co/functions/v1/auftraege-api';
 const PAGE_SIZE = 50;
 const DEBUG = false;
+
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+/** =========================
+ * State
+ * ========================= */
+let authMode = 'login';
+let currentSession = null;
+let currentUser = null;
+let currentProfile = null;
+
+let allOpen = [];
+let allDone = [];
+let lastSync = null;
+
+let openState = { page: 1, search: '' };
+let doneState = { page: 1, search: '' };
 
 /** =========================
  * Helpers
@@ -420,17 +571,45 @@ function log(...args){ if (DEBUG) console.log('[UI]', ...args); }
 
 function showMsg(type, text) {
   const el = $('msg');
+  if (!el) return;
   el.className = 'msg show ' + (type === 'error' ? 'error' : 'ok');
   el.textContent = text;
   clearTimeout(showMsg._t);
   showMsg._t = setTimeout(() => { el.className = 'msg'; el.textContent=''; }, 5200);
 }
 
+function normalizeUsername(username) {
+  return String(username || '')
+    .trim()
+    .replace(/\s+/g, '_')
+    .replace(/[^a-zA-Z0-9_.-]/g, '_')
+    .replace(/_+/g, '_')
+    .replace(/^_+|_+$/g, '');
+}
+
+function usernameToEmail(username) {
+  const clean = normalizeUsername(username).toLowerCase();
+  return clean ? `${clean}@lfc.de` : '';
+}
+
+function setAuthMode(mode) {
+  authMode = mode;
+  const isLogin = mode === 'login';
+  $('authTitle').textContent = isLogin ? 'Anmelden' : 'Registrieren';
+  $('authSubmit').textContent = isLogin ? 'Einloggen' : 'Registrieren';
+  $('authModeLogin').classList.toggle('btn-primary', isLogin);
+  $('authModeRegister').classList.toggle('btn-primary', !isLogin);
+  $('registerRepeatWrap').classList.toggle('hidden', isLogin);
+  $('authPassword').setAttribute('autocomplete', isLogin ? 'current-password' : 'new-password');
+  $('authInfo').textContent = isLogin
+    ? 'Login mit Benutzername + Passwort'
+    : 'E-Mail wird automatisch aus dem Benutzernamen erzeugt: benutzername@lfc.de';
+}
+
 function setTab(tab) {
   const tabs = ['create','open','done'];
   for (const t of tabs) {
     $('tab-' + t).classList.toggle('active', t === tab);
-    // view-create is now a wrapper section, still works the same
     $('view-' + t).classList.toggle('hidden', t !== tab);
   }
   if (tab === 'open') { loadAndRenderOpen().catch(e => showMsg('error', e.message)); }
@@ -445,6 +624,7 @@ function todayISO() {
   return `${yyyy}-${mm}-${dd}`;
 }
 const TODAY_MIN = todayISO();
+
 function isDateBeforeToday(dateStr) { return !!dateStr && dateStr < TODAY_MIN; }
 
 function toInt(v){
@@ -472,13 +652,251 @@ function moneyEUR(n) {
   return Math.round(v).toLocaleString('de-DE') + ' €';
 }
 
+function requireManager() {
+  return currentProfile && currentProfile.rang === 'Geschäftsführer';
+}
+
+function applySearchAndPage(rows, state) {
+  const q = String(state.search || '').trim().toLowerCase();
+  let filtered = rows;
+
+  if (q) {
+    filtered = rows.filter(r =>
+      String(r.kunde || '').toLowerCase().includes(q) ||
+      String(r.mitarbeiter || '').toLowerCase().includes(q)
+    );
+  }
+
+  filtered.sort((a,b) => (a.id||0) - (b.id||0));
+
+  const total = filtered.length;
+  const start = (state.page - 1) * PAGE_SIZE;
+  const items = filtered.slice(start, start + PAGE_SIZE);
+  return { total, items };
+}
+
+function setSyncPill(){
+  if (!lastSync) $('syncPill').textContent = 'Sync: –';
+  else $('syncPill').textContent = 'Sync: ' + lastSync.toLocaleString('de-DE');
+}
+
+function setUserPill() {
+  if (!currentProfile) {
+    $('userPill').textContent = '–';
+    return;
+  }
+  $('userPill').textContent = `${currentProfile.username} | ${currentProfile.rang}`;
+}
+
+function showAuth() {
+  $('authShell').classList.remove('hidden');
+  $('appShell').classList.add('hidden');
+}
+
+function showApp() {
+  $('authShell').classList.add('hidden');
+  $('appShell').classList.remove('hidden');
+}
+
+function clearAuthForm() {
+  $('authUsername').value = '';
+  $('authPassword').value = '';
+  $('authPassword2').value = '';
+}
+
+function clearPwModal() {
+  $('pwOld').value = '';
+  $('pwNew1').value = '';
+  $('pwNew2').value = '';
+}
+
+function openPwModal() {
+  clearPwModal();
+  $('pwModal').classList.add('show');
+}
+
+function closePwModal() {
+  $('pwModal').classList.remove('show');
+}
+
 /** =========================
- * API client (OPEN)
+ * Auth
+ * ========================= */
+async function loadOwnProfile() {
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('id, username, rang')
+    .eq('id', currentUser.id)
+    .single();
+
+  if (error) throw error;
+  currentProfile = data;
+  setUserPill();
+}
+
+async function handleRegister() {
+  const btn = $('authSubmit');
+  const old = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = 'Registriert…';
+
+  try {
+    const usernameRaw = $('authUsername').value.trim();
+    const password = $('authPassword').value;
+    const password2 = $('authPassword2').value;
+
+    const username = normalizeUsername(usernameRaw);
+    const email = usernameToEmail(usernameRaw);
+
+    if (!username) throw new Error('Benutzername ist Pflicht.');
+    if (!password) throw new Error('Passwort ist Pflicht.');
+    if (password.length < 6) throw new Error('Passwort muss mindestens 6 Zeichen haben.');
+    if (password !== password2) throw new Error('Die neuen Passwörter stimmen nicht überein.');
+
+    const { error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: {
+          username
+        }
+      }
+    });
+
+    if (error) throw error;
+
+    showMsg('ok', `Registrierung erfolgreich.\nBenutzer: ${username}`);
+    clearAuthForm();
+    setAuthMode('login');
+  } catch (e) {
+    showMsg('error', e.message || 'Registrierung fehlgeschlagen.');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = old;
+  }
+}
+
+async function handleLogin() {
+  const btn = $('authSubmit');
+  const old = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = 'Loggt ein…';
+
+  try {
+    const usernameRaw = $('authUsername').value.trim();
+    const password = $('authPassword').value;
+
+    const username = normalizeUsername(usernameRaw);
+    const email = usernameToEmail(usernameRaw);
+
+    if (!username) throw new Error('Benutzername ist Pflicht.');
+    if (!password) throw new Error('Passwort ist Pflicht.');
+
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password
+    });
+
+    if (error) throw error;
+    if (!data?.session || !data?.user) throw new Error('Keine Session erhalten.');
+
+    currentSession = data.session;
+    currentUser = data.user;
+    await loadOwnProfile();
+    showApp();
+    await loadAllForReload();
+    setTab('create');
+    clearAuthForm();
+    showMsg('ok', 'Erfolgreich eingeloggt.');
+  } catch (e) {
+    showMsg('error', e.message || 'Login fehlgeschlagen.');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = old;
+  }
+}
+
+async function handleLogout() {
+  try {
+    const { error } = await supabase.auth.signOut();
+    if (error) throw error;
+    currentSession = null;
+    currentUser = null;
+    currentProfile = null;
+    showAuth();
+  } catch (e) {
+    showMsg('error', e.message || 'Logout fehlgeschlagen.');
+  }
+}
+
+async function handleChangePassword() {
+  const btn = $('btnSavePw');
+  const oldText = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = 'Speichert…';
+
+  try {
+    if (!currentProfile) throw new Error('Kein Benutzerprofil geladen.');
+
+    const oldPassword = $('pwOld').value;
+    const newPassword1 = $('pwNew1').value;
+    const newPassword2 = $('pwNew2').value;
+
+    if (!oldPassword) throw new Error('Altes Passwort fehlt.');
+    if (!newPassword1 || !newPassword2) throw new Error('Neues Passwort fehlt.');
+    if (newPassword1.length < 6) throw new Error('Neues Passwort muss mindestens 6 Zeichen haben.');
+    if (newPassword1 !== newPassword2) throw new Error('Neue Passwörter stimmen nicht überein.');
+
+    const email = usernameToEmail(currentProfile.username);
+
+    const { error: reauthError } = await supabase.auth.signInWithPassword({
+      email,
+      password: oldPassword
+    });
+    if (reauthError) throw new Error('Altes Passwort ist nicht korrekt.');
+
+    const { error: updateError } = await supabase.auth.updateUser({
+      password: newPassword1
+    });
+    if (updateError) throw updateError;
+
+    closePwModal();
+    showMsg('ok', 'Passwort erfolgreich geändert.');
+  } catch (e) {
+    showMsg('error', e.message || 'Passwort konnte nicht geändert werden.');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = oldText;
+  }
+}
+
+async function restoreSession() {
+  const { data, error } = await supabase.auth.getSession();
+  if (error) throw error;
+
+  currentSession = data.session || null;
+  currentUser = data.session?.user || null;
+
+  if (currentUser) {
+    await loadOwnProfile();
+    showApp();
+    await loadAllForReload();
+    setTab('create');
+  } else {
+    showAuth();
+  }
+}
+
+/** =========================
+ * API client
  * ========================= */
 async function apiFetch(path, { method="GET", body=null } = {}) {
   const url = API_URL + path;
   const headers = {};
   const init = { method, headers };
+
+  const token = currentSession?.access_token;
+  if (token) headers["Authorization"] = `Bearer ${token}`;
 
   if (body !== null) {
     headers["Content-Type"] = "application/json";
@@ -512,39 +930,8 @@ async function apiDelete(id){
 }
 
 /** =========================
- * Data + pagination/search
+ * Data
  * ========================= */
-let allOpen = [];
-let allDone = [];
-let lastSync = null;
-
-let openState = { page: 1, search: '' };
-let doneState = { page: 1, search: '' };
-
-function applySearchAndPage(rows, state) {
-  const q = String(state.search || '').trim().toLowerCase();
-  let filtered = rows;
-
-  if (q) {
-    filtered = rows.filter(r =>
-      String(r.kunde || '').toLowerCase().includes(q) ||
-      String(r.mitarbeiter || '').toLowerCase().includes(q)
-    );
-  }
-
-  filtered.sort((a,b) => (a.id||0) - (b.id||0));
-
-  const total = filtered.length;
-  const start = (state.page - 1) * PAGE_SIZE;
-  const items = filtered.slice(start, start + PAGE_SIZE);
-  return { total, items };
-}
-
-function setSyncPill(){
-  if (!lastSync) $('syncPill').textContent = 'Sync: –';
-  else $('syncPill').textContent = 'Sync: ' + lastSync.toLocaleString('de-DE');
-}
-
 async function loadAndRenderOpen(){
   const out = await apiList('open', 1000, 0);
   allOpen = out.items || [];
@@ -580,7 +967,10 @@ function renderOpen() {
   $('openNext').disabled = (openState.page * PAGE_SIZE) >= total;
 
   const wrap = $('openTableWrap');
-  if (!items.length) { wrap.innerHTML = '<div class="card-bd"><div class="muted">Keine offenen Aufträge gefunden.</div></div>'; return; }
+  if (!items.length) {
+    wrap.innerHTML = '<div class="card-bd"><div class="muted">Keine offenen Aufträge gefunden.</div></div>';
+    return;
+  }
 
   wrap.innerHTML = `
     <table>
@@ -614,8 +1004,8 @@ function renderOpen() {
               </td>
               <td>
                 <select data-id="${r.id}" class="open-erhalten">
-                  <option value="0" selected>Nein</option>
-                  <option value="1">Ja</option>
+                  <option value="0" ${r.erhalten ? '' : 'selected'}>Nein</option>
+                  <option value="1" ${r.erhalten ? 'selected' : ''}>Ja</option>
                 </select>
                 <div class="muted">Ja nur mit AbholDatum</div>
               </td>
@@ -635,8 +1025,14 @@ function renderOpen() {
       const erhalten = wrap.querySelector('.open-erhalten[data-id="' + id + '"]').value;
       const abhol = wrap.querySelector('.open-abhol[data-id="' + id + '"]').value;
 
-      if (abhol && isDateBeforeToday(abhol)) { showMsg('error', 'AbholDatum darf nicht in der Vergangenheit liegen.'); return; }
-      if (erhalten === '1' && !abhol) { showMsg('error', 'Bitte zuerst ein AbholDatum auswählen (Pflicht), bevor "Erhalten = Ja" gesetzt wird.'); return; }
+      if (abhol && isDateBeforeToday(abhol)) {
+        showMsg('error', 'AbholDatum darf nicht in der Vergangenheit liegen.');
+        return;
+      }
+      if (erhalten === '1' && !abhol) {
+        showMsg('error', 'Bitte zuerst ein AbholDatum auswählen (Pflicht), bevor "Erhalten = Ja" gesetzt wird.');
+        return;
+      }
 
       btn.disabled = true;
       const old = btn.textContent;
@@ -669,7 +1065,10 @@ function renderDone() {
   $('doneNext').disabled = (doneState.page * PAGE_SIZE) >= total;
 
   const wrap = $('doneTableWrap');
-  if (!items.length) { wrap.innerHTML = '<div class="card-bd"><div class="muted">Keine fertigen Aufträge gefunden.</div></div>'; return; }
+  if (!items.length) {
+    wrap.innerHTML = '<div class="card-bd"><div class="muted">Keine fertigen Aufträge gefunden.</div></div>';
+    return;
+  }
 
   wrap.innerHTML = `
     <table>
@@ -691,6 +1090,8 @@ function renderDone() {
         ${items.map(r => {
           const auftrags = r.auftrags_datum ? new Date(r.auftrags_datum).toLocaleString('de-DE') : '';
           const abhol = (r.abhol_datum || '') ? String(r.abhol_datum).slice(0,10) : '';
+          const canDelete = requireManager();
+
           return `
             <tr>
               <td style="font-family:var(--mono);">${r.id}</td>
@@ -702,7 +1103,13 @@ function renderDone() {
               <td>${moneyEUR(r.kosten)}</td>
               <td>${escapeHtml(abhol)}</td>
               <td>${escapeHtml(r.info || '')}</td>
-              <td><button data-id="${r.id}" class="btn tiny btn-danger done-del">Löschen</button></td>
+              <td>
+                ${
+                  canDelete
+                    ? `<button data-id="${r.id}" class="btn tiny btn-danger done-del">Löschen</button>`
+                    : `<span class="muted">Nur Geschäftsführer</span>`
+                }
+              </td>
             </tr>
           `;
         }).join('')}
@@ -712,6 +1119,11 @@ function renderDone() {
 
   wrap.querySelectorAll('.done-del').forEach(btn => {
     btn.addEventListener('click', async () => {
+      if (!requireManager()) {
+        showMsg('error', 'Löschen ist nur für Geschäftsführer erlaubt.');
+        return;
+      }
+
       const id = Number(btn.getAttribute('data-id'));
       if (!confirm('Auftrag ID ' + id + ' wirklich löschen?')) return;
 
@@ -795,19 +1207,55 @@ async function createOrder() {
 /** =========================
  * Wire up
  * ========================= */
+$('authModeLogin').addEventListener('click', () => setAuthMode('login'));
+$('authModeRegister').addEventListener('click', () => setAuthMode('register'));
+$('authSubmit').addEventListener('click', async () => {
+  if (authMode === 'login') await handleLogin();
+  else await handleRegister();
+});
+
 $('tab-create').addEventListener('click', () => setTab('create'));
 $('tab-open').addEventListener('click', () => setTab('open'));
 $('tab-done').addEventListener('click', () => setTab('done'));
 
 $('btnCreate').addEventListener('click', createOrder);
+$('btnLogout').addEventListener('click', handleLogout);
 
-$('openSearch').addEventListener('input', () => { openState.search = $('openSearch').value.trim(); openState.page=1; renderOpen(); });
-$('openPrev').addEventListener('click', () => { openState.page=Math.max(1, openState.page-1); renderOpen(); });
-$('openNext').addEventListener('click', () => { openState.page+=1; renderOpen(); });
+$('btnChangePw').addEventListener('click', openPwModal);
+$('btnClosePwModal').addEventListener('click', closePwModal);
+$('btnSavePw').addEventListener('click', handleChangePassword);
 
-$('doneSearch').addEventListener('input', () => { doneState.search = $('doneSearch').value.trim(); doneState.page=1; renderDone(); });
-$('donePrev').addEventListener('click', () => { doneState.page=Math.max(1, doneState.page-1); renderDone(); });
-$('doneNext').addEventListener('click', () => { doneState.page+=1; renderDone(); });
+$('pwModal').addEventListener('click', (e) => {
+  if (e.target === $('pwModal')) closePwModal();
+});
+
+$('openSearch').addEventListener('input', () => {
+  openState.search = $('openSearch').value.trim();
+  openState.page = 1;
+  renderOpen();
+});
+$('openPrev').addEventListener('click', () => {
+  openState.page = Math.max(1, openState.page - 1);
+  renderOpen();
+});
+$('openNext').addEventListener('click', () => {
+  openState.page += 1;
+  renderOpen();
+});
+
+$('doneSearch').addEventListener('input', () => {
+  doneState.search = $('doneSearch').value.trim();
+  doneState.page = 1;
+  renderDone();
+});
+$('donePrev').addEventListener('click', () => {
+  doneState.page = Math.max(1, doneState.page - 1);
+  renderDone();
+});
+$('doneNext').addEventListener('click', () => {
+  doneState.page += 1;
+  renderDone();
+});
 
 $('btnReload').addEventListener('click', async () => {
   try {
@@ -823,14 +1271,27 @@ $('btnReload').addEventListener('click', async () => {
 });
 
 hookKostenAuto();
+setAuthMode('login');
 
-// Boot
+supabase.auth.onAuthStateChange(async (event, session) => {
+  currentSession = session || null;
+  currentUser = session?.user || null;
+
+  if (!session) {
+    currentProfile = null;
+    showAuth();
+  }
+});
+
+/** =========================
+ * Boot
+ * ========================= */
 (async function init(){
   try{
-    await loadAllForReload();
-    setTab('create');
+    await restoreSession();
   } catch(e){
-    showMsg('error', e.message);
+    showAuth();
+    console.error(e);
   }
 })();
 </script>
