@@ -308,6 +308,10 @@
       min-width: 150px;
     }
 
+    .money-cell{
+      white-space: nowrap;
+    }
+
     .auth-shell{
       min-height: 100vh;
       display:flex;
@@ -418,10 +422,12 @@
       display:flex;
       flex-direction:column;
       justify-content:center;
+      white-space: nowrap;
     }
 
     .service-price b{
       font-size:14px;
+      white-space: nowrap;
     }
 
     .service-price span{
@@ -451,6 +457,7 @@
     .sticky-total strong{
       font-size:20px;
       letter-spacing:.2px;
+      white-space: nowrap;
     }
 
     .service-summary{
@@ -923,6 +930,21 @@ function formatDateDisplay(value) {
   }
 
   return s;
+}
+
+function formatDateTimeDisplay(value) {
+  if (!value) return '';
+
+  const date = new Date(value);
+  if (isNaN(date.getTime())) return formatDateDisplay(value);
+
+  const d = String(date.getDate()).padStart(2, '0');
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const y = date.getFullYear();
+  const hh = String(date.getHours()).padStart(2, '0');
+  const mm = String(date.getMinutes()).padStart(2, '0');
+
+  return `${d}-${m}-${y} ${hh}:${mm}`;
 }
 
 function formatMultiplierDelta(multiplier) {
@@ -1812,7 +1834,7 @@ function renderOpen() {
       </thead>
       <tbody>
         ${items.map(r => {
-          const auftrags = formatDateDisplay(r.auftrags_datum);
+          const auftrags = formatDateTimeDisplay(r.auftrags_datum);
           const abhol = (r.abhol_datum || '') ? String(r.abhol_datum).slice(0,10) : '';
           return `
             <tr>
@@ -1824,7 +1846,7 @@ function renderOpen() {
               <td>${escapeHtml(getRowDisplayProzent(r))}</td>
               <td>${escapeHtml(r.kundenart || '')}</td>
               <td style="white-space:pre-line;">${escapeHtml(renderLeistungenFallback(r))}</td>
-              <td>${moneyEUR(getRowDisplayKosten(r))}</td>
+              <td class="money-cell">${moneyEUR(getRowDisplayKosten(r))}</td>
               <td class="date-cell">
                 <input type="date" min="${TODAY_MIN}" data-id="${r.id}" class="open-abhol" value="${escapeHtml(abhol)}">
               </td>
@@ -1917,7 +1939,7 @@ function renderDone() {
       </thead>
       <tbody>
         ${items.map(r => {
-          const auftrags = formatDateDisplay(r.auftrags_datum);
+          const auftrags = formatDateTimeDisplay(r.auftrags_datum);
           const abhol = formatDateDisplay(r.abhol_datum);
           const canDelete = requireManager();
 
@@ -1931,7 +1953,7 @@ function renderDone() {
               <td>${escapeHtml(getRowDisplayProzent(r))}</td>
               <td>${escapeHtml(r.kundenart || '')}</td>
               <td style="white-space:pre-line;">${escapeHtml(renderLeistungenFallback(r))}</td>
-              <td>${moneyEUR(getRowDisplayKosten(r))}</td>
+              <td class="money-cell">${moneyEUR(getRowDisplayKosten(r))}</td>
               <td>${escapeHtml(abhol)}</td>
               <td>${escapeHtml(r.info || '')}</td>
               <td>
