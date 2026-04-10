@@ -278,7 +278,7 @@
       width:100%;
       border-collapse: separate;
       border-spacing: 0;
-      min-width: 1500px;
+      min-width: 1550px;
     }
     thead th{
       position: sticky;
@@ -593,7 +593,7 @@
                 <label>Custom Prozent / Multiplikator*
                   <input id="fCustomProzent" type="number" min="0" step="1" />
                 </label>
-                <div class="muted">Wird nur auf „Verarbeitung von Wein“ angewendet. 100 = normal, 110 = +10%.</div>
+                <div class="muted">Wird nur auf „Verarbeitung von Wein“ angewendet. 100 = normal, 108 = +8%.</div>
               </div>
             </div>
 
@@ -645,7 +645,7 @@
       <section id="view-done" class="card hidden">
         <div class="card-hd">
           <h3>Fertige Aufträge</h3>
-          <span class="pill">Löschen nur Geschäftsführer</span>
+          <span class="pill">Ausblenden nur Geschäftsführer</span>
         </div>
 
         <div class="toolbar">
@@ -697,6 +697,13 @@
             </div>
 
             <div class="settings-box">
+              <h4>Ankauf Weinflaschen</h4>
+              <label>Stückpreis (€)
+                <input id="s_ankauf_weinflaschen_stueckpreis" type="number" min="0" step="0.01" />
+              </label>
+            </div>
+
+            <div class="settings-box">
               <h4>Lieferservice</h4>
               <label>Preis pro KM (€)
                 <input id="s_lieferservice_preis_pro_km" type="number" min="0" step="0.01" />
@@ -714,7 +721,7 @@
               <label style="margin-top:10px;">VIP (%)
                 <input id="s_vip_prozent" type="number" min="0" step="1" />
               </label>
-              <div class="muted" style="margin-top:10px;">Diese Prozentwerte wirken nur auf „Verarbeitung von Wein“. 100 = normal.</div>
+              <div class="muted" style="margin-top:10px;">Diese Prozentwerte wirken nur auf „Verarbeitung von Wein“. Beispiel: 108 = +8%.</div>
             </div>
           </div>
 
@@ -787,6 +794,7 @@ let settingsState = {
     lagerung_preis_pro_tag_800_faesser: 0,
     ankauf_faesser_preis_pro_fass: 0,
     ankauf_trauben_stueckpreis: 0,
+    ankauf_weinflaschen_stueckpreis: 0,
     lieferservice_preis_pro_km: 0
   },
   kundenarten: {
@@ -893,7 +901,33 @@ function roundMoney(n){
 function moneyEUR(n) {
   const v = roundMoney(n);
   if (!Number.isFinite(v)) return '';
-  return v.toLocaleString('de-DE').replace(/\./g, ' ') + ' €';
+  return v.toLocaleString('de-DE') + ' €';
+}
+
+function formatDateDisplay(value) {
+  if (!value) return '';
+
+  const s = String(value);
+
+  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) {
+    const [y, m, d] = s.split('-');
+    return `${d}-${m}-${y}`;
+  }
+
+  const date = new Date(s);
+  if (!isNaN(date.getTime())) {
+    const d = String(date.getDate()).padStart(2, '0');
+    const m = String(date.getMonth() + 1).padStart(2, '0');
+    const y = date.getFullYear();
+    return `${d}-${m}-${y}`;
+  }
+
+  return s;
+}
+
+function formatMultiplierDelta(multiplier) {
+  const delta = roundMoney(multiplier) - 100;
+  return `${delta >= 0 ? '+' : ''}${delta}%`;
 }
 
 function hasServices(row) {
@@ -907,6 +941,13 @@ function getRowDisplayKosten(row) {
     );
   }
   return roundMoney(row?.kosten);
+}
+
+function getRowDisplayProzent(row) {
+  if (hasServices(row)) {
+    return formatMultiplierDelta(row?.prozent);
+  }
+  return `${toInt(row?.prozent)}%`;
 }
 
 function renderLeistungenFallback(row) {
@@ -928,6 +969,9 @@ function renderLeistungenFallback(row) {
       if (item.type === 'ankauf_trauben') {
         return `${type}: ${item.anzahl_stueck || 0} Stück · ${preis}`;
       }
+      if (item.type === 'ankauf_weinflaschen') {
+        return `${type}: ${item.anzahl_stueck || 0} Stück · ${preis}`;
+      }
       if (item.type === 'lieferservice') {
         return `${type}: ${item.km || 0} KM · ${preis}`;
       }
@@ -937,7 +981,7 @@ function renderLeistungenFallback(row) {
 
   return `Altauftrag
 Anzahl: ${toNum(row?.anzahl)}
-Prozent: ${toNum(row?.prozent)} %`;
+Prozent: ${toNum(row?.prozent)}%`;
 }
 
 function requireManager() {
@@ -1132,6 +1176,7 @@ async function handleLogout() {
         lagerung_preis_pro_tag_800_faesser: 0,
         ankauf_faesser_preis_pro_fass: 0,
         ankauf_trauben_stueckpreis: 0,
+        ankauf_weinflaschen_stueckpreis: 0,
         lieferservice_preis_pro_km: 0
       },
       kundenarten: {
@@ -1223,8 +1268,6 @@ async function apiFetch(path, { method="GET", body=null } = {}) {
     init.body = JSON.stringify(body);
   }
 
-  console.log('API REQUEST', { method, url, body });
-
   const res = await fetch(url, init);
 
   let json;
@@ -1233,8 +1276,6 @@ async function apiFetch(path, { method="GET", body=null } = {}) {
   } catch {
     throw new Error("Antwort ist kein JSON (Server/CORS).");
   }
-
-  console.log('API RESPONSE', json);
 
   if (!res.ok || !json.ok) {
     throw new Error(
@@ -1306,6 +1347,7 @@ async function loadSettings(){
         lagerung_preis_pro_tag_800_faesser: toNum(s.pricing?.lagerung_preis_pro_tag_800_faesser),
         ankauf_faesser_preis_pro_fass: toNum(s.pricing?.ankauf_faesser_preis_pro_fass),
         ankauf_trauben_stueckpreis: toNum(s.pricing?.ankauf_trauben_stueckpreis),
+        ankauf_weinflaschen_stueckpreis: toNum(s.pricing?.ankauf_weinflaschen_stueckpreis),
         lieferservice_preis_pro_km: toNum(s.pricing?.lieferservice_preis_pro_km),
       },
       kundenarten: {
@@ -1326,6 +1368,7 @@ function fillSettingsForm(){
   $('s_lagerung_preis_pro_tag_800_faesser').value = settingsState.pricing.lagerung_preis_pro_tag_800_faesser;
   $('s_ankauf_faesser_preis_pro_fass').value = settingsState.pricing.ankauf_faesser_preis_pro_fass;
   $('s_ankauf_trauben_stueckpreis').value = settingsState.pricing.ankauf_trauben_stueckpreis;
+  $('s_ankauf_weinflaschen_stueckpreis').value = settingsState.pricing.ankauf_weinflaschen_stueckpreis;
   $('s_lieferservice_preis_pro_km').value = settingsState.pricing.lieferservice_preis_pro_km;
 
   $('s_standard_prozent').value = settingsState.kundenarten.standard_prozent;
@@ -1340,6 +1383,7 @@ function readSettingsForm(){
       lagerung_preis_pro_tag_800_faesser: toNum($('s_lagerung_preis_pro_tag_800_faesser').value),
       ankauf_faesser_preis_pro_fass: toNum($('s_ankauf_faesser_preis_pro_fass').value),
       ankauf_trauben_stueckpreis: toNum($('s_ankauf_trauben_stueckpreis').value),
+      ankauf_weinflaschen_stueckpreis: toNum($('s_ankauf_weinflaschen_stueckpreis').value),
       lieferservice_preis_pro_km: toNum($('s_lieferservice_preis_pro_km').value),
     },
     kundenarten: {
@@ -1406,6 +1450,10 @@ function getServicePrice(service) {
     const anzahl = toNum(service.anzahl_stueck);
     return roundMoney(anzahl * settingsState.pricing.ankauf_trauben_stueckpreis);
   }
+  if (type === 'ankauf_weinflaschen') {
+    const anzahl = toNum(service.anzahl_stueck);
+    return roundMoney(anzahl * settingsState.pricing.ankauf_weinflaschen_stueckpreis);
+  }
   if (type === 'lieferservice') {
     const km = toNum(service.km);
     return roundMoney(km * settingsState.pricing.lieferservice_preis_pro_km);
@@ -1428,6 +1476,9 @@ function serviceToApi(service) {
   if (service.type === 'ankauf_trauben') {
     return { ...base, anzahl_stueck: toNum(service.anzahl_stueck) };
   }
+  if (service.type === 'ankauf_weinflaschen') {
+    return { ...base, anzahl_stueck: toNum(service.anzahl_stueck) };
+  }
   if (service.type === 'lieferservice') {
     return { ...base, km: toNum(service.km) };
   }
@@ -1440,6 +1491,7 @@ function getServiceSummaryLine(service) {
   if (service.type === 'lagerung_kunden_wein') return `Lagern von Kunden Wein · ${toNum(service.anzahl_faesser)} Fässer · ${toNum(service.tage)} Tage · ${price}`;
   if (service.type === 'ankauf_faesser') return `Ankauf Fässer · ${toNum(service.anzahl_faesser)} Fässer · ${price}`;
   if (service.type === 'ankauf_trauben') return `Ankauf Trauben · ${toNum(service.anzahl_stueck)} Stück · ${price}`;
+  if (service.type === 'ankauf_weinflaschen') return `Ankauf Weinflaschen · ${toNum(service.anzahl_stueck)} Stück · ${price}`;
   if (service.type === 'lieferservice') return `Lieferservice · ${toNum(service.km)} KM · ${price}`;
   return `Leistung · ${price}`;
 }
@@ -1467,6 +1519,7 @@ function renderServiceFields(service) {
             <option value="lagerung_kunden_wein">Lagern von Kunden Wein</option>
             <option value="ankauf_faesser">Ankauf Fässer</option>
             <option value="ankauf_trauben">Ankauf Trauben</option>
+            <option value="ankauf_weinflaschen">Ankauf Weinflaschen</option>
             <option value="lieferservice">Lieferservice</option>
           </select>
         </label>
@@ -1477,7 +1530,7 @@ function renderServiceFields(service) {
         </label>
       </div>
       <div class="readonly-box">
-        Multiplikator: ${escapeHtml(String(getKundenMultiplikator()))} %
+        Multiplikator: ${escapeHtml(formatMultiplierDelta(getKundenMultiplikator()))}
 
 Preis für 800 Fässer: ${escapeHtml(moneyEUR(settingsState.pricing.verarbeitung_wein_preis_800_faesser))}
       </div>
@@ -1493,6 +1546,7 @@ Preis für 800 Fässer: ${escapeHtml(moneyEUR(settingsState.pricing.verarbeitung
             <option value="lagerung_kunden_wein" selected>Lagern von Kunden Wein</option>
             <option value="ankauf_faesser">Ankauf Fässer</option>
             <option value="ankauf_trauben">Ankauf Trauben</option>
+            <option value="ankauf_weinflaschen">Ankauf Weinflaschen</option>
             <option value="lieferservice">Lieferservice</option>
           </select>
         </label>
@@ -1519,6 +1573,7 @@ Preis für 800 Fässer: ${escapeHtml(moneyEUR(settingsState.pricing.verarbeitung
             <option value="lagerung_kunden_wein">Lagern von Kunden Wein</option>
             <option value="ankauf_faesser" selected>Ankauf Fässer</option>
             <option value="ankauf_trauben">Ankauf Trauben</option>
+            <option value="ankauf_weinflaschen">Ankauf Weinflaschen</option>
             <option value="lieferservice">Lieferservice</option>
           </select>
         </label>
@@ -1543,6 +1598,7 @@ Preis für 800 Fässer: ${escapeHtml(moneyEUR(settingsState.pricing.verarbeitung
             <option value="lagerung_kunden_wein">Lagern von Kunden Wein</option>
             <option value="ankauf_faesser">Ankauf Fässer</option>
             <option value="ankauf_trauben" selected>Ankauf Trauben</option>
+            <option value="ankauf_weinflaschen">Ankauf Weinflaschen</option>
             <option value="lieferservice">Lieferservice</option>
           </select>
         </label>
@@ -1558,6 +1614,31 @@ Preis für 800 Fässer: ${escapeHtml(moneyEUR(settingsState.pricing.verarbeitung
     `;
   }
 
+  if (service.type === 'ankauf_weinflaschen') {
+    return `
+      <div>
+        <label>Leistung
+          <select data-role="type">
+            <option value="verarbeitung_wein">Verarbeitung von Wein</option>
+            <option value="lagerung_kunden_wein">Lagern von Kunden Wein</option>
+            <option value="ankauf_faesser">Ankauf Fässer</option>
+            <option value="ankauf_trauben">Ankauf Trauben</option>
+            <option value="ankauf_weinflaschen" selected>Ankauf Weinflaschen</option>
+            <option value="lieferservice">Lieferservice</option>
+          </select>
+        </label>
+      </div>
+      <div>
+        <label>Anzahl Stück
+          <input data-role="anzahl_stueck" type="number" min="0" step="1" value="${escapeHtml(service.anzahl_stueck)}">
+        </label>
+      </div>
+      <div class="readonly-box">
+        Stückpreis: ${escapeHtml(moneyEUR(settingsState.pricing.ankauf_weinflaschen_stueckpreis))}
+      </div>
+    `;
+  }
+
   if (service.type === 'lieferservice') {
     return `
       <div>
@@ -1567,6 +1648,7 @@ Preis für 800 Fässer: ${escapeHtml(moneyEUR(settingsState.pricing.verarbeitung
             <option value="lagerung_kunden_wein">Lagern von Kunden Wein</option>
             <option value="ankauf_faesser">Ankauf Fässer</option>
             <option value="ankauf_trauben">Ankauf Trauben</option>
+            <option value="ankauf_weinflaschen">Ankauf Weinflaschen</option>
             <option value="lieferservice" selected>Lieferservice</option>
           </select>
         </label>
@@ -1687,6 +1769,9 @@ function validateCreateForm() {
     if (s.type === 'ankauf_trauben' && toNum(s.anzahl_stueck) < 0) {
       throw new Error(`Leistung ${idx+1}: Anzahl Stück ungültig.`);
     }
+    if (s.type === 'ankauf_weinflaschen' && toNum(s.anzahl_stueck) < 0) {
+      throw new Error(`Leistung ${idx+1}: Anzahl Stück ungültig.`);
+    }
     if (s.type === 'lieferservice' && toNum(s.km) < 0) {
       throw new Error(`Leistung ${idx+1}: KM ungültig.`);
     }
@@ -1711,7 +1796,7 @@ function renderOpen() {
       <thead>
         <tr>
           <th>ID</th>
-          <th>AuftragsDatum</th>
+          <th>Auftragsdatum</th>
           <th>Kunde</th>
           <th>Mitarbeiter</th>
           <th>Anzahl</th>
@@ -1719,7 +1804,7 @@ function renderOpen() {
           <th>Kundenart</th>
           <th>Leistungen</th>
           <th>Kosten</th>
-          <th>AbholDatum</th>
+          <th>Abholdatum</th>
           <th>Erhalten?</th>
           <th>Info</th>
           <th></th>
@@ -1727,7 +1812,7 @@ function renderOpen() {
       </thead>
       <tbody>
         ${items.map(r => {
-          const auftrags = r.auftrags_datum ? new Date(r.auftrags_datum).toLocaleString('de-DE') : '';
+          const auftrags = formatDateDisplay(r.auftrags_datum);
           const abhol = (r.abhol_datum || '') ? String(r.abhol_datum).slice(0,10) : '';
           return `
             <tr>
@@ -1736,7 +1821,7 @@ function renderOpen() {
               <td>${escapeHtml(r.kunde)}</td>
               <td>${escapeHtml(r.mitarbeiter)}</td>
               <td>${toInt(r.anzahl)}</td>
-              <td>${toInt(r.prozent)}</td>
+              <td>${escapeHtml(getRowDisplayProzent(r))}</td>
               <td>${escapeHtml(r.kundenart || '')}</td>
               <td style="white-space:pre-line;">${escapeHtml(renderLeistungenFallback(r))}</td>
               <td>${moneyEUR(getRowDisplayKosten(r))}</td>
@@ -1748,7 +1833,7 @@ function renderOpen() {
                   <option value="0" ${r.erhalten ? '' : 'selected'}>Nein</option>
                   <option value="1" ${r.erhalten ? 'selected' : ''}>Ja</option>
                 </select>
-                <div class="muted">Ja nur mit AbholDatum</div>
+                <div class="muted">Ja nur mit Abholdatum</div>
               </td>
               <td><textarea data-id="${r.id}" class="open-info" rows="2">${escapeHtml(r.info || '')}</textarea></td>
               <td><button data-id="${r.id}" class="btn tiny btn-primary open-save" type="button">Speichern</button></td>
@@ -1768,11 +1853,11 @@ function renderOpen() {
       const abhol = wrap.querySelector('.open-abhol[data-id="' + id + '"]').value;
 
       if (abhol && isDateBeforeToday(abhol)) {
-        showMsg('error', 'AbholDatum darf nicht in der Vergangenheit liegen.');
+        showMsg('error', 'Abholdatum darf nicht in der Vergangenheit liegen.');
         return;
       }
       if (erhalten === '1' && !abhol) {
-        showMsg('error', 'Bitte zuerst ein AbholDatum auswählen (Pflicht), bevor "Erhalten = Ja" gesetzt wird.');
+        showMsg('error', 'Bitte zuerst ein Abholdatum auswählen (Pflicht), bevor "Erhalten = Ja" gesetzt wird.');
         return;
       }
 
@@ -1817,7 +1902,7 @@ function renderDone() {
       <thead>
         <tr>
           <th>ID</th>
-          <th>AuftragsDatum</th>
+          <th>Auftragsdatum</th>
           <th>Kunde</th>
           <th>Mitarbeiter</th>
           <th>Anzahl</th>
@@ -1825,15 +1910,15 @@ function renderDone() {
           <th>Kundenart</th>
           <th>Leistungen</th>
           <th>Kosten</th>
-          <th>AbholDatum</th>
+          <th>Abholdatum</th>
           <th>Info</th>
           <th></th>
         </tr>
       </thead>
       <tbody>
         ${items.map(r => {
-          const auftrags = r.auftrags_datum ? new Date(r.auftrags_datum).toLocaleString('de-DE') : '';
-          const abhol = (r.abhol_datum || '') ? String(r.abhol_datum).slice(0,10) : '';
+          const auftrags = formatDateDisplay(r.auftrags_datum);
+          const abhol = formatDateDisplay(r.abhol_datum);
           const canDelete = requireManager();
 
           return `
@@ -1843,7 +1928,7 @@ function renderDone() {
               <td>${escapeHtml(r.kunde)}</td>
               <td>${escapeHtml(r.mitarbeiter)}</td>
               <td>${toInt(r.anzahl)}</td>
-              <td>${toInt(r.prozent)}</td>
+              <td>${escapeHtml(getRowDisplayProzent(r))}</td>
               <td>${escapeHtml(r.kundenart || '')}</td>
               <td style="white-space:pre-line;">${escapeHtml(renderLeistungenFallback(r))}</td>
               <td>${moneyEUR(getRowDisplayKosten(r))}</td>
@@ -1852,7 +1937,7 @@ function renderDone() {
               <td>
                 ${
                   canDelete
-                    ? `<button data-id="${r.id}" class="btn tiny btn-danger done-del" type="button">Löschen</button>`
+                    ? `<button data-id="${r.id}" class="btn tiny btn-danger done-del" type="button">Ausblenden</button>`
                     : `<span class="muted">Nur Geschäftsführer</span>`
                 }
               </td>
@@ -1866,20 +1951,20 @@ function renderDone() {
   wrap.querySelectorAll('.done-del').forEach(btn => {
     btn.addEventListener('click', async () => {
       if (!requireManager()) {
-        showMsg('error', 'Löschen ist nur für Geschäftsführer erlaubt.');
+        showMsg('error', 'Ausblenden ist nur für Geschäftsführer erlaubt.');
         return;
       }
 
       const id = Number(btn.getAttribute('data-id'));
-      if (!confirm('Auftrag ID ' + id + ' wirklich löschen?')) return;
+      if (!confirm('Auftrag ID ' + id + ' wirklich ausblenden?')) return;
 
       btn.disabled = true;
       const old = btn.textContent;
-      btn.textContent = 'Löscht…';
+      btn.textContent = 'Blendet aus…';
 
       try {
         await apiDelete(id);
-        showMsg('ok', 'Gelöscht. ID: ' + id);
+        showMsg('ok', 'Ausgeblendet. ID: ' + id);
         await loadAndRenderDone();
       } catch (e) {
         showMsg('error', e.message);
