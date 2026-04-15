@@ -555,9 +555,9 @@
 
       <div class="tabs">
         <button id="tab-create" class="tab active" type="button"><span class="dot"></span>Auftrag erstellen</button>
+        <button id="tab-appointments" class="tab" type="button"><span class="dot"></span>Terminanfragen</button>
         <button id="tab-open" class="tab" type="button"><span class="dot"></span>Offene Aufträge</button>
         <button id="tab-done" class="tab" type="button"><span class="dot"></span>Fertige Aufträge</button>
-        <button id="tab-appointments" class="tab" type="button"><span class="dot"></span>Terminanfragen</button>
         <button id="tab-settings" class="tab hidden" type="button"><span class="dot"></span>Einstellungen</button>
       </div>
 
@@ -848,17 +848,17 @@ let settingsState = {
     stammkunden_prozent: 100,
     vip_prozent: 100
   },
-  appointment: {
-    duration_minutes: 15,
-    availability: [
-      { weekday: 1, enabled: false, start: '', end: '' },
-      { weekday: 2, enabled: true, start: '18:30', end: '22:00' },
-      { weekday: 3, enabled: true, start: '18:30', end: '22:00' },
-      { weekday: 4, enabled: true, start: '18:30', end: '22:00' },
-      { weekday: 5, enabled: true, start: '18:30', end: '22:00' },
-      { weekday: 6, enabled: true, start: '11:00', end: '22:00' },
-      { weekday: 0, enabled: true, start: '11:00', end: '22:00' }
-    ]
+  appointment_config: {
+    slot_minutes: 15,
+    days: {
+      0: { enabled: true, start: '11:00', end: '22:00' },
+      1: { enabled: false, start: '00:00', end: '00:00' },
+      2: { enabled: true, start: '18:30', end: '22:00' },
+      3: { enabled: true, start: '18:30', end: '22:00' },
+      4: { enabled: true, start: '18:30', end: '22:00' },
+      5: { enabled: true, start: '18:30', end: '22:00' },
+      6: { enabled: true, start: '11:00', end: '22:00' }
+    }
   }
 };
 
@@ -1077,7 +1077,7 @@ function applySearchAndPage(rows, state) {
 
   if (q) {
     filtered = rows.filter(r =>
-      String(r.kunde || '').toLowerCase().includes(q) ||
+      String((r.kunde || r.name || '')).toLowerCase().includes(q) ||
       String(r.mitarbeiter || '').toLowerCase().includes(q)
     );
   }
@@ -1258,17 +1258,17 @@ async function handleLogout() {
         stammkunden_prozent: 100,
         vip_prozent: 100
       },
-      appointment: {
-        duration_minutes: 15,
-        availability: [
-          { weekday: 1, enabled: false, start: '', end: '' },
-          { weekday: 2, enabled: true, start: '18:30', end: '22:00' },
-          { weekday: 3, enabled: true, start: '18:30', end: '22:00' },
-          { weekday: 4, enabled: true, start: '18:30', end: '22:00' },
-          { weekday: 5, enabled: true, start: '18:30', end: '22:00' },
-          { weekday: 6, enabled: true, start: '11:00', end: '22:00' },
-          { weekday: 0, enabled: true, start: '11:00', end: '22:00' }
-        ]
+      appointment_config: {
+        slot_minutes: 15,
+        days: {
+          0: { enabled: true, start: '11:00', end: '22:00' },
+          1: { enabled: false, start: '00:00', end: '00:00' },
+          2: { enabled: true, start: '18:30', end: '22:00' },
+          3: { enabled: true, start: '18:30', end: '22:00' },
+          4: { enabled: true, start: '18:30', end: '22:00' },
+          5: { enabled: true, start: '18:30', end: '22:00' },
+          6: { enabled: true, start: '11:00', end: '22:00' }
+        }
       }
     };
     servicesDraft = [];
@@ -1392,7 +1392,7 @@ async function apiSettingsSave(payload){
   return apiFetch(`?action=settings_save`, { method:"POST", body: payload });
 }
 async function apiAppointmentList(){
-  return apiFetch(`?action=appointment_list&status=all`);
+  return apiFetch(`?action=appointments_list&status=all`);
 }
 async function apiAppointmentDecide(payload){
   return apiFetch(`?action=appointment_decide`, { method:"POST", body: payload });
@@ -1444,6 +1444,8 @@ async function loadSettings(){
   try {
     const out = await apiSettingsGet();
     const s = out.settings || {};
+    const appointmentConfig = s.appointment_config || settingsState.appointment_config;
+
     settingsState = {
       pricing: {
         verarbeitung_wein_preis_800_faesser: toNum(s.pricing?.verarbeitung_wein_preis_800_faesser),
@@ -1458,9 +1460,9 @@ async function loadSettings(){
         stammkunden_prozent: toNum(s.kundenarten?.stammkunden_prozent || 100),
         vip_prozent: toNum(s.kundenarten?.vip_prozent || 100),
       },
-      appointment: {
-        duration_minutes: toNum(s.appointment?.duration_minutes || 15),
-        availability: Array.isArray(s.appointment?.availability) ? s.appointment.availability : settingsState.appointment.availability
+      appointment_config: {
+        slot_minutes: toNum(appointmentConfig?.slot_minutes || 15),
+        days: appointmentConfig?.days || settingsState.appointment_config.days
       }
     };
     fillSettingsForm();
@@ -1481,9 +1483,10 @@ function fillSettingsForm(){
   $('s_standard_prozent').value = settingsState.kundenarten.standard_prozent;
   $('s_stammkunden_prozent').value = settingsState.kundenarten.stammkunden_prozent;
   $('s_vip_prozent').value = settingsState.kundenarten.vip_prozent;
-  $('s_appointment_duration_minutes').value = settingsState.appointment.duration_minutes;
-  (settingsState.appointment.availability || []).forEach((row) => {
-    const wd = Number(row.weekday);
+  $('s_appointment_duration_minutes').value = settingsState.appointment_config.slot_minutes;
+
+  [0,1,2,3,4,5,6].forEach((wd) => {
+    const row = settingsState.appointment_config.days?.[wd] || { enabled:false, start:'00:00', end:'00:00' };
     const enabledEl = $('s_day_' + wd + '_enabled');
     const startEl = $('s_day_' + wd + '_start');
     const endEl = $('s_day_' + wd + '_end');
@@ -1494,6 +1497,15 @@ function fillSettingsForm(){
 }
 
 function readSettingsForm(){
+  const days = {};
+  [0,1,2,3,4,5,6].forEach((wd) => {
+    days[wd] = {
+      enabled: !!$('s_day_' + wd + '_enabled').checked,
+      start: String($('s_day_' + wd + '_start').value || '00:00'),
+      end: String($('s_day_' + wd + '_end').value || '00:00')
+    };
+  });
+
   return {
     pricing: {
       verarbeitung_wein_preis_800_faesser: toNum($('s_verarbeitung_wein_preis_800_faesser').value),
@@ -1508,14 +1520,9 @@ function readSettingsForm(){
       stammkunden_prozent: toNum($('s_stammkunden_prozent').value),
       vip_prozent: toNum($('s_vip_prozent').value),
     },
-    appointment: {
-      duration_minutes: toNum($('s_appointment_duration_minutes').value || 15),
-      availability: [0,1,2,3,4,5,6].map((wd) => ({
-        weekday: wd,
-        enabled: !!$('s_day_' + wd + '_enabled').checked,
-        start: String($('s_day_' + wd + '_start').value || ''),
-        end: String($('s_day_' + wd + '_end').value || '')
-      }))
+    appointment_config: {
+      slot_minutes: toNum($('s_appointment_duration_minutes').value || 15),
+      days
     }
   };
 }
@@ -2118,8 +2125,8 @@ function renderAppointmentServices(row) {
 }
 
 function appointmentStatusLabel(status) {
-  if (status === 'accepted') return 'Angenommen';
-  if (status === 'declined') return 'Abgelehnt';
+  if (status === 'accepted' || status === 'angenommen') return 'Angenommen';
+  if (status === 'declined' || status === 'abgelehnt') return 'Abgelehnt';
   return 'Offen';
 }
 
@@ -2129,7 +2136,7 @@ function renderAppointments() {
 
   if (q) {
     filtered = filtered.filter(r =>
-      String(r.kunde || '').toLowerCase().includes(q) ||
+      String((r.kunde || r.name || '')).toLowerCase().includes(q) ||
       String(r.status || '').toLowerCase().includes(q) ||
       String(r.termin_datum || '').toLowerCase().includes(q)
     );
@@ -2171,7 +2178,7 @@ function renderAppointments() {
           <tr>
             <td style="font-family:var(--mono);">${r.id}</td>
             <td>
-              <strong>${escapeHtml(r.kunde || '')}</strong>
+              <strong>${escapeHtml(r.kunde || r.name || '')}</strong>
               <div class="muted">Erstellt: ${escapeHtml(formatDateTimeDisplay(r.created_at))}</div>
             </td>
             <td>
@@ -2182,14 +2189,14 @@ function renderAppointments() {
             <td style="white-space:pre-line;">${escapeHtml(r.info || '')}</td>
             <td>
               <strong>${escapeHtml(appointmentStatusLabel(r.status))}</strong>
-              <div class="muted">${escapeHtml(r.decision_reason || '')}</div>
+              <div class="muted">${escapeHtml(r.ablehnungsgrund || r.decision_reason || '')}</div>
             </td>
             <td>
               ${r.confirmed_auftrag_id ? `#${r.confirmed_auftrag_id}` : '–'}
               <div class="muted">${escapeHtml(r.auftrag_status || '')}</div>
             </td>
             <td>
-              ${r.status === 'pending' ? `
+              ${(r.status === 'pending' || r.status === 'offen') ? `
                 <div style="display:grid; gap:8px; min-width:220px;">
                   <textarea class="appointment-reason" data-id="${r.id}" rows="3" placeholder="Ablehnungsgrund oder optionale Notiz"></textarea>
                   <div style="display:flex; gap:8px; flex-wrap:wrap;">
@@ -2215,7 +2222,7 @@ function renderAppointments() {
       btn.textContent = 'Bestätigt…';
 
       try {
-        await apiAppointmentDecide({ id, decision: 'accept', reason });
+        await apiAppointmentDecide({ id, decision: 'angenommen', reason });
         showMsg('ok', 'Terminanfrage bestätigt. Auftrag wurde erstellt.');
         await loadAndRenderAppointments();
         await loadAllForReload();
@@ -2243,7 +2250,7 @@ function renderAppointments() {
       btn.textContent = 'Lehnt ab…';
 
       try {
-        await apiAppointmentDecide({ id, decision: 'decline', reason });
+        await apiAppointmentDecide({ id, decision: 'abgelehnt', reason });
         showMsg('ok', 'Terminanfrage abgelehnt.');
         await loadAndRenderAppointments();
       } catch (e) {
