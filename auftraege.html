@@ -557,6 +557,7 @@
         <button id="tab-create" class="tab active" type="button"><span class="dot"></span>Auftrag erstellen</button>
         <button id="tab-open" class="tab" type="button"><span class="dot"></span>Offene Aufträge</button>
         <button id="tab-done" class="tab" type="button"><span class="dot"></span>Fertige Aufträge</button>
+        <button id="tab-appointments" class="tab" type="button"><span class="dot"></span>Terminanfragen</button>
         <button id="tab-settings" class="tab hidden" type="button"><span class="dot"></span>Einstellungen</button>
       </div>
 
@@ -667,7 +668,26 @@
         <div id="doneTableWrap" class="table-wrap"></div>
       </section>
 
-      <section id="view-settings" class="card hidden">
+      
+      <section id="view-appointments" class="card hidden">
+        <div class="card-hd">
+          <h3>Terminanfragen</h3>
+          <span class="pill">Bestätigen oder ablehnen</span>
+        </div>
+
+        <div class="toolbar">
+          <input id="appointmentSearch" type="text" placeholder="Suche Name / Datum / Status…" />
+          <div class="pager">
+            <button id="appointmentPrev" class="btn tiny" type="button">◀</button>
+            <span id="appointmentPageInfo" class="pill"></span>
+            <button id="appointmentNext" class="btn tiny" type="button">▶</button>
+          </div>
+        </div>
+
+        <div id="appointmentTableWrap" class="table-wrap"></div>
+      </section>
+
+<section id="view-settings" class="card hidden">
         <div class="card-hd">
           <h3>Einstellungen</h3>
           <span class="pill">Nur Geschäftsführer</span>
@@ -730,6 +750,14 @@
               </label>
               <div class="muted" style="margin-top:10px;">Diese Prozentwerte wirken nur auf „Verarbeitung von Wein“. Beispiel: 108 = +8%.</div>
             </div>
+
+            <div class="settings-box" style="grid-column: 1 / -1;">
+              <h4>Hinweistext für öffentliche Terminanfrage</h4>
+              <label>Text
+                <textarea id="s_appointment_hint_text" rows="4"></textarea>
+              </label>
+              <div class="muted" style="margin-top:10px;">Dieser Text erscheint in der öffentlichen index.html über dem Terminformular.</div>
+            </div>
           </div>
 
           <div style="margin-top:16px; display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
@@ -790,10 +818,12 @@ let currentProfile = null;
 
 let allOpen = [];
 let allDone = [];
+let allAppointments = [];
 let lastSync = null;
 
 let openState = { page: 1, search: '' };
 let doneState = { page: 1, search: '' };
+let appointmentState = { page: 1, search: '' };
 
 let settingsState = {
   pricing: {
@@ -808,6 +838,9 @@ let settingsState = {
     standard_prozent: 100,
     stammkunden_prozent: 100,
     vip_prozent: 100
+  },
+  appointment: {
+    hint_text: 'Termine dauern 15 Minuten.\nDi–Fr: 18:30–22:00 · Sa–So: 11:00–22:00'
   }
 };
 
@@ -857,7 +890,7 @@ function setAuthMode(mode) {
 }
 
 function setTab(tab) {
-  const tabs = ['create','open','done','settings'];
+  const tabs = ['create','open','done','appointments','settings'];
   for (const t of tabs) {
     const tabBtn = $('tab-' + t);
     const view = $('view-' + t);
@@ -866,6 +899,7 @@ function setTab(tab) {
   }
   if (tab === 'open') { loadAndRenderOpen().catch(e => showMsg('error', e.message)); }
   if (tab === 'done') { loadAndRenderDone().catch(e => showMsg('error', e.message)); }
+  if (tab === 'appointments') { loadAndRenderAppointments().catch(e => showMsg('error', e.message)); }
   if (tab === 'settings') { loadSettings().catch(e => showMsg('error', e.message)); }
 }
 
@@ -1205,6 +1239,9 @@ async function handleLogout() {
         standard_prozent: 100,
         stammkunden_prozent: 100,
         vip_prozent: 100
+      },
+      appointment: {
+        hint_text: 'Termine dauern 15 Minuten.\nDi–Fr: 18:30–22:00 · Sa–So: 11:00–22:00'
       }
     };
     servicesDraft = [];
@@ -1327,6 +1364,12 @@ async function apiSettingsGet(){
 async function apiSettingsSave(payload){
   return apiFetch(`?action=settings_save`, { method:"POST", body: payload });
 }
+async function apiAppointmentList(){
+  return apiFetch(`?action=appointment_list&status=all`);
+}
+async function apiAppointmentDecide(payload){
+  return apiFetch(`?action=appointment_decide`, { method:"POST", body: payload });
+}
 
 async function loadAndRenderOpen(){
   const out = await apiList('open', 1000, 0);
@@ -1344,19 +1387,30 @@ async function loadAndRenderDone(){
   renderDone();
 }
 
+async function loadAndRenderAppointments(){
+  const out = await apiAppointmentList();
+  allAppointments = out.items || [];
+  lastSync = new Date();
+  setSyncPill();
+  renderAppointments();
+}
+
 async function loadAllForReload(){
-  const [o, d] = await Promise.all([
+  const [o, d, a] = await Promise.all([
     apiList('open', 1000, 0),
-    apiList('done', 1000, 0)
+    apiList('done', 1000, 0),
+    apiAppointmentList()
   ]);
 
   allOpen = o.items || [];
   allDone = d.items || [];
+  allAppointments = a.items || [];
   lastSync = new Date();
   setSyncPill();
 
   if ($('tab-open').classList.contains('active')) renderOpen();
   if ($('tab-done').classList.contains('active')) renderDone();
+  if ($('tab-appointments').classList.contains('active')) renderAppointments();
 }
 
 async function loadSettings(){
@@ -1376,6 +1430,9 @@ async function loadSettings(){
         standard_prozent: toNum(s.kundenarten?.standard_prozent || 100),
         stammkunden_prozent: toNum(s.kundenarten?.stammkunden_prozent || 100),
         vip_prozent: toNum(s.kundenarten?.vip_prozent || 100),
+      },
+      appointment: {
+        hint_text: String(s.appointment?.hint_text || 'Termine dauern 15 Minuten.\nDi–Fr: 18:30–22:00 · Sa–So: 11:00–22:00')
       }
     };
     fillSettingsForm();
@@ -1396,6 +1453,7 @@ function fillSettingsForm(){
   $('s_standard_prozent').value = settingsState.kundenarten.standard_prozent;
   $('s_stammkunden_prozent').value = settingsState.kundenarten.stammkunden_prozent;
   $('s_vip_prozent').value = settingsState.kundenarten.vip_prozent;
+  $('s_appointment_hint_text').value = settingsState.appointment.hint_text;
 }
 
 function readSettingsForm(){
@@ -1412,6 +1470,9 @@ function readSettingsForm(){
       standard_prozent: toNum($('s_standard_prozent').value),
       stammkunden_prozent: toNum($('s_stammkunden_prozent').value),
       vip_prozent: toNum($('s_vip_prozent').value),
+    },
+    appointment: {
+      hint_text: String($('s_appointment_hint_text').value || '').trim()
     }
   };
 }
@@ -1998,6 +2059,161 @@ function renderDone() {
   });
 }
 
+
+function renderAppointmentServices(row) {
+  if (!Array.isArray(row?.services) || !row.services.length) return '';
+  return row.services.map(s => {
+    const item = s || {};
+    if (item.type === 'verarbeitung_wein') return `Verarbeitung von Wein · ${toNum(item.anzahl_faesser)} Fässer`;
+    if (item.type === 'lagerung_kunden_wein') return `Lagern von Kunden Wein · ${toNum(item.anzahl_faesser)} Fässer · ${toNum(item.tage)} Tage`;
+    if (item.type === 'ankauf_faesser') return `Ankauf Fässer · ${toNum(item.anzahl_faesser)} Fässer`;
+    if (item.type === 'ankauf_trauben') return `Ankauf Trauben · ${toNum(item.anzahl_stueck)} Stück`;
+    if (item.type === 'ankauf_weinflaschen') return `Ankauf Weinflaschen · ${toNum(item.anzahl_stueck)} Stück`;
+    if (item.type === 'lieferservice') return `Lieferservice · ${toNum(item.km)} KM`;
+    return item.label || item.type || 'Leistung';
+  }).join('\n');
+}
+
+function appointmentStatusLabel(status) {
+  if (status === 'accepted') return 'Angenommen';
+  if (status === 'declined') return 'Abgelehnt';
+  return 'Offen';
+}
+
+function renderAppointments() {
+  const q = String(appointmentState.search || '').trim().toLowerCase();
+  let filtered = allAppointments.slice();
+
+  if (q) {
+    filtered = filtered.filter(r =>
+      String(r.kunde || '').toLowerCase().includes(q) ||
+      String(r.status || '').toLowerCase().includes(q) ||
+      String(r.termin_datum || '').toLowerCase().includes(q)
+    );
+  }
+
+  const total = filtered.length;
+  const maxPage = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  if (appointmentState.page > maxPage) appointmentState.page = maxPage;
+
+  const start = (appointmentState.page - 1) * PAGE_SIZE;
+  const items = filtered.slice(start, start + PAGE_SIZE);
+
+  $('appointmentPageInfo').textContent = `Seite ${appointmentState.page} · ${total} Treffer`;
+  $('appointmentPrev').disabled = appointmentState.page <= 1;
+  $('appointmentNext').disabled = (appointmentState.page * PAGE_SIZE) >= total;
+
+  const wrap = $('appointmentTableWrap');
+  if (!items.length) {
+    wrap.innerHTML = '<div class="card-bd"><div class="muted">Keine Terminanfragen gefunden.</div></div>';
+    return;
+  }
+
+  wrap.innerHTML = `
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Anfrage</th>
+          <th>Termin</th>
+          <th>Leistungen</th>
+          <th>Zusatzinfo</th>
+          <th>Status</th>
+          <th>Auftrag</th>
+          <th>Entscheidung</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${items.map(r => `
+          <tr>
+            <td style="font-family:var(--mono);">${r.id}</td>
+            <td>
+              <strong>${escapeHtml(r.kunde || '')}</strong>
+              <div class="muted">Erstellt: ${escapeHtml(formatDateTimeDisplay(r.created_at))}</div>
+            </td>
+            <td>
+              ${escapeHtml(formatDateDisplay(r.termin_datum))}<br>
+              <span class="muted">${escapeHtml(r.termin_uhrzeit || '')}</span>
+            </td>
+            <td style="white-space:pre-line;">${escapeHtml(renderAppointmentServices(r))}</td>
+            <td style="white-space:pre-line;">${escapeHtml(r.info || '')}</td>
+            <td>
+              <strong>${escapeHtml(appointmentStatusLabel(r.status))}</strong>
+              <div class="muted">${escapeHtml(r.decision_reason || '')}</div>
+            </td>
+            <td>
+              ${r.confirmed_auftrag_id ? `#${r.confirmed_auftrag_id}` : '–'}
+              <div class="muted">${escapeHtml(r.auftrag_status || '')}</div>
+            </td>
+            <td>
+              ${r.status === 'pending' ? `
+                <div style="display:grid; gap:8px; min-width:220px;">
+                  <textarea class="appointment-reason" data-id="${r.id}" rows="3" placeholder="Ablehnungsgrund oder optionale Notiz"></textarea>
+                  <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                    <button class="btn tiny btn-primary appointment-accept" data-id="${r.id}" type="button">Bestätigen</button>
+                    <button class="btn tiny btn-danger appointment-decline" data-id="${r.id}" type="button">Ablehnen</button>
+                  </div>
+                </div>
+              ` : `<span class="muted">Bereits entschieden</span>`}
+            </td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+  `;
+
+  wrap.querySelectorAll('.appointment-accept').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const id = Number(btn.getAttribute('data-id'));
+      const reason = wrap.querySelector('.appointment-reason[data-id="' + id + '"]').value.trim();
+
+      btn.disabled = true;
+      const old = btn.textContent;
+      btn.textContent = 'Bestätigt…';
+
+      try {
+        await apiAppointmentDecide({ id, decision: 'accept', reason });
+        showMsg('ok', 'Terminanfrage bestätigt. Auftrag wurde erstellt.');
+        await loadAndRenderAppointments();
+        await loadAllForReload();
+      } catch (e) {
+        showMsg('error', e.message);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = old;
+      }
+    });
+  });
+
+  wrap.querySelectorAll('.appointment-decline').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const id = Number(btn.getAttribute('data-id'));
+      const reason = wrap.querySelector('.appointment-reason[data-id="' + id + '"]').value.trim();
+
+      if (!reason) {
+        showMsg('error', 'Beim Ablehnen ist ein Grund Pflicht.');
+        return;
+      }
+
+      btn.disabled = true;
+      const old = btn.textContent;
+      btn.textContent = 'Lehnt ab…';
+
+      try {
+        await apiAppointmentDecide({ id, decision: 'decline', reason });
+        showMsg('ok', 'Terminanfrage abgelehnt.');
+        await loadAndRenderAppointments();
+      } catch (e) {
+        showMsg('error', e.message);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = old;
+      }
+    });
+  });
+}
+
+
 async function createOrder() {
   const btn = $('btnCreate');
   btn.disabled = true;
@@ -2038,6 +2254,7 @@ $('authSubmit').addEventListener('click', async () => {
 $('tab-create').addEventListener('click', () => setTab('create'));
 $('tab-open').addEventListener('click', () => setTab('open'));
 $('tab-done').addEventListener('click', () => setTab('done'));
+$('tab-appointments').addEventListener('click', () => setTab('appointments'));
 $('tab-settings').addEventListener('click', () => setTab('settings'));
 
 $('btnCreate').addEventListener('click', createOrder);
@@ -2077,6 +2294,20 @@ $('donePrev').addEventListener('click', () => {
 $('doneNext').addEventListener('click', () => {
   doneState.page += 1;
   renderDone();
+});
+
+$('appointmentSearch').addEventListener('input', () => {
+  appointmentState.search = $('appointmentSearch').value.trim();
+  appointmentState.page = 1;
+  renderAppointments();
+});
+$('appointmentPrev').addEventListener('click', () => {
+  appointmentState.page = Math.max(1, appointmentState.page - 1);
+  renderAppointments();
+});
+$('appointmentNext').addEventListener('click', () => {
+  appointmentState.page += 1;
+  renderAppointments();
 });
 
 $('btnReload').addEventListener('click', async () => {
