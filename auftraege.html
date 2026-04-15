@@ -752,11 +752,20 @@
             </div>
 
             <div class="settings-box" style="grid-column: 1 / -1;">
-              <h4>Hinweistext für öffentliche Terminanfrage</h4>
-              <label>Text
-                <textarea id="s_appointment_hint_text" rows="4"></textarea>
+              <h4>Termin-Konfiguration für öffentliche Terminanfragen</h4>
+              <label>Termindauer (Minuten)
+                <input id="s_appointment_duration_minutes" type="number" min="5" step="5" />
               </label>
-              <div class="muted" style="margin-top:10px;">Dieser Text erscheint in der öffentlichen index.html über dem Terminformular.</div>
+              <div class="muted" style="margin-top:10px;">Diese Werte steuern direkt den öffentlichen Kalender in der index.html.</div>
+              <div class="settings-grid" style="margin-top:12px; grid-template-columns: repeat(7, minmax(0,1fr));">
+                <div class="settings-box"><h4>Mo</h4><label><input id="s_day_1_enabled" type="checkbox" style="width:auto; margin-right:8px;"> Aktiv</label><label style="margin-top:10px;">Von<input id="s_day_1_start" type="time" /></label><label style="margin-top:10px;">Bis<input id="s_day_1_end" type="time" /></label></div>
+                <div class="settings-box"><h4>Di</h4><label><input id="s_day_2_enabled" type="checkbox" style="width:auto; margin-right:8px;"> Aktiv</label><label style="margin-top:10px;">Von<input id="s_day_2_start" type="time" /></label><label style="margin-top:10px;">Bis<input id="s_day_2_end" type="time" /></label></div>
+                <div class="settings-box"><h4>Mi</h4><label><input id="s_day_3_enabled" type="checkbox" style="width:auto; margin-right:8px;"> Aktiv</label><label style="margin-top:10px;">Von<input id="s_day_3_start" type="time" /></label><label style="margin-top:10px;">Bis<input id="s_day_3_end" type="time" /></label></div>
+                <div class="settings-box"><h4>Do</h4><label><input id="s_day_4_enabled" type="checkbox" style="width:auto; margin-right:8px;"> Aktiv</label><label style="margin-top:10px;">Von<input id="s_day_4_start" type="time" /></label><label style="margin-top:10px;">Bis<input id="s_day_4_end" type="time" /></label></div>
+                <div class="settings-box"><h4>Fr</h4><label><input id="s_day_5_enabled" type="checkbox" style="width:auto; margin-right:8px;"> Aktiv</label><label style="margin-top:10px;">Von<input id="s_day_5_start" type="time" /></label><label style="margin-top:10px;">Bis<input id="s_day_5_end" type="time" /></label></div>
+                <div class="settings-box"><h4>Sa</h4><label><input id="s_day_6_enabled" type="checkbox" style="width:auto; margin-right:8px;"> Aktiv</label><label style="margin-top:10px;">Von<input id="s_day_6_start" type="time" /></label><label style="margin-top:10px;">Bis<input id="s_day_6_end" type="time" /></label></div>
+                <div class="settings-box"><h4>So</h4><label><input id="s_day_0_enabled" type="checkbox" style="width:auto; margin-right:8px;"> Aktiv</label><label style="margin-top:10px;">Von<input id="s_day_0_start" type="time" /></label><label style="margin-top:10px;">Bis<input id="s_day_0_end" type="time" /></label></div>
+              </div>
             </div>
           </div>
 
@@ -840,7 +849,16 @@ let settingsState = {
     vip_prozent: 100
   },
   appointment: {
-    hint_text: 'Termine dauern 15 Minuten.\nDi–Fr: 18:30–22:00 · Sa–So: 11:00–22:00'
+    duration_minutes: 15,
+    availability: [
+      { weekday: 1, enabled: false, start: '', end: '' },
+      { weekday: 2, enabled: true, start: '18:30', end: '22:00' },
+      { weekday: 3, enabled: true, start: '18:30', end: '22:00' },
+      { weekday: 4, enabled: true, start: '18:30', end: '22:00' },
+      { weekday: 5, enabled: true, start: '18:30', end: '22:00' },
+      { weekday: 6, enabled: true, start: '11:00', end: '22:00' },
+      { weekday: 0, enabled: true, start: '11:00', end: '22:00' }
+    ]
   }
 };
 
@@ -1241,7 +1259,16 @@ async function handleLogout() {
         vip_prozent: 100
       },
       appointment: {
-        hint_text: 'Termine dauern 15 Minuten.\nDi–Fr: 18:30–22:00 · Sa–So: 11:00–22:00'
+        duration_minutes: 15,
+        availability: [
+          { weekday: 1, enabled: false, start: '', end: '' },
+          { weekday: 2, enabled: true, start: '18:30', end: '22:00' },
+          { weekday: 3, enabled: true, start: '18:30', end: '22:00' },
+          { weekday: 4, enabled: true, start: '18:30', end: '22:00' },
+          { weekday: 5, enabled: true, start: '18:30', end: '22:00' },
+          { weekday: 6, enabled: true, start: '11:00', end: '22:00' },
+          { weekday: 0, enabled: true, start: '11:00', end: '22:00' }
+        ]
       }
     };
     servicesDraft = [];
@@ -1432,7 +1459,8 @@ async function loadSettings(){
         vip_prozent: toNum(s.kundenarten?.vip_prozent || 100),
       },
       appointment: {
-        hint_text: String(s.appointment?.hint_text || 'Termine dauern 15 Minuten.\nDi–Fr: 18:30–22:00 · Sa–So: 11:00–22:00')
+        duration_minutes: toNum(s.appointment?.duration_minutes || 15),
+        availability: Array.isArray(s.appointment?.availability) ? s.appointment.availability : settingsState.appointment.availability
       }
     };
     fillSettingsForm();
@@ -1453,7 +1481,16 @@ function fillSettingsForm(){
   $('s_standard_prozent').value = settingsState.kundenarten.standard_prozent;
   $('s_stammkunden_prozent').value = settingsState.kundenarten.stammkunden_prozent;
   $('s_vip_prozent').value = settingsState.kundenarten.vip_prozent;
-  $('s_appointment_hint_text').value = settingsState.appointment.hint_text;
+  $('s_appointment_duration_minutes').value = settingsState.appointment.duration_minutes;
+  (settingsState.appointment.availability || []).forEach((row) => {
+    const wd = Number(row.weekday);
+    const enabledEl = $('s_day_' + wd + '_enabled');
+    const startEl = $('s_day_' + wd + '_start');
+    const endEl = $('s_day_' + wd + '_end');
+    if (enabledEl) enabledEl.checked = !!row.enabled;
+    if (startEl) startEl.value = row.start || '';
+    if (endEl) endEl.value = row.end || '';
+  });
 }
 
 function readSettingsForm(){
@@ -1472,7 +1509,13 @@ function readSettingsForm(){
       vip_prozent: toNum($('s_vip_prozent').value),
     },
     appointment: {
-      hint_text: String($('s_appointment_hint_text').value || '').trim()
+      duration_minutes: toNum($('s_appointment_duration_minutes').value || 15),
+      availability: [0,1,2,3,4,5,6].map((wd) => ({
+        weekday: wd,
+        enabled: !!$('s_day_' + wd + '_enabled').checked,
+        start: String($('s_day_' + wd + '_start').value || ''),
+        end: String($('s_day_' + wd + '_end').value || '')
+      }))
     }
   };
 }
