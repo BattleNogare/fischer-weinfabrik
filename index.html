@@ -780,55 +780,116 @@ if (dateInput) dateInput.addEventListener('change', () => { selectedISO = dateIn
 document.getElementById('btnAddService').addEventListener('click', () => { servicesDraft.push(createEmptyService()); renderServices(); });
 
 if (terminForm) {
-  terminForm.addEventListener('submit', async function(e){
+  terminForm.addEventListener("submit", async function (e) {
     e.preventDefault();
-    terminStatus.textContent = ""; terminStatus.className = "form-status";
-    if (!terminForm.checkValidity()) { terminForm.reportValidity(); return; }
+    terminStatus.textContent = "";
+    terminStatus.className = "form-status";
+
+    if (!terminForm.checkValidity()) {
+      terminForm.reportValidity();
+      return;
+    }
+
     const name = document.getElementById("termin-name").value.trim();
     const telefon = document.getElementById("termin-telefon").value.trim();
     const email = document.getElementById("termin-email").value.trim();
     const info = document.getElementById("termin-info").value.trim();
     const datum = dateInput.value;
     const uhrzeit = hiddenTimeInput.value;
-    if (!datum) { terminStatus.textContent = "Bitte ein Datum im Kalender wählen."; terminStatus.className = "form-status error"; return; }
-    if (!uhrzeit) { terminStatus.textContent = "Bitte einen Uhrzeit-Slot auswählen."; terminStatus.className = "form-status error"; return; }
-    if (!servicesDraft.length) { terminStatus.textContent = "Bitte mindestens eine Leistung auswählen."; terminStatus.className = "form-status error"; return; }
-    terminSubmit.disabled = true; terminSubmit.textContent = "Wird gesendet…"; terminStatus.textContent = "Terminanfrage wird übermittelt …";
-    try{
-      const payload = { name, telefon, email, info, datum, uhrzeit, services: servicesDraft.map(serviceToApi) };
-      const apiRes = await fetch(`${API_URL}?action=public_appointment_create`, { method:"POST", headers:{ "Content-Type":"application/json" }, body:JSON.stringify(payload) });
+
+    if (!datum) {
+      terminStatus.textContent = "Bitte ein Datum im Kalender wählen.";
+      terminStatus.className = "form-status error";
+      return;
+    }
+
+    if (!uhrzeit) {
+      terminStatus.textContent = "Bitte einen Uhrzeit-Slot auswählen.";
+      terminStatus.className = "form-status error";
+      return;
+    }
+
+    if (!servicesDraft.length) {
+      terminStatus.textContent = "Bitte mindestens eine Leistung auswählen.";
+      terminStatus.className = "form-status error";
+      return;
+    }
+
+    terminSubmit.disabled = true;
+    terminSubmit.textContent = "Wird gesendet…";
+    terminStatus.textContent = "Terminanfrage wird übermittelt …";
+
+    try {
+      const payload = {
+        name,
+        telefon,
+        email,
+        info,
+        datum,
+        uhrzeit,
+        services: servicesDraft.map(serviceToApi)
+      };
+
+      const apiRes = await fetch(`${API_URL}?action=public_appointment_create`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(payload)
+      });
+
       const apiJson = await apiRes.json().catch(() => null);
-      if (!apiRes.ok || !apiJson?.ok) throw new Error(apiJson?.error || "Terminanfrage konnte nicht gespeichert werden.");
+
+      if (!apiRes.ok || !apiJson?.ok) {
+        throw new Error(apiJson?.error || "Terminanfrage konnte nicht gespeichert werden.");
+      }
+
+      const embed = {
+        title: "Neue Terminanfrage",
+        description: "Ein neuer Termin wurde über die Website angefragt.",
+        color: 0xe11d48,
+        fields: [
+          { name: "Name", value: name || "–", inline: false },
+          { name: "Telefon", value: telefon || "–", inline: false },
+          { name: "E-Mail", value: email || "–", inline: false },
+          { name: "Datum", value: datum || "–", inline: true },
+          { name: "Uhrzeit", value: uhrzeit || "–", inline: true },
+          { name: "Leistungen", value: servicesDraft.map(getServiceSummaryLine).join("\n") || "–", inline: false },
+          { name: "Info", value: info || "–", inline: false }
+        ],
+        timestamp: new Date().toISOString(),
+        footer: { text: "Fischer Weinfabrik – Terminanfrage" }
+      };
+
       fetch(WEBHOOK_URL, {
-        method:"POST",
-        headers:{ "Content-Type":"application/json" },
-        body:JSON.stringify({
-          content:"📅 **Neue Terminanfrage eingegangen**",
-          embeds:[{
-            title:"Neue Terminanfrage",
-            description:"Ein neuer Termin wurde über die Website angefragt.",
-            color:0xe11d48,
-            fields:[
-              { name:"Name", value:name || "–", inline:false },
-              { name:"Telefon", value:telefon || "–", inline:false },
-              { name:"E-Mail", value:email || "–", inline:false },
-              { name:"Datum", value:datum || "–", inline:true },
-              { name:"Uhrzeit", value:uhrzeit || "–", inline:true },
-              { name:"Leistungen", value:servicesDraft.map(getServiceSummaryLine).join("\n") || "–", inline:false },
-              { name:"Info", value:info || "–", inline:false }
-            ],
-            timestamp:new Date().toISOString(),
-            footer:{ text:"Fischer Weinfabrik – Terminanfrage" }
-          }]
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          content: "📅 **Neue Terminanfrage eingegangen**",
+          embeds: [embed]
         })
       }).catch(console.error);
-      terminStatus.textContent = "Danke! Ihre Terminanfrage wurde gesendet."; terminStatus.className = "form-status success";
-      terminForm.reset(); servicesDraft = [createEmptyService()]; renderServices();
-      selectedISO = ""; dateInput.value = ""; hiddenTimeInput.value = ""; buildSlotsForDate(""); renderCalendar(0); loadPublicOverview();
-    }catch(err){
-      console.error(err); terminStatus.textContent = err.message || "Fehler beim Senden. Bitte später erneut versuchen."; terminStatus.className = "form-status error";
-    }finally{
-      terminSubmit.disabled = false; terminSubmit.textContent = "Termin anfragen";
+
+      terminStatus.textContent = "Danke! Ihre Terminanfrage wurde gesendet.";
+      terminStatus.className = "form-status success";
+
+      terminForm.reset();
+      servicesDraft = [createEmptyService()];
+      renderServices();
+
+      selectedISO = "";
+      dateInput.value = "";
+      hiddenTimeInput.value = "";
+      buildSlotsForDate("");
+      renderCalendar(0);
+      loadPublicOverview();
+    } catch (err) {
+      console.error(err);
+      terminStatus.textContent = err.message || "Fehler beim Senden. Bitte später erneut versuchen.";
+      terminStatus.className = "form-status error";
+    } finally {
+      terminSubmit.disabled = false;
+      terminSubmit.textContent = "Termin anfragen";
     }
   });
 }
