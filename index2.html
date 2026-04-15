@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="de">
 <head>
-  <meta charset="utf-8" /> 
+  <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Fischer Weinfabrik · Startseite</title>
   <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/BattleNogare/h-h_weinfabrik/main/fischer_weinfabrik_logo.png">
@@ -235,7 +235,7 @@
 Di–Fr: 18:30–22:00 · Sa–So: 11:00–22:00</p>
             </div>
             <div class="hero-image">
-              <img src="bilder/kontakt-bild.png" alt="Fischer Weinfabrik Kontakt">
+              <img src="https://raw.githubusercontent.com/BattleNogare/h-h_weinfabrik/main/fischer_weinfabrik_logo.png" alt="Fischer Weinfabrik Kontakt">
               <div class="image-caption">Wir helfen dir gerne weiter</div>
             </div>
           </div>
@@ -385,6 +385,18 @@ Di–Fr: 18:30–22:00 · Sa–So: 11:00–22:00</div>
   const WEBHOOK_URL = "https://discord.com/api/webhooks/1493943863520530543/-bXM1A5hJ-ZW7AACXeckKdBsdtnoz7Sjwgl99lyuddCKQoOw9QjGolMwhnIjGxO6v3vx";
 
   let servicesDraft = [];
+  let appointmentConfig = {
+    duration_minutes: 15,
+    availability: [
+      { weekday: 1, enabled: false, start: '09:00', end: '17:00' },
+      { weekday: 2, enabled: true,  start: '18:30', end: '22:00' },
+      { weekday: 3, enabled: true,  start: '18:30', end: '22:00' },
+      { weekday: 4, enabled: true,  start: '18:30', end: '22:00' },
+      { weekday: 5, enabled: true,  start: '18:30', end: '22:00' },
+      { weekday: 6, enabled: true,  start: '11:00', end: '22:00' },
+      { weekday: 0, enabled: true,  start: '11:00', end: '22:00' }
+    ]
+  };
 
   function $(id){ return document.getElementById(id); }
   function escapeHtml(s){
