@@ -310,13 +310,6 @@
       font-size: 15px;
     }
 
-    .hero-actions{
-      display:flex;
-      flex-wrap:wrap;
-      gap:10px;
-      margin-top: 6px;
-    }
-
     .hero-kpis{
       display:grid;
       grid-template-columns: repeat(3, minmax(0,1fr));
@@ -399,16 +392,23 @@
       z-index:1;
     }
 
-    .contact-grid{
+    .contact-price-grid{
       display:grid;
-      grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
-      gap: 22px;
-      align-items: stretch;
+      grid-template-columns: minmax(0, 1.35fr) minmax(320px, 0.85fr);
+      gap:22px;
+      align-items:stretch;
     }
 
     .contact-panel,
-    .form-panel{
+    .pricing-panel{
       height:100%;
+    }
+
+    .contact-inner{
+      display:grid;
+      grid-template-columns: minmax(260px, .82fr) minmax(0, 1.18fr);
+      gap:18px;
+      align-items:start;
     }
 
     .contact-panel p,
@@ -529,6 +529,61 @@
 
     .form-status.success{ color:#86efac; }
     .form-status.error{ color:#fca5a5; }
+
+    .pricing-list{
+      display:grid;
+      gap:12px;
+      margin-top: 16px;
+    }
+
+    .price-row{
+      display:flex;
+      justify-content:space-between;
+      gap:14px;
+      align-items:flex-start;
+      padding: 14px 15px;
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,.11);
+      background: rgba(255,255,255,.035);
+      box-shadow: 0 8px 18px rgba(0,0,0,.12);
+    }
+
+    .price-row strong{
+      display:block;
+      font-size: 14px;
+      margin-bottom: 3px;
+    }
+
+    .price-row small{
+      display:block;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    .price-tag{
+      flex: 0 0 auto;
+      border: 1px solid rgba(225,29,72,.30);
+      background: linear-gradient(180deg, rgba(225,29,72,.18), rgba(225,29,72,.08));
+      color: var(--text);
+      border-radius: 999px;
+      padding: 8px 10px;
+      font-weight: 800;
+      font-size: 12px;
+      white-space: nowrap;
+      box-shadow: 0 8px 18px rgba(225,29,72,.08);
+    }
+
+    .pricing-note{
+      margin-top: 14px;
+      padding: 13px 14px;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,.09);
+      background: rgba(255,255,255,.03);
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.65;
+    }
 
     .appointment-hint{
       color: var(--muted);
@@ -867,10 +922,14 @@
       opacity:.88;
     }
 
-    @media (max-width: 1180px){
+    @media (max-width: 1240px){
       .hero,
-      .contact-grid,
+      .contact-price-grid,
       .appointment-grid{
+        grid-template-columns: 1fr;
+      }
+
+      .contact-inner{
         grid-template-columns: 1fr;
       }
 
@@ -919,7 +978,7 @@
         <img alt="Logo" src="https://raw.githubusercontent.com/BattleNogare/h-h_weinfabrik/main/fischer_weinfabrik_logo.png">
         <div class="brand-title">
           <b>Fischer Weinfabrik · Kontakt</b>
-          <span>Minimal UI · Rot Akzent · Anfrage & Termin</span>
+          <span>Minimal UI · Rot Akzent · Anfrage, Preise & Termin</span>
         </div>
       </div>
     </div>
@@ -974,94 +1033,160 @@
       </div>
 
       <div class="group-block">
-        <div class="group-label">Kontakt aufnehmen</div>
-        <section class="contact-grid">
+        <div class="group-label">Kontakt & Preise</div>
+        <section class="contact-price-grid">
           <section class="card contact-panel">
             <div class="card-hd">
-              <h3>Direkter Kontakt</h3>
-              <span class="pill">Info</span>
+              <h3>Direkter Kontakt & Nachricht</h3>
+              <span class="pill">Alles in einem Block</span>
             </div>
             <div class="card-bd">
-              <p class="section-copy">
-                Schreiben Sie uns eine Nachricht oder melden Sie sich direkt telefonisch.
-                Für allgemeine Rückfragen ist dies der schnellste Weg zur Fischer Weinfabrik.
-              </p>
+              <div class="contact-inner">
+                <div>
+                  <p class="section-copy">
+                    Schreiben Sie uns eine Nachricht oder melden Sie sich direkt telefonisch.
+                    Für allgemeine Rückfragen ist dies der schnellste Weg zur Fischer Weinfabrik.
+                  </p>
 
-              <ul class="contact-list">
-                <li>
-                  <div class="contact-icon">🏢</div>
-                  <div>
-                    <strong>Fischer Weinfabrik</strong><br>
-                    Hohenstein<br>
-                    Deutschland
-                  </div>
-                </li>
+                  <ul class="contact-list">
+                    <li>
+                      <div class="contact-icon">🏢</div>
+                      <div>
+                        <strong>Fischer Weinfabrik</strong><br>
+                        Hohenstein<br>
+                        Deutschland
+                      </div>
+                    </li>
 
-                <li>
-                  <div class="contact-icon">📞</div>
-                  <div>
-                    Telefon:
-                    <a href="tel:+491234567890">+49 1234 567890</a>
-                  </div>
-                </li>
+                    <li>
+                      <div class="contact-icon">📞</div>
+                      <div>
+                        Telefon:
+                        <a href="tel:+491234567890">+49 1234 567890</a>
+                      </div>
+                    </li>
 
-                <li>
-                  <div class="contact-icon">✉️</div>
-                  <div>
-                    E-Mail:
-                    <a href="mailto:info@fischer-weinfabrik.de">info@fischer-weinfabrik.de</a>
-                  </div>
-                </li>
-              </ul>
+                    <li>
+                      <div class="contact-icon">✉️</div>
+                      <div>
+                        E-Mail:
+                        <a href="mailto:info@fischer-weinfabrik.de">info@fischer-weinfabrik.de</a>
+                      </div>
+                    </li>
+                  </ul>
+                </div>
+
+                <div>
+                  <p class="section-copy" style="margin-bottom:12px;">
+                    Nutzen Sie das Kontaktformular für allgemeine Anliegen, Rückfragen oder erste Informationen.
+                  </p>
+
+                  <form id="kontakt-form" class="form" novalidate>
+                    <div>
+                      <label for="kontakt-name">Name*</label>
+                      <input
+                        type="text"
+                        id="kontakt-name"
+                        name="name"
+                        required
+                        autocomplete="name"
+                        placeholder="Ihr Name">
+                    </div>
+
+                    <div>
+                      <label for="kontakt-betreff">Betreff*</label>
+                      <input
+                        type="text"
+                        id="kontakt-betreff"
+                        name="betreff"
+                        required
+                        placeholder="Worum geht es?">
+                    </div>
+
+                    <div>
+                      <label for="kontakt-nachricht">Nachricht*</label>
+                      <textarea
+                        id="kontakt-nachricht"
+                        name="nachricht"
+                        required
+                        placeholder="Beschreiben Sie kurz Ihr Anliegen."></textarea>
+                    </div>
+
+                    <div class="form-actions">
+                      <button type="submit" class="btn btn-primary" id="kontakt-submit">Nachricht senden</button>
+                      <div id="form-status" class="form-status" aria-live="polite"></div>
+                    </div>
+                  </form>
+                </div>
+              </div>
             </div>
           </section>
 
-          <section class="card form-panel" aria-labelledby="kontakt-heading">
+          <section class="card pricing-panel">
             <div class="card-hd">
-              <h3 id="kontakt-heading">Nachricht senden</h3>
-              <span class="pill">Formular</span>
+              <h3>Preisliste unserer Leistungen</h3>
+              <span class="pill">Übersicht</span>
             </div>
             <div class="card-bd">
               <p class="section-copy">
-                Nutzen Sie das Kontaktformular für allgemeine Anliegen, Rückfragen oder erste Informationen.
+                Nachfolgend finden Sie eine kompakte Übersicht der angebotenen Leistungen und der jeweils hinterlegten Preisstruktur.
               </p>
 
-              <form id="kontakt-form" class="form" novalidate>
-                <div>
-                  <label for="kontakt-name">Name*</label>
-                  <input
-                    type="text"
-                    id="kontakt-name"
-                    name="name"
-                    required
-                    autocomplete="name"
-                    placeholder="Ihr Name">
+              <div class="pricing-list">
+                <div class="price-row">
+                  <div>
+                    <strong>Verarbeitung von Wein</strong>
+                    <small>Preisgrundlage pro 800 Fässer, je nach hinterlegter Kundenart und Multiplikator.</small>
+                  </div>
+                  <div class="price-tag">Preis lt. Einstellung</div>
                 </div>
 
-                <div>
-                  <label for="kontakt-betreff">Betreff*</label>
-                  <input
-                    type="text"
-                    id="kontakt-betreff"
-                    name="betreff"
-                    required
-                    placeholder="Worum geht es?">
+                <div class="price-row">
+                  <div>
+                    <strong>Lagern von Kunden Wein</strong>
+                    <small>Preis pro Tag und pro 800 Fässer, abhängig von Menge und Lagerdauer.</small>
+                  </div>
+                  <div class="price-tag">Preis lt. Einstellung</div>
                 </div>
 
-                <div>
-                  <label for="kontakt-nachricht">Nachricht*</label>
-                  <textarea
-                    id="kontakt-nachricht"
-                    name="nachricht"
-                    required
-                    placeholder="Beschreiben Sie kurz Ihr Anliegen."></textarea>
+                <div class="price-row">
+                  <div>
+                    <strong>Ankauf Fässer</strong>
+                    <small>Fester Preis pro Fass.</small>
+                  </div>
+                  <div class="price-tag">Preis pro Fass</div>
                 </div>
 
-                <div class="form-actions">
-                  <button type="submit" class="btn btn-primary" id="kontakt-submit">Nachricht senden</button>
-                  <div id="form-status" class="form-status" aria-live="polite"></div>
+                <div class="price-row">
+                  <div>
+                    <strong>Ankauf Trauben</strong>
+                    <small>Fester Stückpreis pro Einheit.</small>
+                  </div>
+                  <div class="price-tag">Stückpreis</div>
                 </div>
-              </form>
+
+                <div class="price-row">
+                  <div>
+                    <strong>Ankauf Weinflaschen</strong>
+                    <small>Fester Stückpreis pro Flasche.</small>
+                  </div>
+                  <div class="price-tag">Stückpreis</div>
+                </div>
+
+                <div class="price-row">
+                  <div>
+                    <strong>Lieferservice</strong>
+                    <small>Preisberechnung auf Basis der gefahrenen Kilometer.</small>
+                  </div>
+                  <div class="price-tag">Preis pro KM</div>
+                </div>
+              </div>
+
+              <div class="pricing-note">
+                Die exakten Preise werden in der internen Auftragsverwaltung gepflegt und können dort angepasst werden.
+                Bei individuellen Kombinationen oder besonderen Anforderungen erstellen wir die konkrete Kalkulation
+                auf Basis der gewählten Leistungen.
+              </div>
             </div>
           </section>
         </section>
@@ -1202,7 +1327,7 @@
       </div>
 
       <div class="footer-note">
-        Fischer Weinfabrik · Anfrage, Termin und Statusübersicht in einer Oberfläche
+        Fischer Weinfabrik · Anfrage, Preise, Termin und Statusübersicht in einer Oberfläche
       </div>
     </div>
   </div>
