@@ -1437,7 +1437,12 @@ function buildAppointmentHintText() {
       const res = await fetch(`${API_URL}?action=public_overview`);
       const json = await res.json();
 
-      if (!res.ok || !json?.ok) throw new Error(json?.error || 'Übersicht konnte nicht geladen werden.');
+      if (!res.ok || !json?.ok) {
+  throw new Error(
+    (json?.error || 'Übersicht konnte nicht geladen werden.') +
+    (json?.detail ? ` | ${json.detail}` : '')
+  );
+}
 
       const items = Array.isArray(json.items) ? json.items : [];
 
@@ -1485,7 +1490,7 @@ function buildAppointmentHintText() {
       `;
     } catch (err) {
       console.error(err);
-      wrap.innerHTML = '<div class="muted">Übersicht konnte nicht geladen werden.</div>';
+      wrap.innerHTML = `<div class="muted">Übersicht konnte nicht geladen werden.<br>${escapeHtml(err.message || '')}</div>`;
     }
   }
 
