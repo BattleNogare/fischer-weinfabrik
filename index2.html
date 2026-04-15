@@ -5,980 +5,274 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Fischer Weinfabrik · Kontakt</title>
   <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/BattleNogare/h-h_weinfabrik/main/fischer_weinfabrik_logo.png">
-
   <style>
     :root{
-      --bg0:#050608;
-      --bg1:#0a0c11;
-      --bg2:#11141b;
-      --card: rgba(255,255,255,.06);
-      --card-strong: rgba(255,255,255,.08);
-      --border: rgba(255,255,255,.11);
-      --border-strong: rgba(255,255,255,.16);
-      --text:#eef2f8;
-      --muted:#aab2c3;
+      --bg0:#09070a;
+      --bg1:#130b12;
+      --bg2:#1b1118;
+      --bg3:#24151d;
+      --card: rgba(255,255,255,.065);
+      --border: rgba(255,255,255,.12);
+      --text:#eff2f8;
+      --muted:#acb3c2;
       --accent:#e11d48;
-      --accent-soft: rgba(225,29,72,.16);
-      --accent-strong: rgba(225,29,72,.26);
-      --shadow: 0 24px 70px rgba(0,0,0,.48);
-      --shadow2: 0 14px 32px rgba(0,0,0,.30);
-      --shadow3: 0 10px 24px rgba(225,29,72,.10);
+      --accent2:#fb7185;
+      --shadow: 0 26px 70px rgba(0,0,0,.45);
+      --shadow2: 0 14px 30px rgba(0,0,0,.24);
       --radius: 18px;
-      --focus: 0 0 0 4px rgba(225,29,72,.22);
+      --focus: 0 0 0 4px rgba(225,29,72,.18);
       --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
     }
-
     *{ box-sizing:border-box; }
-    html, body{ height:100%; }
-
+    html,body{ height:100%; }
     body{
       margin:0;
       font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
       color: var(--text);
       background:
-        radial-gradient(1100px 680px at 8% 8%, rgba(225,29,72,.22), transparent 55%),
-        radial-gradient(900px 580px at 90% 12%, rgba(225,29,72,.12), transparent 50%),
-        radial-gradient(1000px 700px at 50% 110%, rgba(251,113,133,.09), transparent 58%),
-        radial-gradient(600px 420px at 75% 65%, rgba(255,255,255,.03), transparent 62%),
-        linear-gradient(180deg, var(--bg0) 0%, var(--bg1) 45%, var(--bg2) 100%);
+        radial-gradient(1100px 760px at 6% 8%, rgba(225,29,72,.20), transparent 56%),
+        radial-gradient(900px 640px at 94% 12%, rgba(251,113,133,.14), transparent 52%),
+        radial-gradient(900px 700px at 50% 115%, rgba(255,255,255,.04), transparent 56%),
+        linear-gradient(180deg, var(--bg0) 0%, var(--bg1) 38%, var(--bg2) 72%, var(--bg3) 100%);
       overflow-x:hidden;
     }
-
     .bg-noise{
-      position: fixed;
-      inset: 0;
-      pointer-events:none;
-      opacity: .07;
-      background-image:
-        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)' opacity='.55'/%3E%3C/svg%3E");
-      mix-blend-mode: overlay;
-      z-index: 0;
+      position:fixed; inset:0; pointer-events:none; opacity:.06; z-index:0;
+      background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)' opacity='.55'/%3E%3C/svg%3E");
     }
-
     .bg-logo{
-      position: fixed;
-      right: -120px;
-      bottom: -140px;
-      width: min(920px, 72vw);
-      opacity: .08;
-      transform: rotate(-8deg);
-      pointer-events:none;
-      z-index: 0;
-      filter: blur(2px);
+      position:fixed; right:-140px; bottom:-120px; width:min(920px,72vw);
+      opacity:.07; transform:rotate(-10deg); pointer-events:none; z-index:0; filter:blur(2px);
     }
-
-    .bg-glow{
-      position: fixed;
-      inset: auto auto 8% 5%;
-      width: 360px;
-      height: 360px;
-      border-radius: 999px;
-      background: radial-gradient(circle, rgba(225,29,72,.15) 0%, rgba(225,29,72,.05) 35%, transparent 70%);
-      filter: blur(30px);
-      pointer-events:none;
-      z-index:0;
-    }
-
-    .app{
-      width: min(94vw, 1680px);
-      margin: 28px auto 52px;
-      position: relative;
-      z-index: 1;
-    }
-
+    .app{ width:min(94vw, 1680px); margin:28px auto 52px; position:relative; z-index:1; }
     .topbar{
-      position: sticky;
-      top: 16px;
-      z-index: 40;
-      display:flex;
-      align-items:center;
-      justify-content:flex-start;
-      gap: 14px;
-      padding: 12px 15px;
-      border-radius: 999px;
-      background: linear-gradient(180deg, rgba(255,255,255,.085), rgba(255,255,255,.04));
-      border: 1px solid rgba(255,255,255,.14);
-      box-shadow: 0 18px 40px rgba(0,0,0,.34);
-      backdrop-filter: blur(16px);
-      flex-wrap: wrap;
+      position:sticky; top:16px; z-index:40; display:flex; align-items:center; gap:14px; flex-wrap:wrap;
+      padding:12px 15px; border-radius:999px;
+      background:linear-gradient(180deg, rgba(255,255,255,.085), rgba(255,255,255,.04));
+      border:1px solid rgba(255,255,255,.14); box-shadow:0 18px 40px rgba(0,0,0,.32); backdrop-filter:blur(16px);
     }
-
-    .brand{
-      display:flex;
-      align-items:center;
-      gap:12px;
-      min-width: 260px;
-    }
-
+    .brand{ display:flex; align-items:center; gap:12px; }
     .brand img{
-      width: 40px;
-      height:40px;
-      border-radius: 14px;
-      padding: 7px;
-      background: rgba(255,255,255,.06);
-      border: 1px solid rgba(255,255,255,.14);
-      box-shadow: 0 6px 16px rgba(0,0,0,.18);
+      width:40px; height:40px; border-radius:14px; padding:7px;
+      background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.14);
     }
-
-    .brand-title{
-      display:flex;
-      flex-direction:column;
-      line-height:1.1;
-    }
-
-    .brand-title b{
-      font-size: 15px;
-      letter-spacing:.2px;
-    }
-
-    .brand-title span{
-      font-size: 11px;
-      color: var(--muted);
-    }
-
-    .pill{
-      display:inline-flex;
-      align-items:center;
-      gap:8px;
-      padding: 8px 11px;
-      border-radius: 999px;
-      border: 1px solid rgba(255,255,255,.11);
-      background: rgba(255,255,255,.04);
-      color: var(--muted);
-      font-size: 12px;
-      white-space:nowrap;
-    }
-
-    .pill-dot{
-      width:8px;
-      height:8px;
-      border-radius:999px;
-      background: var(--accent);
-      box-shadow: 0 0 0 4px rgba(225,29,72,.14);
-    }
-
-    .btn{
-      appearance:none;
-      border: 1px solid rgba(255,255,255,.14);
-      background: rgba(255,255,255,.045);
-      color: var(--text);
-      padding: 10px 12px;
-      border-radius: 12px;
-      cursor:pointer;
-      font-weight: 760;
-      transition: transform .08s ease, border-color .15s ease, background .15s ease, box-shadow .15s ease;
-      display:inline-flex;
-      align-items:center;
-      gap:8px;
-      text-decoration:none;
-      box-shadow: 0 8px 18px rgba(0,0,0,.20);
-    }
-
-    .btn:hover{
-      transform: translateY(-1px);
-      background: rgba(255,255,255,.075);
-      border-color: rgba(255,255,255,.22);
-    }
-
-    .btn:disabled{
-      opacity:.55;
-      cursor:not-allowed;
-      transform:none;
-    }
-
-    .btn-primary{
-      border-color: rgba(225,29,72,.42);
-      background: linear-gradient(180deg, rgba(225,29,72,.30), rgba(225,29,72,.13));
-      box-shadow: 0 10px 24px rgba(225,29,72,.14);
-    }
-
-    .btn-danger{
-      border-color: rgba(239,68,68,.45);
-      background: linear-gradient(180deg, rgba(239,68,68,.20), rgba(239,68,68,.10));
-    }
-
-    .tiny{
-      padding: 8px 10px;
-      border-radius: 12px;
-      font-weight: 780;
-    }
-
-    .grid{
-      margin-top: 22px;
-      display:grid;
-      gap: 22px;
-    }
-
-    .group-block{
-      display:grid;
-      gap: 14px;
-    }
-
+    .brand-title{ display:flex; flex-direction:column; line-height:1.1; }
+    .brand-title b{ font-size:15px; }
+    .brand-title span{ font-size:11px; color:var(--muted); }
+    .grid{ margin-top:22px; display:grid; gap:22px; }
+    .group-block{ display:grid; gap:14px; }
     .group-label{
-      display:flex;
-      align-items:center;
-      gap:10px;
-      color: var(--muted);
-      font-size: 12px;
-      letter-spacing: .12em;
-      text-transform: uppercase;
-      font-family: var(--mono);
-      padding-left: 4px;
+      display:flex; align-items:center; gap:10px; color:var(--muted); font-size:12px;
+      letter-spacing:.12em; text-transform:uppercase; font-family:var(--mono); padding-left:4px;
     }
-
     .group-label::before{
-      content:"";
-      width: 22px;
-      height: 1px;
-      background: linear-gradient(90deg, rgba(225,29,72,.85), rgba(225,29,72,.08));
+      content:""; width:22px; height:1px; background:linear-gradient(90deg, rgba(225,29,72,.85), rgba(225,29,72,.08));
     }
-
     .card{
-      position: relative;
-      border: 1px solid rgba(255,255,255,.13);
-      background:
-        linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.035));
-      border-radius: var(--radius);
-      box-shadow:
-        0 24px 70px rgba(0,0,0,.46),
-        0 0 0 1px rgba(255,255,255,.03) inset;
-      overflow:hidden;
-      backdrop-filter: blur(12px);
+      position:relative; border:1px solid rgba(255,255,255,.13);
+      background:linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.035));
+      border-radius:var(--radius); box-shadow:var(--shadow); overflow:hidden; backdrop-filter:blur(12px);
     }
-
     .card::before{
-      content:"";
-      position:absolute;
-      inset: 0 auto auto 0;
-      width: 100%;
-      height: 1px;
-      background: linear-gradient(90deg, rgba(225,29,72,.40), rgba(255,255,255,.04), transparent);
-      pointer-events:none;
+      content:""; position:absolute; inset:0 auto auto 0; width:100%; height:1px;
+      background:linear-gradient(90deg, rgba(225,29,72,.45), rgba(255,255,255,.04), transparent);
     }
-
     .card-hd{
-      padding: 15px 18px;
-      border-bottom: 1px solid rgba(255,255,255,.08);
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap: 12px;
-      flex-wrap: wrap;
-      background: linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.018));
+      padding:15px 18px; border-bottom:1px solid rgba(255,255,255,.08);
+      display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;
+      background:linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.018));
     }
-
-    .card-hd h1,
-    .card-hd h2,
-    .card-hd h3{
-      margin:0;
-      font-size: 14px;
-      letter-spacing: .2px;
+    .card-hd h3{ margin:0; font-size:14px; letter-spacing:.2px; }
+    .card-bd{ padding:22px; }
+    .pill{
+      display:inline-flex; align-items:center; gap:8px; padding:8px 11px; border-radius:999px;
+      border:1px solid rgba(255,255,255,.11); background:rgba(255,255,255,.04); color:var(--muted); font-size:12px;
     }
-
-    .card-bd{
-      padding: 22px;
+    .pill-dot{
+      width:8px; height:8px; border-radius:999px; background:var(--accent); box-shadow:0 0 0 4px rgba(225,29,72,.14);
     }
-
+    .btn{
+      appearance:none; border:1px solid rgba(255,255,255,.14); background:rgba(255,255,255,.045); color:var(--text);
+      padding:10px 12px; border-radius:12px; cursor:pointer; font-weight:760; text-decoration:none;
+      transition:transform .08s ease, border-color .15s ease, background .15s ease;
+      display:inline-flex; align-items:center; gap:8px;
+    }
+    .btn:hover{ transform:translateY(-1px); background:rgba(255,255,255,.075); border-color:rgba(255,255,255,.22); }
+    .btn-primary{
+      border-color:rgba(225,29,72,.42);
+      background:linear-gradient(180deg, rgba(225,29,72,.30), rgba(225,29,72,.13));
+      box-shadow:0 10px 24px rgba(225,29,72,.14);
+    }
     .hero{
-      display:grid;
-      grid-template-columns: minmax(0, 1.2fr) minmax(320px, 0.8fr);
-      gap: 20px;
-      align-items: stretch;
+      display:grid; grid-template-columns:minmax(0,1.15fr) minmax(320px,.85fr); gap:20px; align-items:stretch;
     }
-
-    .hero-copy{
-      display:flex;
-      flex-direction:column;
-      justify-content:center;
-      gap:14px;
-      min-height:100%;
-    }
-
-    .hero-copy h1{
-      margin:0;
-      font-size: clamp(32px, 4.2vw, 52px);
-      line-height: 1.02;
-      letter-spacing: -.03em;
-      max-width: 820px;
-    }
-
-    .hero-copy p{
-      margin:0;
-      color: var(--muted);
-      max-width: 820px;
-      line-height: 1.75;
-      font-size: 15px;
-    }
-
-    .hero-kpis{
-      display:grid;
-      grid-template-columns: repeat(3, minmax(0,1fr));
-      gap:10px;
-      margin-top: 4px;
-      max-width: 760px;
-    }
-
-    .kpi{
-      border:1px solid rgba(255,255,255,.10);
-      background: rgba(255,255,255,.035);
-      border-radius: 16px;
-      padding: 14px 14px;
-      box-shadow: 0 10px 24px rgba(0,0,0,.16);
-    }
-
-    .kpi strong{
-      display:block;
-      font-size: 18px;
-      letter-spacing: .01em;
-      margin-bottom: 4px;
-    }
-
-    .kpi span{
-      display:block;
-      color: var(--muted);
-      font-size: 12px;
-      line-height: 1.5;
-    }
-
+    .hero-copy{ display:flex; flex-direction:column; justify-content:center; gap:14px; }
+    .hero-copy h1{ margin:0; font-size:clamp(32px,4.2vw,52px); line-height:1.03; letter-spacing:-.03em; max-width:820px; }
+    .hero-copy p{ margin:0; color:var(--muted); max-width:820px; line-height:1.75; font-size:15px; }
+    .hero-kpis{ display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:10px; max-width:760px; }
+    .kpi{ border:1px solid rgba(255,255,255,.10); background:rgba(255,255,255,.035); border-radius:16px; padding:14px; box-shadow:0 10px 24px rgba(0,0,0,.16); }
+    .kpi strong{ display:block; font-size:18px; margin-bottom:4px; }
+    .kpi span{ color:var(--muted); font-size:12px; line-height:1.5; }
     .hero-image{
-      position: relative;
-      border: 1px solid rgba(255,255,255,.11);
-      border-radius: 20px;
-      overflow:hidden;
-      min-height: 320px;
+      border:1px solid rgba(255,255,255,.11); border-radius:20px; overflow:hidden; min-height:320px;
       background:
-        radial-gradient(circle at 20% 15%, rgba(225,29,72,.22), transparent 35%),
-        radial-gradient(circle at 80% 80%, rgba(255,255,255,.06), transparent 38%),
+        radial-gradient(circle at 20% 15%, rgba(225,29,72,.20), transparent 35%),
+        radial-gradient(circle at 82% 82%, rgba(255,255,255,.06), transparent 38%),
         linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.015));
-      box-shadow: var(--shadow2);
-      display:flex;
-      flex-direction:column;
-      justify-content:space-between;
-      isolation:isolate;
+      box-shadow:var(--shadow2); display:flex; flex-direction:column;
     }
-
-    .hero-image::after{
-      content:"";
-      position:absolute;
-      inset:0;
-      background:
-        linear-gradient(135deg, rgba(255,255,255,.06), transparent 30%, transparent 70%, rgba(225,29,72,.06));
-      pointer-events:none;
-    }
-
     .hero-image img{
-      display:block;
-      width:100%;
-      height:100%;
-      object-fit:contain;
-      flex:1;
-      min-height:260px;
-      padding: 38px;
-      filter: drop-shadow(0 14px 34px rgba(0,0,0,.26));
-      position:relative;
-      z-index:1;
+      display:block; width:100%; height:100%; object-fit:contain; flex:1; min-height:260px;
+      padding:38px; filter:drop-shadow(0 14px 34px rgba(0,0,0,.26));
     }
-
     .image-caption{
-      padding: 12px 14px;
-      border-top: 1px solid rgba(255,255,255,.08);
-      color: var(--muted);
-      font-size: 11px;
-      letter-spacing: .10em;
-      text-transform: uppercase;
-      font-family: var(--mono);
-      background: rgba(255,255,255,.02);
-      position:relative;
-      z-index:1;
+      padding:12px 14px; border-top:1px solid rgba(255,255,255,.08); color:var(--muted);
+      font-size:11px; letter-spacing:.10em; text-transform:uppercase; font-family:var(--mono);
+      background:rgba(255,255,255,.02);
     }
-
     .contact-price-grid{
-      display:grid;
-      grid-template-columns: minmax(0, 1.35fr) minmax(320px, 0.85fr);
-      gap:22px;
-      align-items:stretch;
+      display:grid; grid-template-columns:minmax(0,1.35fr) minmax(320px,.85fr); gap:22px; align-items:stretch;
     }
-
-    .contact-panel,
-    .pricing-panel{
-      height:100%;
-    }
-
-    .contact-inner{
-      display:grid;
-      grid-template-columns: minmax(260px, .82fr) minmax(0, 1.18fr);
-      gap:18px;
-      align-items:start;
-    }
-
-    .contact-panel p,
-    .muted{
-      color: var(--muted);
-      font-size: 12px;
-    }
-
-    .contact-list{
-      list-style:none;
-      padding:0;
-      margin:18px 0 0;
-      display:grid;
-      gap:12px;
-    }
-
+    .contact-inner{ display:grid; grid-template-columns:minmax(260px,.82fr) minmax(0,1.18fr); gap:18px; align-items:start; }
+    .section-copy{ color:var(--muted); font-size:13px; line-height:1.7; margin:0 0 2px; }
+    .contact-list{ list-style:none; padding:0; margin:18px 0 0; display:grid; gap:12px; }
     .contact-list li{
-      display:flex;
-      gap:12px;
-      align-items:flex-start;
-      padding: 14px 15px;
-      border-radius: 16px;
-      border: 1px solid rgba(255,255,255,.11);
-      background: rgba(255,255,255,.035);
-      box-shadow: 0 8px 18px rgba(0,0,0,.12);
+      display:flex; gap:12px; align-items:flex-start; padding:14px 15px; border-radius:16px;
+      border:1px solid rgba(255,255,255,.11); background:rgba(255,255,255,.035); box-shadow:0 8px 18px rgba(0,0,0,.12);
     }
-
     .contact-icon{
-      width:36px;
-      height:36px;
-      border-radius: 12px;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      background: rgba(225,29,72,.18);
-      border: 1px solid rgba(225,29,72,.30);
-      flex: 0 0 36px;
+      width:36px; height:36px; border-radius:12px; display:flex; align-items:center; justify-content:center;
+      background:rgba(225,29,72,.18); border:1px solid rgba(225,29,72,.30); flex:0 0 36px;
     }
-
-    .contact-list a{
-      color: var(--text);
-      text-decoration:none;
-    }
-
-    .contact-list a:hover{
-      text-decoration:underline;
-      text-underline-offset: 3px;
-    }
-
-    .section-copy{
-      color: var(--muted);
-      font-size: 13px;
-      line-height: 1.7;
-      margin: 0 0 2px;
-    }
-
-    .form{
-      display:grid;
-      gap: 12px;
-      grid-template-columns: 1fr;
-    }
-
-    .form-two{
-      display:grid;
-      grid-template-columns: 1fr 1fr;
-      gap:12px;
-    }
-
-    label{
-      display:block;
-      font-weight: 800;
-      font-size: 12px;
-      color: var(--muted);
-    }
-
+    .contact-list a{ color:var(--text); text-decoration:none; }
+    .contact-list a:hover{ text-decoration:underline; text-underline-offset:3px; }
+    .form{ display:grid; gap:12px; grid-template-columns:1fr; }
+    .form-two{ display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+    label{ display:block; font-weight:800; font-size:12px; color:var(--muted); }
     input, textarea, select{
-      width:100%;
-      margin-top: 6px;
-      padding: 12px 13px;
-      border-radius: 14px;
-      border: 1px solid rgba(255,255,255,.12);
-      background: rgba(0,0,0,.25);
-      color: var(--text);
-      outline:none;
-      transition: box-shadow .15s ease, border-color .15s ease, background .15s ease, transform .08s ease;
-      font: inherit;
+      width:100%; margin-top:6px; padding:12px 13px; border-radius:14px; border:1px solid rgba(255,255,255,.12);
+      background:rgba(0,0,0,.25); color:var(--text); outline:none; font:inherit;
+      transition:box-shadow .15s ease, border-color .15s ease, background .15s ease;
     }
-
-    input:hover, textarea:hover, select:hover{
-      border-color: rgba(255,255,255,.18);
-    }
-
-    input:focus, textarea:focus, select:focus{
-      box-shadow: var(--focus);
-      border-color: rgba(225,29,72,.45);
-      background: rgba(0,0,0,.32);
-    }
-
-    textarea{
-      min-height: 144px;
-      resize: vertical;
-    }
-
-    .form-actions{
-      display:flex;
-      align-items:center;
-      gap:10px;
-      flex-wrap:wrap;
-      margin-top: 6px;
-    }
-
-    .form-status{
-      min-height: 1.2em;
-      font-size: 12px;
-      color: var(--muted);
-      white-space: pre-line;
-    }
-
+    input:hover, textarea:hover, select:hover{ border-color:rgba(255,255,255,.18); }
+    input:focus, textarea:focus, select:focus{ box-shadow:var(--focus); border-color:rgba(225,29,72,.45); background:rgba(0,0,0,.32); }
+    textarea{ min-height:144px; resize:vertical; }
+    .form-actions{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-top:6px; }
+    .form-status{ min-height:1.2em; font-size:12px; color:var(--muted); white-space:pre-line; }
     .form-status.success{ color:#86efac; }
     .form-status.error{ color:#fca5a5; }
-
-    .pricing-list{
-      display:grid;
-      gap:12px;
-      margin-top: 16px;
-    }
-
+    .pricing-list{ display:grid; gap:12px; margin-top:16px; }
     .price-row{
-      display:flex;
-      justify-content:space-between;
-      gap:14px;
-      align-items:flex-start;
-      padding: 14px 15px;
-      border-radius: 16px;
-      border: 1px solid rgba(255,255,255,.11);
-      background: rgba(255,255,255,.035);
-      box-shadow: 0 8px 18px rgba(0,0,0,.12);
+      display:flex; justify-content:space-between; gap:14px; align-items:flex-start; padding:14px 15px; border-radius:16px;
+      border:1px solid rgba(255,255,255,.11); background:rgba(255,255,255,.035); box-shadow:0 8px 18px rgba(0,0,0,.12);
     }
-
-    .price-row strong{
-      display:block;
-      font-size: 14px;
-      margin-bottom: 3px;
-    }
-
-    .price-row small{
-      display:block;
-      color: var(--muted);
-      font-size: 12px;
-      line-height: 1.5;
-    }
-
+    .price-row strong{ display:block; font-size:14px; margin-bottom:3px; }
+    .price-row small{ display:block; color:var(--muted); font-size:12px; line-height:1.5; }
     .price-tag{
-      flex: 0 0 auto;
-      border: 1px solid rgba(225,29,72,.30);
-      background: linear-gradient(180deg, rgba(225,29,72,.18), rgba(225,29,72,.08));
-      color: var(--text);
-      border-radius: 999px;
-      padding: 8px 10px;
-      font-weight: 800;
-      font-size: 12px;
-      white-space: nowrap;
-      box-shadow: 0 8px 18px rgba(225,29,72,.08);
+      flex:0 0 auto; border:1px solid rgba(225,29,72,.30); background:linear-gradient(180deg, rgba(225,29,72,.18), rgba(225,29,72,.08));
+      color:var(--text); border-radius:999px; padding:8px 10px; font-weight:800; font-size:12px; white-space:nowrap;
     }
-
-    .pricing-note{
-      margin-top: 14px;
-      padding: 13px 14px;
-      border-radius: 14px;
-      border: 1px solid rgba(255,255,255,.09);
-      background: rgba(255,255,255,.03);
-      color: var(--muted);
-      font-size: 12px;
-      line-height: 1.65;
-    }
-
+    .pricing-note{ margin-top:14px; padding:13px 14px; border-radius:14px; border:1px solid rgba(255,255,255,.09); background:rgba(255,255,255,.03); color:var(--muted); font-size:12px; line-height:1.65; }
     .appointment-hint{
-      color: var(--muted);
-      font-size: 13px;
-      line-height: 1.7;
-      margin-bottom: 16px;
-      padding: 14px 15px;
-      border: 1px solid rgba(255,255,255,.09);
-      background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.025));
-      border-radius: 15px;
-      box-shadow: 0 10px 24px rgba(0,0,0,.14);
+      color:var(--muted); font-size:13px; line-height:1.7; margin-bottom:16px; padding:14px 15px;
+      border:1px solid rgba(255,255,255,.09); background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.025));
+      border-radius:15px; box-shadow:0 10px 24px rgba(0,0,0,.14);
     }
-
-    .appointment-grid{
-      display:grid;
-      grid-template-columns: minmax(0, 1fr) minmax(320px, 0.96fr);
-      gap:22px;
-      align-items:start;
-    }
-
+    .appointment-grid{ display:grid; grid-template-columns:minmax(0,1fr) minmax(320px,.96fr); gap:22px; align-items:start; }
     .bt-cal{
-      margin-top: 6px;
-      border: 1px solid rgba(255,255,255,.12);
-      border-radius: 18px;
-      background: rgba(0,0,0,.24);
-      box-shadow: var(--shadow2);
-      overflow: hidden;
+      margin-top:6px; border:1px solid rgba(255,255,255,.12); border-radius:18px; background:rgba(0,0,0,.24);
+      box-shadow:var(--shadow2); overflow:hidden;
     }
-
     .bt-cal-header{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:10px;
-      padding: 13px 14px;
-      border-bottom: 1px solid rgba(255,255,255,.08);
-      background: linear-gradient(180deg, rgba(255,255,255,.055), rgba(255,255,255,.025));
-      flex-wrap:wrap;
+      display:flex; align-items:center; justify-content:space-between; gap:10px; padding:13px 14px;
+      border-bottom:1px solid rgba(255,255,255,.08); background:linear-gradient(180deg, rgba(255,255,255,.055), rgba(255,255,255,.025)); flex-wrap:wrap;
     }
-
-    .bt-cal-title{
-      font-family: var(--mono);
-      font-size: 13px;
-      letter-spacing: .08em;
-      text-transform: uppercase;
-      color: var(--text);
-    }
-
-    .bt-cal-nav{
-      display:flex;
-      gap:8px;
-      flex-wrap:wrap;
-    }
-
+    .bt-cal-title{ font-family:var(--mono); font-size:13px; letter-spacing:.08em; text-transform:uppercase; color:var(--text); }
+    .bt-cal-nav{ display:flex; gap:8px; flex-wrap:wrap; }
     .bt-cal-btn{
-      appearance:none;
-      border: 1px solid rgba(255,255,255,.12);
-      background: rgba(255,255,255,.05);
-      color: var(--text);
-      padding: 8px 10px;
-      border-radius: 12px;
-      cursor:pointer;
-      font-weight: 760;
-      transition: transform .08s ease, border-color .15s ease, background .15s ease;
-      font-family: inherit;
+      appearance:none; border:1px solid rgba(255,255,255,.12); background:rgba(255,255,255,.05); color:var(--text);
+      padding:8px 10px; border-radius:12px; cursor:pointer; font-weight:760; transition:transform .08s ease, border-color .15s ease, background .15s ease;
     }
-
-    .bt-cal-btn:hover{
-      transform: translateY(-1px);
-      background: rgba(255,255,255,.08);
-      border-color: rgba(255,255,255,.19);
-    }
-
+    .bt-cal-btn:hover{ transform:translateY(-1px); background:rgba(255,255,255,.08); border-color:rgba(255,255,255,.19); }
     .bt-cal-weekdays{
-      display:grid;
-      grid-template-columns: repeat(7, 1fr);
-      padding: 12px 14px 4px;
-      gap: 6px;
-      font-size: 11px;
-      letter-spacing: .12em;
-      text-transform: uppercase;
-      color: rgba(231,235,242,.75);
-      font-family: var(--mono);
+      display:grid; grid-template-columns:repeat(7,1fr); padding:12px 14px 4px; gap:6px; font-size:11px;
+      letter-spacing:.12em; text-transform:uppercase; color:rgba(231,235,242,.75); font-family:var(--mono);
     }
-
-    .bt-cal-body{
-      position: relative;
-      min-height: 230px;
-    }
-
-    .bt-cal-grid{
-      display:grid;
-      grid-template-columns: repeat(7, 1fr);
-      gap: 8px;
-      padding: 10px 14px 14px;
-    }
-
+    .bt-cal-grid{ display:grid; grid-template-columns:repeat(7,1fr); gap:8px; padding:10px 14px 14px; }
     .bt-cal-cell{
-      appearance:none;
-      border: 1px solid rgba(255,255,255,.10);
-      background: rgba(255,255,255,.03);
-      border-radius: 12px;
-      min-height: 44px;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      color: var(--text);
-      cursor:pointer;
-      transition: transform .08s ease, border-color .15s ease, background .15s ease, opacity .15s ease, box-shadow .15s ease;
-      font-family: var(--mono);
+      appearance:none; border:1px solid rgba(255,255,255,.10); background:rgba(255,255,255,.03); border-radius:12px;
+      min-height:44px; display:flex; align-items:center; justify-content:center; color:var(--text); cursor:pointer; font-family:var(--mono);
+      transition:transform .08s ease, border-color .15s ease, background .15s ease, opacity .15s ease, box-shadow .15s ease;
     }
-
-    .bt-cal-cell:hover{
-      transform: translateY(-1px);
-      background: rgba(255,255,255,.07);
-      border-color: rgba(255,255,255,.17);
-    }
-
-    .bt-cal-cell.is-muted{
-      opacity:.28;
-      cursor:default;
-    }
-
-    .bt-cal-cell.is-today{
-      border-color: rgba(225,29,72,.42);
-      box-shadow: 0 0 0 2px rgba(225,29,72,.12) inset;
-    }
-
-    .bt-cal-cell.is-selected{
-      background: rgba(225,29,72,.20);
-      border-color: rgba(225,29,72,.40);
-      color: var(--text);
-      box-shadow: 0 0 0 4px rgba(225,29,72,.10);
-    }
-
-    .bt-cal-cell.is-disabled{
-      opacity:.22;
-      cursor:not-allowed;
-    }
-
-    .bt-cal-grid.anim-in{ animation: bt-cal-in 180ms ease both; }
-    .bt-cal-grid.anim-out-left{ animation: bt-cal-out-left 160ms ease both; }
-    .bt-cal-grid.anim-out-right{ animation: bt-cal-out-right 160ms ease both; }
-
-    @keyframes bt-cal-in{
-      from{ opacity:0; transform: translateX(10px); }
-      to{ opacity:1; transform: translateX(0); }
-    }
-    @keyframes bt-cal-out-left{
-      from{ opacity:1; transform: translateX(0); }
-      to{ opacity:0; transform: translateX(-10px); }
-    }
-    @keyframes bt-cal-out-right{
-      from{ opacity:1; transform: translateX(0); }
-      to{ opacity:0; transform: translateX(10px); }
-    }
-
-    .slots-wrap{
-      display:grid;
-      gap:10px;
-      margin-top: 8px;
-    }
-
-    .slots-note{
-      font-size: 12px;
-      color: var(--muted);
-    }
-
-    .slots-grid{
-      display:grid;
-      grid-template-columns: repeat(auto-fill, minmax(92px, 1fr));
-      gap:8px;
-    }
-
+    .bt-cal-cell:hover{ transform:translateY(-1px); background:rgba(255,255,255,.07); border-color:rgba(255,255,255,.17); }
+    .bt-cal-cell.is-muted{ opacity:.28; cursor:default; }
+    .bt-cal-cell.is-today{ border-color:rgba(225,29,72,.42); box-shadow:0 0 0 2px rgba(225,29,72,.12) inset; }
+    .bt-cal-cell.is-selected{ background:rgba(225,29,72,.20); border-color:rgba(225,29,72,.40); box-shadow:0 0 0 4px rgba(225,29,72,.10); }
+    .bt-cal-cell.is-disabled{ opacity:.22; cursor:not-allowed; }
+    .slots-wrap{ display:grid; gap:10px; margin-top:8px; }
+    .slots-note{ font-size:12px; color:var(--muted); }
+    .slots-grid{ display:grid; grid-template-columns:repeat(auto-fill, minmax(92px,1fr)); gap:8px; }
     .slot-btn{
-      appearance:none;
-      border: 1px solid rgba(255,255,255,.12);
-      background: rgba(255,255,255,.03);
-      color: var(--text);
-      padding: 10px 8px;
-      border-radius: 12px;
-      cursor:pointer;
-      text-align:center;
-      transition: transform .08s ease, border-color .15s ease, background .15s ease, box-shadow .15s ease;
-      font-family: var(--mono);
-      font-size: 13px;
+      appearance:none; border:1px solid rgba(255,255,255,.12); background:rgba(255,255,255,.03); color:var(--text);
+      padding:10px 8px; border-radius:12px; cursor:pointer; text-align:center; font-family:var(--mono); font-size:13px;
     }
-
-    .slot-btn:hover{
-      transform: translateY(-1px);
-      background: rgba(255,255,255,.06);
-      border-color: rgba(255,255,255,.18);
-    }
-
-    .slot-btn.active{
-      background: rgba(225,29,72,.20);
-      border-color: rgba(225,29,72,.40);
-      box-shadow: 0 0 0 4px rgba(225,29,72,.10);
-    }
-
-    .slot-empty{
-      font-size: 12px;
-      color: var(--muted);
-      padding: 12px;
-      border: 1px dashed rgba(255,255,255,.12);
-      border-radius: 12px;
-      text-align:center;
-    }
-
-    .services-wrap{
-      display:grid;
-      gap:12px;
-      margin-top:12px;
-    }
-
+    .slot-btn:hover{ background:rgba(255,255,255,.06); border-color:rgba(255,255,255,.18); }
+    .slot-btn.active{ background:rgba(225,29,72,.20); border-color:rgba(225,29,72,.40); box-shadow:0 0 0 4px rgba(225,29,72,.10); }
+    .slot-empty{ font-size:12px; color:var(--muted); padding:12px; border:1px dashed rgba(255,255,255,.12); border-radius:12px; text-align:center; }
+    .services-wrap{ display:grid; gap:12px; margin-top:12px; }
     .service-card{
-      border:1px solid rgba(255,255,255,.11);
-      border-radius:16px;
-      background: rgba(255,255,255,.045);
-      padding:14px;
-      box-shadow: 0 12px 26px rgba(0,0,0,.18);
+      border:1px solid rgba(255,255,255,.11); border-radius:16px; background:rgba(255,255,255,.045); padding:14px; box-shadow:0 12px 26px rgba(0,0,0,.18);
     }
-
-    .service-head{
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      gap:12px;
-      margin-bottom:12px;
-      flex-wrap:wrap;
-    }
-
-    .service-grid{
-      display:grid;
-      gap:12px;
-      grid-template-columns: 1.2fr 1fr 1fr;
-      align-items:end;
-    }
-
+    .service-head{ display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:12px; flex-wrap:wrap; }
+    .service-grid{ display:grid; gap:12px; grid-template-columns:1.2fr 1fr 1fr; align-items:end; }
     .readonly-box{
-      border:1px solid rgba(255,255,255,.10);
-      border-radius:12px;
-      padding:10px 12px;
-      background: rgba(255,255,255,.03);
-      white-space: pre-line;
-      min-width: 240px;
-      font-size:12px;
-      line-height:1.5;
-      color: var(--muted);
+      border:1px solid rgba(255,255,255,.10); border-radius:12px; padding:10px 12px; background:rgba(255,255,255,.03);
+      white-space:pre-line; min-width:240px; font-size:12px; line-height:1.5; color:var(--muted);
     }
-
     .services-summary{
-      border:1px solid rgba(225,29,72,.30);
-      background: linear-gradient(180deg, rgba(225,29,72,.18), rgba(225,29,72,.10));
-      border-radius: 16px;
-      padding: 14px 16px;
-      margin-top:14px;
-      color: var(--muted);
-      font-size: 12px;
-      white-space: pre-line;
-      box-shadow: 0 12px 28px rgba(225,29,72,.08);
+      border:1px solid rgba(225,29,72,.30); background:linear-gradient(180deg, rgba(225,29,72,.18), rgba(225,29,72,.10));
+      border-radius:16px; padding:14px 16px; margin-top:14px; color:var(--muted); font-size:12px; white-space:pre-line;
     }
-
-    .table-wrap{
-      overflow:auto;
-      border:1px solid rgba(255,255,255,.08);
-      border-radius:16px;
-      background: rgba(255,255,255,.02);
-    }
-
-    table{
-      width:100%;
-      border-collapse: separate;
-      border-spacing: 0;
-      min-width: 720px;
-    }
-
+    .table-wrap{ overflow:auto; border:1px solid rgba(255,255,255,.08); border-radius:16px; background:rgba(255,255,255,.02); }
+    table{ width:100%; border-collapse:separate; border-spacing:0; min-width:720px; }
     thead th{
-      position: sticky;
-      top: 0;
-      z-index: 5;
-      background: rgba(10,10,14,.88);
-      backdrop-filter: blur(10px);
-      border-bottom: 1px solid rgba(255,255,255,.08);
-      padding: 11px 12px;
-      text-align:left;
-      font-size: 11px;
-      letter-spacing: .12em;
-      text-transform: uppercase;
-      color: rgba(231,235,242,.75);
+      position:sticky; top:0; z-index:5; background:rgba(10,10,14,.88); backdrop-filter:blur(10px); border-bottom:1px solid rgba(255,255,255,.08);
+      padding:11px 12px; text-align:left; font-size:11px; letter-spacing:.12em; text-transform:uppercase; color:rgba(231,235,242,.75);
     }
-
-    tbody td{
-      border-bottom: 1px solid rgba(255,255,255,.06);
-      padding: 13px 12px;
-      vertical-align: top;
-      color: rgba(231,235,242,.92);
-    }
-
-    tbody tr:hover td{
-      background: rgba(255,255,255,.025);
-    }
-
+    tbody td{ border-bottom:1px solid rgba(255,255,255,.06); padding:13px 12px; vertical-align:top; color:rgba(231,235,242,.92); }
+    tbody tr:hover td{ background:rgba(255,255,255,.025); }
     .badge{
-      display:inline-flex;
-      align-items:center;
-      padding:6px 10px;
-      border-radius:999px;
-      font-size:11px;
-      font-weight:700;
-      border:1px solid rgba(255,255,255,.10);
-      background: rgba(255,255,255,.04);
-      white-space:nowrap;
+      display:inline-flex; align-items:center; padding:6px 10px; border-radius:999px; font-size:11px; font-weight:700;
+      border:1px solid rgba(255,255,255,.10); background:rgba(255,255,255,.04); white-space:nowrap;
     }
-
-    .badge.ok{
-      border-color: rgba(34,197,94,.28);
-      background: rgba(34,197,94,.10);
+    .badge.ok{ border-color:rgba(34,197,94,.28); background:rgba(34,197,94,.10); }
+    .badge.warn{ border-color:rgba(245,158,11,.28); background:rgba(245,158,11,.10); }
+    .badge.err{ border-color:rgba(239,68,68,.28); background:rgba(239,68,68,.10); }
+    .footer-note{ color:var(--muted); font-size:12px; text-align:center; padding-top:8px; opacity:.88; }
+    @media (max-width:1240px){
+      .hero,.contact-price-grid,.appointment-grid{ grid-template-columns:1fr; }
+      .contact-inner{ grid-template-columns:1fr; }
+      .hero-kpis{ grid-template-columns:1fr; }
+      .service-grid{ grid-template-columns:1fr; }
     }
-
-    .badge.warn{
-      border-color: rgba(245,158,11,.28);
-      background: rgba(245,158,11,.10);
-    }
-
-    .badge.err{
-      border-color: rgba(239,68,68,.28);
-      background: rgba(239,68,68,.10);
-    }
-
-    .footer-note{
-      color: var(--muted);
-      font-size: 12px;
-      text-align:center;
-      padding-top: 8px;
-      opacity:.88;
-    }
-
-    @media (max-width: 1240px){
-      .hero,
-      .contact-price-grid,
-      .appointment-grid{
-        grid-template-columns: 1fr;
-      }
-
-      .contact-inner{
-        grid-template-columns: 1fr;
-      }
-
-      .hero-kpis{
-        grid-template-columns: 1fr;
-      }
-
-      .service-grid{
-        grid-template-columns: 1fr;
-      }
-    }
-
-    @media (max-width: 980px){
-      .topbar{
-        border-radius: 18px;
-        padding: 12px;
-      }
-
-      .brand{
-        min-width:auto;
-      }
-
-      .form-two{
-        grid-template-columns: 1fr;
-      }
-
-      .card-bd{
-        padding: 18px;
-      }
-
-      .hero-image img{
-        padding: 28px;
-      }
+    @media (max-width:980px){
+      .topbar{ border-radius:18px; padding:12px; }
+      .form-two{ grid-template-columns:1fr; }
+      .card-bd{ padding:18px; }
+      .hero-image img{ padding:28px; }
     }
   </style>
 </head>
-
 <body>
   <div class="bg-noise"></div>
-  <div class="bg-glow"></div>
   <img class="bg-logo" alt="" src="https://raw.githubusercontent.com/BattleNogare/h-h_weinfabrik/main/fischer_weinfabrik_logo.png">
-
   <div class="app">
     <div class="topbar">
       <div class="brand">
         <img alt="Logo" src="https://raw.githubusercontent.com/BattleNogare/h-h_weinfabrik/main/fischer_weinfabrik_logo.png">
         <div class="brand-title">
           <b>Fischer Weinfabrik · Kontakt</b>
-          <span>Minimal UI · Rot Akzent · Anfrage, Preise & Termin</span>
+          <span>Minimal UI · Rot Akzent · Anfrage, Preise, Termin & Status</span>
         </div>
       </div>
     </div>
@@ -991,38 +285,15 @@
             <div class="hero">
               <div class="hero-copy">
                 <span class="pill"><span class="pill-dot"></span>Fischer Weinfabrik</span>
-
                 <h1>Tradition, Präzision und moderne Weinverarbeitung unter einem Dach</h1>
-
-                <p>
-                  Willkommen in der Fischer Weinfabrik – Ihrem zuverlässigen Partner rund um
-                  Verarbeitung, Lagerung und Veredelung von Wein. Mit Erfahrung, moderner Technik
-                  und echter Sorgfalt begleiten wir jeden Auftrag von der ersten Anfrage bis zur
-                  finalen Umsetzung.
-                </p>
-
-                <p>
-                  Ganz gleich, ob Sie eine allgemeine Anfrage stellen, einen Termin planen oder
-                  konkrete Leistungen abstimmen möchten: Hier erhalten Sie einen klaren Einstieg
-                  und eine direkte Möglichkeit zur Kontaktaufnahme.
-                </p>
-
+                <p>Willkommen in der Fischer Weinfabrik – Ihrem zuverlässigen Partner rund um Verarbeitung, Lagerung und Veredelung von Wein. Mit Erfahrung, moderner Technik und echter Sorgfalt begleiten wir jeden Auftrag von der ersten Anfrage bis zur finalen Umsetzung.</p>
+                <p>Ganz gleich, ob Sie eine allgemeine Anfrage stellen, einen Termin planen oder konkrete Leistungen abstimmen möchten: Hier erhalten Sie einen klaren Einstieg und eine direkte Möglichkeit zur Kontaktaufnahme.</p>
                 <div class="hero-kpis">
-                  <div class="kpi">
-                    <strong>Individuell</strong>
-                    <span>Leistungen flexibel auswählen und direkt mit der Anfrage übermitteln.</span>
-                  </div>
-                  <div class="kpi">
-                    <strong>Planbar</strong>
-                    <span>Termine nach den aktuellen verfügbaren Zeitfenstern anfragen.</span>
-                  </div>
-                  <div class="kpi">
-                    <strong>Transparent</strong>
-                    <span>Status von Terminanfragen und zugeordneten Aufträgen einsehen.</span>
-                  </div>
+                  <div class="kpi"><strong>Individuell</strong><span>Leistungen flexibel auswählen und direkt mit der Anfrage übermitteln.</span></div>
+                  <div class="kpi"><strong>Planbar</strong><span>Termine nach den aktuellen verfügbaren Zeitfenstern anfragen.</span></div>
+                  <div class="kpi"><strong>Transparent</strong><span>Status von Terminanfragen und zugeordneten Aufträgen einsehen.</span></div>
                 </div>
               </div>
-
               <div class="hero-image">
                 <img src="https://raw.githubusercontent.com/BattleNogare/h-h_weinfabrik/main/fischer_weinfabrik_logo.png" alt="Fischer Weinfabrik Logo">
                 <div class="image-caption">Qualität · Präzision · Vertrauen</div>
@@ -1035,7 +306,7 @@
       <div class="group-block">
         <div class="group-label">Kontakt & Preise</div>
         <section class="contact-price-grid">
-          <section class="card contact-panel">
+          <section class="card">
             <div class="card-hd">
               <h3>Direkter Kontakt & Nachricht</h3>
               <span class="pill">Alles in einem Block</span>
@@ -1043,75 +314,19 @@
             <div class="card-bd">
               <div class="contact-inner">
                 <div>
-                  <p class="section-copy">
-                    Schreiben Sie uns eine Nachricht oder melden Sie sich direkt telefonisch.
-                    Für allgemeine Rückfragen ist dies der schnellste Weg zur Fischer Weinfabrik.
-                  </p>
-
+                  <p class="section-copy">Schreiben Sie uns eine Nachricht oder melden Sie sich direkt telefonisch. Für allgemeine Rückfragen ist dies der schnellste Weg zur Fischer Weinfabrik.</p>
                   <ul class="contact-list">
-                    <li>
-                      <div class="contact-icon">🏢</div>
-                      <div>
-                        <strong>Fischer Weinfabrik</strong><br>
-                        Hohenstein<br>
-                        Deutschland
-                      </div>
-                    </li>
-
-                    <li>
-                      <div class="contact-icon">📞</div>
-                      <div>
-                        Telefon:
-                        <a href="tel:+491234567890">+49 1234 567890</a>
-                      </div>
-                    </li>
-
-                    <li>
-                      <div class="contact-icon">✉️</div>
-                      <div>
-                        E-Mail:
-                        <a href="mailto:info@fischer-weinfabrik.de">info@fischer-weinfabrik.de</a>
-                      </div>
-                    </li>
+                    <li><div class="contact-icon">🏢</div><div><strong>Fischer Weinfabrik</strong><br>Hohenstein<br>Deutschland</div></li>
+                    <li><div class="contact-icon">📞</div><div>Telefon: <a href="tel:+491234567890">+49 1234 567890</a></div></li>
+                    <li><div class="contact-icon">✉️</div><div>E-Mail: <a href="mailto:info@fischer-weinfabrik.de">info@fischer-weinfabrik.de</a></div></li>
                   </ul>
                 </div>
-
                 <div>
-                  <p class="section-copy" style="margin-bottom:12px;">
-                    Nutzen Sie das Kontaktformular für allgemeine Anliegen, Rückfragen oder erste Informationen.
-                  </p>
-
+                  <p class="section-copy" style="margin-bottom:12px;">Nutzen Sie das Kontaktformular für allgemeine Anliegen, Rückfragen oder erste Informationen.</p>
                   <form id="kontakt-form" class="form" novalidate>
-                    <div>
-                      <label for="kontakt-name">Name*</label>
-                      <input
-                        type="text"
-                        id="kontakt-name"
-                        name="name"
-                        required
-                        autocomplete="name"
-                        placeholder="Ihr Name">
-                    </div>
-
-                    <div>
-                      <label for="kontakt-betreff">Betreff*</label>
-                      <input
-                        type="text"
-                        id="kontakt-betreff"
-                        name="betreff"
-                        required
-                        placeholder="Worum geht es?">
-                    </div>
-
-                    <div>
-                      <label for="kontakt-nachricht">Nachricht*</label>
-                      <textarea
-                        id="kontakt-nachricht"
-                        name="nachricht"
-                        required
-                        placeholder="Beschreiben Sie kurz Ihr Anliegen."></textarea>
-                    </div>
-
+                    <div><label for="kontakt-name">Name*<input type="text" id="kontakt-name" name="name" required autocomplete="name" placeholder="Ihr Name"></label></div>
+                    <div><label for="kontakt-betreff">Betreff*<input type="text" id="kontakt-betreff" name="betreff" required placeholder="Worum geht es?"></label></div>
+                    <div><label for="kontakt-nachricht">Nachricht*<textarea id="kontakt-nachricht" name="nachricht" required placeholder="Beschreiben Sie kurz Ihr Anliegen."></textarea></label></div>
                     <div class="form-actions">
                       <button type="submit" class="btn btn-primary" id="kontakt-submit">Nachricht senden</button>
                       <div id="form-status" class="form-status" aria-live="polite"></div>
@@ -1122,71 +337,17 @@
             </div>
           </section>
 
-          <section class="card pricing-panel">
+          <section class="card">
             <div class="card-hd">
               <h3>Preisliste unserer Leistungen</h3>
-              <span class="pill">Übersicht</span>
+              <span class="pill">Live aus Einstellungen</span>
             </div>
             <div class="card-bd">
-              <p class="section-copy">
-                Nachfolgend finden Sie eine kompakte Übersicht der angebotenen Leistungen und der jeweils hinterlegten Preisstruktur.
-              </p>
-
-              <div class="pricing-list">
-                <div class="price-row">
-                  <div>
-                    <strong>Verarbeitung von Wein</strong>
-                    <small>Preisgrundlage pro 800 Fässer, je nach hinterlegter Kundenart und Multiplikator.</small>
-                  </div>
-                  <div class="price-tag">Preis lt. Einstellung</div>
-                </div>
-
-                <div class="price-row">
-                  <div>
-                    <strong>Lagern von Kunden Wein</strong>
-                    <small>Preis pro Tag und pro 800 Fässer, abhängig von Menge und Lagerdauer.</small>
-                  </div>
-                  <div class="price-tag">Preis lt. Einstellung</div>
-                </div>
-
-                <div class="price-row">
-                  <div>
-                    <strong>Ankauf Fässer</strong>
-                    <small>Fester Preis pro Fass.</small>
-                  </div>
-                  <div class="price-tag">Preis pro Fass</div>
-                </div>
-
-                <div class="price-row">
-                  <div>
-                    <strong>Ankauf Trauben</strong>
-                    <small>Fester Stückpreis pro Einheit.</small>
-                  </div>
-                  <div class="price-tag">Stückpreis</div>
-                </div>
-
-                <div class="price-row">
-                  <div>
-                    <strong>Ankauf Weinflaschen</strong>
-                    <small>Fester Stückpreis pro Flasche.</small>
-                  </div>
-                  <div class="price-tag">Stückpreis</div>
-                </div>
-
-                <div class="price-row">
-                  <div>
-                    <strong>Lieferservice</strong>
-                    <small>Preisberechnung auf Basis der gefahrenen Kilometer.</small>
-                  </div>
-                  <div class="price-tag">Preis pro KM</div>
-                </div>
+              <p class="section-copy">Nachfolgend sehen Sie die aktuell hinterlegten Preiswerte aus der Verwaltung. Rabatte durch Kundenstufen werden bei der Verarbeitung von Wein zusätzlich berücksichtigt.</p>
+              <div class="pricing-list" id="pricingList">
+                <div class="price-row"><div><strong>Preise werden geladen…</strong><small>Bitte einen Moment.</small></div><div class="price-tag">…</div></div>
               </div>
-
-              <div class="pricing-note">
-                Die exakten Preise werden in der internen Auftragsverwaltung gepflegt und können dort angepasst werden.
-                Bei individuellen Kombinationen oder besonderen Anforderungen erstellen wir die konkrete Kalkulation
-                auf Basis der gewählten Leistungen.
-              </div>
+              <div class="pricing-note" id="pricingNote">Die konkreten Endpreise ergeben sich bei kombinierten Leistungen aus Menge, Dauer und hinterlegten Kundenstufen.</div>
             </div>
           </section>
         </section>
@@ -1194,77 +355,33 @@
 
       <div class="group-block">
         <div class="group-label">Termin vereinbaren</div>
-        <section class="card" id="termine" aria-labelledby="termin-heading">
+        <section class="card" id="termine">
           <div class="card-hd">
-            <h3 id="termin-heading">Termin anfragen</h3>
+            <h3>Termin anfragen</h3>
             <span class="pill">Leistungen auswählbar</span>
           </div>
           <div class="card-bd">
             <div class="appointment-hint" id="appointmentHint"></div>
-
             <form id="termin-form" class="form" novalidate>
               <div class="appointment-grid">
                 <div>
                   <div class="form-two">
-                    <div>
-                      <label for="termin-name">Name*</label>
-                      <input
-                        type="text"
-                        id="termin-name"
-                        name="termin_name"
-                        required
-                        autocomplete="name"
-                        placeholder="Ihr Name">
-                    </div>
-
-                    <div>
-                      <label for="termin-telefon">Telefon</label>
-                      <input
-                        type="text"
-                        id="termin-telefon"
-                        name="termin_telefon"
-                        placeholder="Ihre Telefonnummer">
-                    </div>
+                    <div><label for="termin-name">Name*<input type="text" id="termin-name" name="termin_name" required autocomplete="name" placeholder="Ihr Name"></label></div>
+                    <div><label for="termin-telefon">Telefon<input type="text" id="termin-telefon" name="termin_telefon" placeholder="Ihre Telefonnummer"></label></div>
                   </div>
-
-                  <div style="margin-top:12px;">
-                    <label for="termin-email">E-Mail</label>
-                    <input
-                      type="email"
-                      id="termin-email"
-                      name="termin_email"
-                      placeholder="ihre@email.de">
-                  </div>
-
-                  <div style="margin-top:12px;">
-                    <label for="termin-info">Zusätzliche Info</label>
-                    <textarea
-                      id="termin-info"
-                      name="termin_info"
-                      placeholder="Weitere Hinweise oder Wünsche"></textarea>
-                  </div>
-
+                  <div style="margin-top:12px;"><label for="termin-email">E-Mail<input type="email" id="termin-email" name="termin_email" placeholder="ihre@email.de"></label></div>
+                  <div style="margin-top:12px;"><label for="termin-info">Zusätzliche Info<textarea id="termin-info" name="termin_info" placeholder="Weitere Hinweise oder Wünsche"></textarea></label></div>
                   <div style="margin-top:18px; display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap;">
                     <h3 style="margin:0; font-size:14px;">Gewünschte Leistungen</h3>
                     <button id="btnAddService" class="btn" type="button">＋ Leistung hinzufügen</button>
                   </div>
-
                   <div id="servicesWrap" class="services-wrap"></div>
                   <div id="serviceSummary" class="services-summary">Noch keine Leistungen.</div>
                 </div>
-
                 <div>
                   <div>
                     <label>Datum*</label>
-
-                    <input
-                      type="date"
-                      id="termin-datum"
-                      name="termin_datum"
-                      required
-                      style="position:absolute; left:-9999px; width:1px; height:1px; opacity:0;"
-                    >
-
+                    <input type="date" id="termin-datum" name="termin_datum" required style="position:absolute; left:-9999px; width:1px; height:1px; opacity:0;">
                     <div class="bt-cal" id="bt-cal">
                       <div class="bt-cal-header">
                         <div class="bt-cal-title" id="bt-cal-title">Monat Jahr</div>
@@ -1274,22 +391,15 @@
                           <button type="button" class="bt-cal-btn" id="bt-cal-next">›</button>
                         </div>
                       </div>
-
                       <div class="bt-cal-weekdays">
                         <div>Mo</div><div>Di</div><div>Mi</div><div>Do</div><div>Fr</div><div>Sa</div><div>So</div>
                       </div>
-
-                      <div class="bt-cal-body">
-                        <div class="bt-cal-grid" id="bt-cal-grid"></div>
-                      </div>
+                      <div class="bt-cal-grid" id="bt-cal-grid"></div>
                     </div>
                   </div>
-
                   <div style="margin-top:14px;">
                     <label>Uhrzeit*</label>
-
                     <input type="hidden" id="termin-uhrzeit" name="termin_uhrzeit" required>
-
                     <div class="slots-wrap">
                       <span class="slots-note" id="slots-note">Bitte zuerst ein Datum wählen.</span>
                       <div class="slots-grid" id="slots-grid"></div>
@@ -1297,7 +407,6 @@
                   </div>
                 </div>
               </div>
-
               <div class="form-actions" style="margin-top:14px;">
                 <button type="submit" class="btn btn-primary" id="termin-submit">Termin anfragen</button>
                 <div id="termin-status" class="form-status" aria-live="polite"></div>
@@ -1309,899 +418,428 @@
 
       <div class="group-block">
         <div class="group-label">Statusübersicht</div>
-        <section class="card" aria-labelledby="overview-heading">
+        <section class="card">
           <div class="card-hd">
-            <h3 id="overview-heading">Terminübersicht</h3>
+            <h3>Terminübersicht</h3>
             <span class="pill">Auftragsnummer · Terminstatus · Auftragsstatus</span>
           </div>
           <div class="card-bd">
-            <p class="section-copy" style="margin-bottom:14px;">
-              Hier sehen Sie den aktuellen Bearbeitungsstand Ihrer Terminanfragen und –
-              falls bereits zugeordnet – den Status des zugehörigen Auftrags.
-            </p>
-            <div class="table-wrap" id="overviewTableWrap">
-              <div class="muted" style="padding:14px;">Lädt…</div>
-            </div>
+            <p class="section-copy" style="margin-bottom:14px;">Hier sehen Sie den aktuellen Bearbeitungsstand Ihrer Terminanfragen und – falls bereits zugeordnet – den Status des zugehörigen Auftrags.</p>
+            <div class="table-wrap" id="overviewTableWrap"><div class="section-copy" style="padding:14px;">Lädt…</div></div>
           </div>
         </section>
       </div>
 
-      <div class="footer-note">
-        Fischer Weinfabrik · Anfrage, Preise, Termin und Statusübersicht in einer Oberfläche
-      </div>
+      <div class="footer-note">Fischer Weinfabrik · Anfrage, Preise, Termin und Statusübersicht in einer Oberfläche</div>
     </div>
   </div>
 
 <script>
-  const WEBHOOK_URL = "https://discord.com/api/webhooks/1493943863520530543/-bXM1A5hJ-ZW7AACXeckKdBsdtnoz7Sjwgl99lyuddCKQoOw9QjGolMwhnIjGxO6v3vx";
-  const API_URL = "https://mtyaczfezilcnllnwgqq.supabase.co/functions/v1/auftraege-api";
+const WEBHOOK_URL = "https://discord.com/api/webhooks/1493943863520530543/-bXM1A5hJ-ZW7AACXeckKdBsdtnoz7Sjwgl99lyuddCKQoOw9QjGolMwhnIjGxO6v3vx";
+const API_URL = "https://mtyaczfezilcnllnwgqq.supabase.co/functions/v1/auftraege-api";
 
-  let appointmentConfig = normalizeAppointmentConfig(null);
-  let servicesDraft = [];
+let appointmentConfig = normalizeAppointmentConfig(null);
+let pricingConfig = {
+  verarbeitung_wein_preis_800_faesser: 0,
+  lagerung_preis_pro_tag_800_faesser: 0,
+  ankauf_faesser_preis_pro_fass: 0,
+  ankauf_trauben_stueckpreis: 0,
+  ankauf_weinflaschen_stueckpreis: 0,
+  lieferservice_preis_pro_km: 0
+};
+let kundenartenConfig = { standard_prozent:100, stammkunden_prozent:100, vip_prozent:100 };
+let servicesDraft = [];
 
-  function escapeHtml(s) {
-    return String(s ?? '')
-      .replaceAll('&', '&amp;')
-      .replaceAll('<', '&lt;')
-      .replaceAll('>', '&gt;')
-      .replaceAll('"', '&quot;')
-      .replaceAll("'", '&#039;');
-  }
+function escapeHtml(s){ return String(s ?? '').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'","&#039;"); }
+function toNum(v){ const n = Number(String(v ?? '').replace(',','.')); return Number.isFinite(n) ? n : 0; }
+function moneyEUR(n){ return toNum(n).toLocaleString('de-DE', {minimumFractionDigits:2, maximumFractionDigits:2}) + ' €'; }
 
-  function toNum(v){
-    const n = Number(String(v ?? '').replace(',', '.'));
-    return Number.isFinite(n) ? n : 0;
-  }
+function createEmptyService(){ return { id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now() + Math.random()), type:'verarbeitung_wein', anzahl_faesser:'', tage:'', anzahl_stueck:'', km:'' }; }
 
-  function createEmptyService() {
-    return {
-      id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now() + Math.random()),
-      type: 'verarbeitung_wein',
-      anzahl_faesser: '',
-      tage: '',
-      anzahl_stueck: '',
-      km: ''
-    };
-  }
+function getServiceSummaryLine(service){
+  if (service.type === 'verarbeitung_wein') return `Verarbeitung von Wein · ${toNum(service.anzahl_faesser)} Fässer`;
+  if (service.type === 'lagerung_kunden_wein') return `Lagern von Kunden Wein · ${toNum(service.anzahl_faesser)} Fässer · ${toNum(service.tage)} Tage`;
+  if (service.type === 'ankauf_faesser') return `Ankauf Fässer · ${toNum(service.anzahl_faesser)} Fässer`;
+  if (service.type === 'ankauf_trauben') return `Ankauf Trauben · ${toNum(service.anzahl_stueck)} Stück`;
+  if (service.type === 'ankauf_weinflaschen') return `Ankauf Weinflaschen · ${toNum(service.anzahl_stueck)} Stück`;
+  if (service.type === 'lieferservice') return `Lieferservice · ${toNum(service.km)} KM`;
+  return 'Leistung';
+}
 
-  function getServiceSummaryLine(service) {
-    if (service.type === 'verarbeitung_wein') return `Verarbeitung von Wein · ${toNum(service.anzahl_faesser)} Fässer`;
-    if (service.type === 'lagerung_kunden_wein') return `Lagern von Kunden Wein · ${toNum(service.anzahl_faesser)} Fässer · ${toNum(service.tage)} Tage`;
-    if (service.type === 'ankauf_faesser') return `Ankauf Fässer · ${toNum(service.anzahl_faesser)} Fässer`;
-    if (service.type === 'ankauf_trauben') return `Ankauf Trauben · ${toNum(service.anzahl_stueck)} Stück`;
-    if (service.type === 'ankauf_weinflaschen') return `Ankauf Weinflaschen · ${toNum(service.anzahl_stueck)} Stück`;
-    if (service.type === 'lieferservice') return `Lieferservice · ${toNum(service.km)} KM`;
-    return 'Leistung';
-  }
-
-  function updateServicesSummary() {
-    const el = document.getElementById('serviceSummary');
-    if (!el) return;
-    if (!servicesDraft.length) {
-      el.textContent = 'Noch keine Leistungen.';
-      return;
+function normalizeAppointmentConfig(raw){
+  const fallback = {
+    slot_minutes: 15,
+    days: {
+      0:{ enabled:true, start:"11:00", end:"22:00" },
+      1:{ enabled:false, start:"00:00", end:"00:00" },
+      2:{ enabled:true, start:"18:30", end:"22:00" },
+      3:{ enabled:true, start:"18:30", end:"22:00" },
+      4:{ enabled:true, start:"18:30", end:"22:00" },
+      5:{ enabled:true, start:"18:30", end:"22:00" },
+      6:{ enabled:true, start:"11:00", end:"22:00" }
     }
-    el.textContent = servicesDraft.map(getServiceSummaryLine).join('\n');
-  }
+  };
+  if (!raw || typeof raw !== 'object') return fallback;
+  if (raw.days && typeof raw.days === 'object') return { slot_minutes: Math.max(5, Number(raw.slot_minutes || 15)), days: raw.days };
+  return fallback;
+}
 
-  function renderServiceFields(service) {
-    if (service.type === 'verarbeitung_wein') {
-      return `
-        <div>
-          <label>Leistung
-            <select data-role="type">
-              <option value="verarbeitung_wein" selected>Verarbeitung von Wein</option>
-              <option value="lagerung_kunden_wein">Lagern von Kunden Wein</option>
-              <option value="ankauf_faesser">Ankauf Fässer</option>
-              <option value="ankauf_trauben">Ankauf Trauben</option>
-              <option value="ankauf_weinflaschen">Ankauf Weinflaschen</option>
-              <option value="lieferservice">Lieferservice</option>
-            </select>
-          </label>
-        </div>
-        <div>
-          <label>Anzahl Fässer
-            <input data-role="anzahl_faesser" type="number" min="0" step="1" value="${escapeHtml(service.anzahl_faesser)}">
-          </label>
-        </div>
-        <div class="readonly-box">Diese Leistung wird als Terminwunsch ohne Preisberechnung übermittelt.</div>
-      `;
-    }
+function buildAppointmentHintText(){
+  const names = {1:"Mo",2:"Di",3:"Mi",4:"Do",5:"Fr",6:"Sa",0:"So"};
+  const daysObj = appointmentConfig?.days || {};
+  const active = Object.keys(daysObj).map(Number).filter(day => daysObj[day]?.enabled).map(day => `${names[day]}: ${daysObj[day].start}–${daysObj[day].end}`);
+  return `Termindauer: ${appointmentConfig.slot_minutes} Minuten${active.length ? " · " + active.join(" · ") : ""}`;
+}
 
-    if (service.type === 'lagerung_kunden_wein') {
-      return `
-        <div>
-          <label>Leistung
-            <select data-role="type">
-              <option value="verarbeitung_wein">Verarbeitung von Wein</option>
-              <option value="lagerung_kunden_wein" selected>Lagern von Kunden Wein</option>
-              <option value="ankauf_faesser">Ankauf Fässer</option>
-              <option value="ankauf_trauben">Ankauf Trauben</option>
-              <option value="ankauf_weinflaschen">Ankauf Weinflaschen</option>
-              <option value="lieferservice">Lieferservice</option>
-            </select>
-          </label>
-        </div>
-        <div>
-          <label>Anzahl Fässer
-            <input data-role="anzahl_faesser" type="number" min="0" step="1" value="${escapeHtml(service.anzahl_faesser)}">
-          </label>
-        </div>
-        <div>
-          <label>Tage
-            <input data-role="tage" type="number" min="0" step="1" value="${escapeHtml(service.tage)}">
-          </label>
-        </div>
-      `;
-    }
-
-    if (service.type === 'ankauf_faesser') {
-      return `
-        <div>
-          <label>Leistung
-            <select data-role="type">
-              <option value="verarbeitung_wein">Verarbeitung von Wein</option>
-              <option value="lagerung_kunden_wein">Lagern von Kunden Wein</option>
-              <option value="ankauf_faesser" selected>Ankauf Fässer</option>
-              <option value="ankauf_trauben">Ankauf Trauben</option>
-              <option value="ankauf_weinflaschen">Ankauf Weinflaschen</option>
-              <option value="lieferservice">Lieferservice</option>
-            </select>
-          </label>
-        </div>
-        <div>
-          <label>Anzahl Fässer
-            <input data-role="anzahl_faesser" type="number" min="0" step="1" value="${escapeHtml(service.anzahl_faesser)}">
-          </label>
-        </div>
-        <div class="readonly-box">Diese Leistung wird als Terminwunsch ohne Preisberechnung übermittelt.</div>
-      `;
-    }
-
-    if (service.type === 'ankauf_trauben') {
-      return `
-        <div>
-          <label>Leistung
-            <select data-role="type">
-              <option value="verarbeitung_wein">Verarbeitung von Wein</option>
-              <option value="lagerung_kunden_wein">Lagern von Kunden Wein</option>
-              <option value="ankauf_faesser">Ankauf Fässer</option>
-              <option value="ankauf_trauben" selected>Ankauf Trauben</option>
-              <option value="ankauf_weinflaschen">Ankauf Weinflaschen</option>
-              <option value="lieferservice">Lieferservice</option>
-            </select>
-          </label>
-        </div>
-        <div>
-          <label>Anzahl Stück
-            <input data-role="anzahl_stueck" type="number" min="0" step="1" value="${escapeHtml(service.anzahl_stueck)}">
-          </label>
-        </div>
-        <div class="readonly-box">Diese Leistung wird als Terminwunsch ohne Preisberechnung übermittelt.</div>
-      `;
-    }
-
-    if (service.type === 'ankauf_weinflaschen') {
-      return `
-        <div>
-          <label>Leistung
-            <select data-role="type">
-              <option value="verarbeitung_wein">Verarbeitung von Wein</option>
-              <option value="lagerung_kunden_wein">Lagern von Kunden Wein</option>
-              <option value="ankauf_faesser">Ankauf Fässer</option>
-              <option value="ankauf_trauben">Ankauf Trauben</option>
-              <option value="ankauf_weinflaschen" selected>Ankauf Weinflaschen</option>
-              <option value="lieferservice">Lieferservice</option>
-            </select>
-          </label>
-        </div>
-        <div>
-          <label>Anzahl Stück
-            <input data-role="anzahl_stueck" type="number" min="0" step="1" value="${escapeHtml(service.anzahl_stueck)}">
-          </label>
-        </div>
-        <div class="readonly-box">Diese Leistung wird als Terminwunsch ohne Preisberechnung übermittelt.</div>
-      `;
-    }
-
-    if (service.type === 'lieferservice') {
-      return `
-        <div>
-          <label>Leistung
-            <select data-role="type">
-              <option value="verarbeitung_wein">Verarbeitung von Wein</option>
-              <option value="lagerung_kunden_wein">Lagern von Kunden Wein</option>
-              <option value="ankauf_faesser">Ankauf Fässer</option>
-              <option value="ankauf_trauben">Ankauf Trauben</option>
-              <option value="ankauf_weinflaschen">Ankauf Weinflaschen</option>
-              <option value="lieferservice" selected>Lieferservice</option>
-            </select>
-          </label>
-        </div>
-        <div>
-          <label>KM
-            <input data-role="km" type="number" min="0" step="0.01" value="${escapeHtml(service.km)}">
-          </label>
-        </div>
-        <div class="readonly-box">Diese Leistung wird als Terminwunsch ohne Preisberechnung übermittelt.</div>
-      `;
-    }
-
-    return '';
-  }
-
-  function renderServices() {
-    const wrap = document.getElementById('servicesWrap');
-    if (!wrap) return;
-    wrap.innerHTML = '';
-
-    servicesDraft.forEach((service, idx) => {
-      const el = document.createElement('div');
-      el.className = 'service-card';
-      el.dataset.id = service.id;
-      el.innerHTML = `
-        <div class="service-head">
-          <strong>Leistung ${idx + 1}</strong>
-          <button class="btn tiny btn-danger" type="button" data-action="remove">Entfernen</button>
-        </div>
-        <div class="service-grid">
-          ${renderServiceFields(service)}
-        </div>
-      `;
-
-      const removeBtn = el.querySelector('[data-action="remove"]');
-      removeBtn.addEventListener('click', () => {
-        if (servicesDraft.length <= 1) {
-          alert('Mindestens eine Leistung muss vorhanden sein.');
-          return;
-        }
-        servicesDraft = servicesDraft.filter(s => s.id !== service.id);
-        renderServices();
-      });
-
-      el.querySelectorAll('select[data-role="type"]').forEach(sel => {
-        sel.addEventListener('change', () => {
-          service.type = sel.value;
-          service.anzahl_faesser = '';
-          service.tage = '';
-          service.anzahl_stueck = '';
-          service.km = '';
-          renderServices();
-        });
-      });
-
-      el.querySelectorAll('input[data-role]').forEach(input => {
-        const role = input.getAttribute('data-role');
-
-        input.addEventListener('input', () => {
-          service[role] = input.value;
-          updateServicesSummary();
-        });
-
-        input.addEventListener('blur', () => {
-          service[role] = input.value;
-          updateServicesSummary();
-        });
-
-        input.addEventListener('change', () => {
-          service[role] = input.value;
-          updateServicesSummary();
-        });
-      });
-
-      wrap.appendChild(el);
-    });
-
-    updateServicesSummary();
-  }
-
-  function serviceToApi(service) {
-    const base = { type: service.type };
-
-    if (service.type === 'verarbeitung_wein') {
-      return { ...base, anzahl_faesser: toNum(service.anzahl_faesser) };
-    }
-    if (service.type === 'lagerung_kunden_wein') {
-      return { ...base, anzahl_faesser: toNum(service.anzahl_faesser), tage: toNum(service.tage) };
-    }
-    if (service.type === 'ankauf_faesser') {
-      return { ...base, anzahl_faesser: toNum(service.anzahl_faesser) };
-    }
-    if (service.type === 'ankauf_trauben') {
-      return { ...base, anzahl_stueck: toNum(service.anzahl_stueck) };
-    }
-    if (service.type === 'ankauf_weinflaschen') {
-      return { ...base, anzahl_stueck: toNum(service.anzahl_stueck) };
-    }
-    if (service.type === 'lieferservice') {
-      return { ...base, km: toNum(service.km) };
-    }
-    return base;
-  }
-
-  function normalizeAppointmentConfig(raw) {
-    const fallback = {
-      slot_minutes: 15,
-      days: {
-        0: { enabled: true,  start: "11:00", end: "22:00" },
-        1: { enabled: false, start: "00:00", end: "00:00" },
-        2: { enabled: true,  start: "18:30", end: "22:00" },
-        3: { enabled: true,  start: "18:30", end: "22:00" },
-        4: { enabled: true,  start: "18:30", end: "22:00" },
-        5: { enabled: true,  start: "18:30", end: "22:00" },
-        6: { enabled: true,  start: "11:00", end: "22:00" }
-      }
-    };
-
-    if (!raw || typeof raw !== 'object') return fallback;
-
-    if (raw.days && typeof raw.days === 'object') {
-      return {
-        slot_minutes: Math.max(5, Number(raw.slot_minutes || 15)),
-        days: raw.days
-      };
-    }
-
-    if (Array.isArray(raw.availability)) {
-      const days = {
-        0: { enabled: false, start: "00:00", end: "00:00" },
-        1: { enabled: false, start: "00:00", end: "00:00" },
-        2: { enabled: false, start: "00:00", end: "00:00" },
-        3: { enabled: false, start: "00:00", end: "00:00" },
-        4: { enabled: false, start: "00:00", end: "00:00" },
-        5: { enabled: false, start: "00:00", end: "00:00" },
-        6: { enabled: false, start: "00:00", end: "00:00" }
-      };
-
-      raw.availability.forEach((item) => {
-        const weekday = Number(item.weekday);
-        if (Number.isInteger(weekday) && weekday >= 0 && weekday <= 6) {
-          days[weekday] = {
-            enabled: !!item.enabled,
-            start: String(item.start || "00:00"),
-            end: String(item.end || "00:00")
-          };
-        }
-      });
-
-      return {
-        slot_minutes: Math.max(5, Number(raw.duration_minutes || 15)),
-        days
-      };
-    }
-
-    return fallback;
-  }
-
-  function buildAppointmentHintText() {
-    const names = {
-      1: "Mo",
-      2: "Di",
-      3: "Mi",
-      4: "Do",
-      5: "Fr",
-      6: "Sa",
-      0: "So"
-    };
-
-    const daysObj = appointmentConfig?.days || {};
-    const active = Object.keys(daysObj)
-      .map(Number)
-      .filter(day => daysObj[day]?.enabled)
-      .map(day => `${names[day]}: ${daysObj[day].start}–${daysObj[day].end}`);
-
-    return `Termindauer: ${appointmentConfig.slot_minutes} Minuten${active.length ? " · " + active.join(" · ") : ""}`;
-  }
-
-  function parseTimeToMinutes(t) {
-    const [h, m] = String(t || '00:00').split(':').map(Number);
-    return (Number.isFinite(h) ? h : 0) * 60 + (Number.isFinite(m) ? m : 0);
-  }
-
-  function formatMinutesToTime(total) {
-    const h = Math.floor(total / 60);
-    const m = total % 60;
-    return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
-  }
-
-  function getAppointmentRule(day) {
-    return appointmentConfig?.days?.[day] || null;
-  }
-
-  async function loadPublicSettings() {
-    try {
-      const res = await fetch(`${API_URL}?action=public_settings`);
-      const json = await res.json();
-
-      if (!res.ok || !json?.ok) {
-        throw new Error(json?.error || "Public settings konnten nicht geladen werden.");
-      }
-
-      if (json.appointment_config) {
-        appointmentConfig = normalizeAppointmentConfig(json.appointment_config);
-        console.log("Geladene appointment_config:", appointmentConfig);
-      } else {
-        console.warn("Fallback appointmentConfig aktiv, API-Antwort:", json);
-        appointmentConfig = normalizeAppointmentConfig(null);
-      }
-
-      const hintEl = document.getElementById('appointmentHint');
-      if (hintEl) {
-        hintEl.textContent = buildAppointmentHintText();
-      }
-
-      renderCalendar(0);
-
-      const dateEl = document.getElementById('termin-datum');
-      if (dateEl && dateEl.value) {
-        buildSlotsForDate(dateEl.value);
-      } else {
-        buildSlotsForDate('');
-      }
-    } catch (err) {
-      console.error(err);
-      appointmentConfig = normalizeAppointmentConfig(null);
-
-      const hintEl = document.getElementById('appointmentHint');
-      if (hintEl) {
-        hintEl.textContent = buildAppointmentHintText();
-      }
-
-      renderCalendar(0);
-      buildSlotsForDate('');
-    }
-  }
-
-  async function loadPublicOverview() {
-    const wrap = document.getElementById('overviewTableWrap');
-    if (!wrap) return;
-
-    try {
-      const res = await fetch(`${API_URL}?action=public_overview`);
-      const json = await res.json();
-
-      if (!res.ok || !json?.ok) {
-        throw new Error(
-          (json?.error || 'Übersicht konnte nicht geladen werden.') +
-          (json?.detail ? ` | ${json.detail}` : '')
-        );
-      }
-
-      const items = Array.isArray(json.items) ? json.items : [];
-
-      if (!items.length) {
-        wrap.innerHTML = '<div class="muted" style="padding:14px;">Noch keine Terminanfragen vorhanden.</div>';
-        return;
-      }
-
-      wrap.innerHTML = `
-        <table>
-          <thead>
-            <tr>
-              <th>Auftragsnummer</th>
-              <th>Name</th>
-              <th>Termin</th>
-              <th>Terminstatus</th>
-              <th>Auftragsstatus</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${items.map(item => {
-              const terminStatus = String(item.status || 'offen');
-              const orderStatus = String(item.auftragsstatus || '–');
-
-              const terminBadgeClass =
-                terminStatus === 'angenommen' ? 'ok' :
-                terminStatus === 'abgelehnt' ? 'err' : 'warn';
-
-              const orderBadgeClass =
-                orderStatus === 'fertig' ? 'ok' :
-                orderStatus === 'offen' ? 'warn' : '';
-
-              return `
-                <tr>
-                  <td>${escapeHtml(item.auftrag_id ?? '–')}</td>
-                  <td>${escapeHtml(item.name ?? '')}</td>
-                  <td>${escapeHtml(item.datum ?? '')} ${escapeHtml(item.uhrzeit ?? '')}</td>
-                  <td><span class="badge ${terminBadgeClass}">${escapeHtml(terminStatus)}</span></td>
-                  <td><span class="badge ${orderBadgeClass}">${escapeHtml(orderStatus)}</span></td>
-                </tr>
-              `;
-            }).join('')}
-          </tbody>
-        </table>
-      `;
-    } catch (err) {
-      console.error(err);
-      wrap.innerHTML = `<div class="muted" style="padding:14px;">Übersicht konnte nicht geladen werden.<br>${escapeHtml(err.message || '')}</div>`;
-    }
-  }
-
-  const formKontakt = document.getElementById('kontakt-form');
-  const kontaktSubmit = document.getElementById('kontakt-submit');
-  const kontaktStatus = document.getElementById('form-status');
-
-  if (formKontakt) {
-    formKontakt.addEventListener('submit', function (e) {
-      e.preventDefault();
-      kontaktStatus.textContent = '';
-      kontaktStatus.className = 'form-status';
-
-      if (!formKontakt.checkValidity()) {
-        formKontakt.reportValidity();
-        return;
-      }
-
-      const name = document.getElementById('kontakt-name').value.trim();
-      const betreff = document.getElementById('kontakt-betreff').value.trim();
-      const nachricht = document.getElementById('kontakt-nachricht').value.trim();
-
-      kontaktSubmit.disabled = true;
-      kontaktSubmit.textContent = "Wird gesendet…";
-      kontaktStatus.textContent = "Nachricht wird übermittelt …";
-
-      const embed = {
-        title: "Neue Kontaktanfrage",
-        description: "Eine neue Nachricht wurde über das Kontaktformular gesendet.",
-        color: 0xe11d48,
-        fields: [
-          { name: "Name", value: name || "–", inline: false },
-          { name: "Betreff", value: betreff || "–", inline: false },
-          { name: "Nachricht", value: nachricht || "–", inline: false }
-        ],
-        timestamp: new Date().toISOString(),
-        footer: { text: "Fischer Weinfabrik – Kontaktformular" }
-      };
-
-      const payload = {
-        content: "📩 **Neue Kontaktanfrage eingegangen**",
-        embeds: [embed]
-      };
-
-      fetch(WEBHOOK_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
-      })
-      .then(function (response) {
-        if (!response.ok) throw new Error("HTTP " + response.status);
-        kontaktStatus.textContent = "Vielen Dank! Ihre Nachricht wurde übermittelt.";
-        kontaktStatus.className = "form-status success";
-        formKontakt.reset();
-      })
-      .catch(function (err) {
-        console.error(err);
-        kontaktStatus.textContent = "Fehler beim Senden. Bitte später erneut versuchen.";
-        kontaktStatus.className = "form-status error";
-      })
-      .finally(function () {
-        kontaktSubmit.disabled = false;
-        kontaktSubmit.textContent = "Nachricht senden";
-      });
-    });
-  }
-
-  const terminForm = document.getElementById('termin-form');
-  const terminSubmit = document.getElementById('termin-submit');
-  const terminStatus = document.getElementById('termin-status');
-  const dateInput = document.getElementById('termin-datum');
-  const hiddenTimeInput = document.getElementById('termin-uhrzeit');
-  const slotsGrid = document.getElementById('slots-grid');
-  const slotsNote = document.getElementById('slots-note');
-  const calTitle = document.getElementById('bt-cal-title');
-  const calGrid = document.getElementById('bt-cal-grid');
-  const calPrev = document.getElementById('bt-cal-prev');
-  const calNext = document.getElementById('bt-cal-next');
-  const calTodayBtn = document.getElementById('bt-cal-today');
-
-  const MONTHS_DE = [
-    "Januar","Februar","März","April","Mai","Juni",
-    "Juli","August","September","Oktober","November","Dezember"
+function renderPricing(){
+  const list = document.getElementById('pricingList');
+  const note = document.getElementById('pricingNote');
+  const rows = [
+    { title:'Verarbeitung von Wein', desc:'Preisgrundlage pro 800 Fässer. Zusätzlich wirken Kundenstufen auf diese Leistung.', price: moneyEUR(pricingConfig.verarbeitung_wein_preis_800_faesser), tag:'pro 800 Fässer' },
+    { title:'Lagern von Kunden Wein', desc:'Preis pro Tag und pro 800 Fässer, abhängig von Menge und Lagerdauer.', price: moneyEUR(pricingConfig.lagerung_preis_pro_tag_800_faesser), tag:'pro Tag / 800 Fässer' },
+    { title:'Ankauf Fässer', desc:'Fester Preis pro Fass.', price: moneyEUR(pricingConfig.ankauf_faesser_preis_pro_fass), tag:'pro Fass' },
+    { title:'Ankauf Trauben', desc:'Fester Stückpreis pro Einheit.', price: moneyEUR(pricingConfig.ankauf_trauben_stueckpreis), tag:'pro Stück' },
+    { title:'Ankauf Weinflaschen', desc:'Fester Stückpreis pro Flasche.', price: moneyEUR(pricingConfig.ankauf_weinflaschen_stueckpreis), tag:'pro Stück' },
+    { title:'Lieferservice', desc:'Preisberechnung auf Basis der gefahrenen Kilometer.', price: moneyEUR(pricingConfig.lieferservice_preis_pro_km), tag:'pro KM' }
   ];
+  list.innerHTML = rows.map(r => `
+    <div class="price-row">
+      <div><strong>${escapeHtml(r.title)}</strong><small>${escapeHtml(r.desc)}</small></div>
+      <div class="price-tag">${escapeHtml(r.price)} · ${escapeHtml(r.tag)}</div>
+    </div>
+  `).join('');
+  note.textContent = `Kundenstufen für „Verarbeitung von Wein“: Standard ${toNum(kundenartenConfig.standard_prozent)}%, Stammkunden ${toNum(kundenartenConfig.stammkunden_prozent)}%, VIP ${toNum(kundenartenConfig.vip_prozent)}%.`;
+}
 
-  function pad(n){ return String(n).padStart(2,"0"); }
-  function toISODate(d){
-    return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+function parseTimeToMinutes(t){ const [h,m] = String(t || '00:00').split(':').map(Number); return (Number.isFinite(h)?h:0) * 60 + (Number.isFinite(m)?m:0); }
+function formatMinutesToTime(total){ const h = Math.floor(total/60); const m = total % 60; return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`; }
+function getAppointmentRule(day){ return appointmentConfig?.days?.[day] || null; }
+
+async function loadPublicSettings(){
+  try{
+    const res = await fetch(`${API_URL}?action=public_settings`);
+    const json = await res.json();
+    if (!res.ok || !json?.ok) throw new Error(json?.error || "Public settings konnten nicht geladen werden.");
+    appointmentConfig = normalizeAppointmentConfig(json.appointment_config);
+    pricingConfig = json.pricing || pricingConfig;
+    kundenartenConfig = json.kundenarten || kundenartenConfig;
+    document.getElementById('appointmentHint').textContent = buildAppointmentHintText();
+    renderPricing();
+    renderCalendar(0);
+    const dateEl = document.getElementById('termin-datum');
+    buildSlotsForDate(dateEl && dateEl.value ? dateEl.value : '');
+  }catch(err){
+    console.error(err);
+    document.getElementById('appointmentHint').textContent = buildAppointmentHintText();
+    renderPricing();
+    renderCalendar(0);
+    buildSlotsForDate('');
   }
+}
 
-  let viewDate = new Date();
-  viewDate.setDate(1);
-  let selectedISO = '';
-
-  function isSelectableDate(dateObj) {
-    const now = new Date();
-    const startOfDayD = new Date(dateObj.getFullYear(), dateObj.getMonth(), dateObj.getDate()).getTime();
-    const startOfDayNow = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
-
-    if (startOfDayD <= startOfDayNow) return false;
-
-    const day = dateObj.getDay();
-    const rule = getAppointmentRule(day);
-    return !!(rule && rule.enabled);
-  }
-
-  function renderCalendar(direction) {
-    if (!calGrid || !calTitle) return;
-
-    const now = new Date();
-    const year = viewDate.getFullYear();
-    const month = viewDate.getMonth();
-
-    calTitle.textContent = `${MONTHS_DE[month]} ${year}`;
-
-    if (direction === -1) calGrid.classList.add("anim-out-right");
-    if (direction === 1) calGrid.classList.add("anim-out-left");
-
-    const build = () => {
-      calGrid.className = "bt-cal-grid anim-in";
-      calGrid.innerHTML = "";
-
-      const firstDay = new Date(year, month, 1);
-      let startWeekday = firstDay.getDay();
-      startWeekday = (startWeekday + 6) % 7;
-
-      const daysInMonth = new Date(year, month + 1, 0).getDate();
-
-      for (let i = 0; i < startWeekday; i++) {
-        const cell = document.createElement("div");
-        cell.className = "bt-cal-cell is-muted";
-        cell.textContent = "·";
-        calGrid.appendChild(cell);
-      }
-
-      for (let day = 1; day <= daysInMonth; day++) {
-        const d = new Date(year, month, day);
-        const iso = toISODate(d);
-
-        const cell = document.createElement("button");
-        cell.type = "button";
-        cell.className = "bt-cal-cell";
-        cell.textContent = day;
-
-        if (iso === toISODate(now)) cell.classList.add("is-today");
-        if (iso === selectedISO) cell.classList.add("is-selected");
-
-        if (!isSelectableDate(d)) {
-          cell.classList.add("is-disabled");
-        } else {
-          cell.addEventListener("click", () => {
-            selectedISO = iso;
-            dateInput.value = iso;
-            dateInput.dispatchEvent(new Event("change"));
-            renderCalendar(0);
-            terminStatus.textContent = "";
-            terminStatus.className = "form-status";
-          });
-        }
-
-        calGrid.appendChild(cell);
-      }
-    };
-
-    if (direction === -1 || direction === 1){
-      setTimeout(build, 160);
-    } else {
-      build();
-    }
-  }
-
-  function buildSlotsForDate(dateStr) {
-    if (!slotsGrid || !slotsNote || !hiddenTimeInput) return;
-
-    slotsGrid.innerHTML = "";
-    hiddenTimeInput.value = "";
-
-    if (!dateStr) {
-      slotsNote.textContent = "Bitte zuerst ein Datum wählen.";
+async function loadPublicOverview(){
+  const wrap = document.getElementById('overviewTableWrap');
+  try{
+    const res = await fetch(`${API_URL}?action=public_overview`);
+    const json = await res.json();
+    if (!res.ok || !json?.ok) throw new Error((json?.error || 'Übersicht konnte nicht geladen werden.') + (json?.detail ? ` | ${json.detail}` : ''));
+    const items = Array.isArray(json.items) ? json.items : [];
+    if (!items.length) {
+      wrap.innerHTML = '<div class="section-copy" style="padding:14px;">Noch keine Terminanfragen vorhanden.</div>';
       return;
     }
-
-    const d = new Date(dateStr + "T00:00:00");
-    const day = d.getDay();
-    const rule = getAppointmentRule(day);
-
-    if (!rule || !rule.enabled) {
-      slotsNote.textContent = "Für diesen Tag sind keine Termine verfügbar.";
-      slotsGrid.innerHTML = `<div class="slot-empty">Keine erlaubten Slots</div>`;
-      return;
-    }
-
-    const startMins = parseTimeToMinutes(rule.start);
-    const endMins = parseTimeToMinutes(rule.end);
-    const slotMinutes = Math.max(5, Number(appointmentConfig?.slot_minutes || 15));
-
-    if (endMins <= startMins) {
-      slotsNote.textContent = "Für diesen Tag sind keine Termine verfügbar.";
-      slotsGrid.innerHTML = `<div class="slot-empty">Keine erlaubten Slots</div>`;
-      return;
-    }
-
-    slotsNote.textContent = `Wähle einen freien ${slotMinutes}-Minuten-Slot:`;
-
-    for (let m = startMins; m + slotMinutes <= endMins; m += slotMinutes) {
-      const timeStr = formatMinutesToTime(m);
-
-      const btn = document.createElement("button");
-      btn.type = "button";
-      btn.className = "slot-btn";
-      btn.textContent = timeStr;
-
-      btn.addEventListener("click", () => {
-        slotsGrid.querySelectorAll(".slot-btn.active").forEach(b => b.classList.remove("active"));
-        btn.classList.add("active");
-        hiddenTimeInput.value = timeStr;
-        terminStatus.textContent = "";
-        terminStatus.className = "form-status";
-      });
-
-      slotsGrid.appendChild(btn);
-    }
-
-    if (!slotsGrid.children.length) {
-      slotsGrid.innerHTML = `<div class="slot-empty">Keine erlaubten Slots</div>`;
-    }
+    wrap.innerHTML = `
+      <table>
+        <thead><tr><th>Auftragsnummer</th><th>Name</th><th>Termin</th><th>Terminstatus</th><th>Auftragsstatus</th></tr></thead>
+        <tbody>
+          ${items.map(item => {
+            const terminStatus = String(item.status || 'offen');
+            const orderStatus = String(item.auftragsstatus || '–');
+            const terminBadgeClass = terminStatus === 'angenommen' ? 'ok' : terminStatus === 'abgelehnt' ? 'err' : 'warn';
+            const orderBadgeClass = orderStatus === 'fertig' ? 'ok' : orderStatus === 'offen' ? 'warn' : '';
+            return `<tr>
+              <td>${escapeHtml(item.auftrag_id ?? '–')}</td>
+              <td>${escapeHtml(item.name ?? '')}</td>
+              <td>${escapeHtml(item.datum ?? '')} ${escapeHtml(item.uhrzeit ?? '')}</td>
+              <td><span class="badge ${terminBadgeClass}">${escapeHtml(terminStatus)}</span></td>
+              <td><span class="badge ${orderBadgeClass}">${escapeHtml(orderStatus)}</span></td>
+            </tr>`;
+          }).join('')}
+        </tbody>
+      </table>
+    `;
+  }catch(err){
+    console.error(err);
+    wrap.innerHTML = `<div class="section-copy" style="padding:14px;">Übersicht konnte nicht geladen werden.<br>${escapeHtml(err.message || '')}</div>`;
   }
+}
 
-  if (calPrev) {
-    calPrev.addEventListener("click", () => {
-      viewDate.setMonth(viewDate.getMonth() - 1);
-      renderCalendar(-1);
-    });
+function updateServicesSummary(){
+  const el = document.getElementById('serviceSummary');
+  el.textContent = servicesDraft.length ? servicesDraft.map(getServiceSummaryLine).join('\n') : 'Noch keine Leistungen.';
+}
+
+function renderServiceFields(service){
+  const options = `
+    <option value="verarbeitung_wein" ${service.type==='verarbeitung_wein'?'selected':''}>Verarbeitung von Wein</option>
+    <option value="lagerung_kunden_wein" ${service.type==='lagerung_kunden_wein'?'selected':''}>Lagern von Kunden Wein</option>
+    <option value="ankauf_faesser" ${service.type==='ankauf_faesser'?'selected':''}>Ankauf Fässer</option>
+    <option value="ankauf_trauben" ${service.type==='ankauf_trauben'?'selected':''}>Ankauf Trauben</option>
+    <option value="ankauf_weinflaschen" ${service.type==='ankauf_weinflaschen'?'selected':''}>Ankauf Weinflaschen</option>
+    <option value="lieferservice" ${service.type==='lieferservice'?'selected':''}>Lieferservice</option>`;
+  if (service.type === 'lagerung_kunden_wein') {
+    return `<div><label>Leistung<select data-role="type">${options}</select></label></div>
+      <div><label>Anzahl Fässer<input data-role="anzahl_faesser" type="number" min="0" step="1" value="${escapeHtml(service.anzahl_faesser)}"></label></div>
+      <div><label>Tage<input data-role="tage" type="number" min="0" step="1" value="${escapeHtml(service.tage)}"></label></div>`;
   }
-
-  if (calNext) {
-    calNext.addEventListener("click", () => {
-      viewDate.setMonth(viewDate.getMonth() + 1);
-      renderCalendar(1);
-    });
+  if (service.type === 'ankauf_trauben' || service.type === 'ankauf_weinflaschen') {
+    return `<div><label>Leistung<select data-role="type">${options}</select></label></div>
+      <div><label>Anzahl Stück<input data-role="anzahl_stueck" type="number" min="0" step="1" value="${escapeHtml(service.anzahl_stueck)}"></label></div>
+      <div class="readonly-box">Diese Leistung wird als Terminwunsch ohne Preisberechnung übermittelt.</div>`;
   }
-
-  if (calTodayBtn) {
-    calTodayBtn.addEventListener("click", () => {
-      const today = new Date();
-      viewDate = new Date(today.getFullYear(), today.getMonth(), 1);
-      selectedISO = "";
-      renderCalendar(0);
-      buildSlotsForDate("");
-    });
+  if (service.type === 'lieferservice') {
+    return `<div><label>Leistung<select data-role="type">${options}</select></label></div>
+      <div><label>KM<input data-role="km" type="number" min="0" step="0.01" value="${escapeHtml(service.km)}"></label></div>
+      <div class="readonly-box">Diese Leistung wird als Terminwunsch ohne Preisberechnung übermittelt.</div>`;
   }
+  return `<div><label>Leistung<select data-role="type">${options}</select></label></div>
+    <div><label>Anzahl Fässer<input data-role="anzahl_faesser" type="number" min="0" step="1" value="${escapeHtml(service.anzahl_faesser)}"></label></div>
+    <div class="readonly-box">Diese Leistung wird als Terminwunsch ohne Preisberechnung übermittelt.</div>`;
+}
 
-  if (dateInput) {
-    dateInput.addEventListener("change", () => {
-      selectedISO = dateInput.value || '';
-      buildSlotsForDate(dateInput.value);
-    });
-  }
-
-  const btnAddService = document.getElementById('btnAddService');
-  if (btnAddService) {
-    btnAddService.addEventListener('click', () => {
-      servicesDraft.push(createEmptyService());
+function renderServices(){
+  const wrap = document.getElementById('servicesWrap');
+  wrap.innerHTML = '';
+  servicesDraft.forEach((service, idx) => {
+    const el = document.createElement('div');
+    el.className = 'service-card';
+    el.innerHTML = `
+      <div class="service-head">
+        <strong>Leistung ${idx + 1}</strong>
+        <button class="btn" type="button" data-action="remove">Entfernen</button>
+      </div>
+      <div class="service-grid">${renderServiceFields(service)}</div>
+    `;
+    el.querySelector('[data-action="remove"]').addEventListener('click', () => {
+      if (servicesDraft.length <= 1) return alert('Mindestens eine Leistung muss vorhanden sein.');
+      servicesDraft = servicesDraft.filter(s => s.id !== service.id);
       renderServices();
     });
-  }
-
-  if (terminForm) {
-    terminForm.addEventListener("submit", async function (e) {
-      e.preventDefault();
-      terminStatus.textContent = "";
-      terminStatus.className = "form-status";
-
-      if (!terminForm.checkValidity()) {
-        terminForm.reportValidity();
-        return;
-      }
-
-      const name = document.getElementById("termin-name").value.trim();
-      const telefon = document.getElementById("termin-telefon").value.trim();
-      const email = document.getElementById("termin-email").value.trim();
-      const info = document.getElementById("termin-info").value.trim();
-      const datum = dateInput.value;
-      const uhrzeit = hiddenTimeInput.value;
-
-      if (!datum) {
-        terminStatus.textContent = "Bitte ein Datum im Kalender wählen.";
-        terminStatus.className = "form-status error";
-        return;
-      }
-
-      if (!uhrzeit) {
-        terminStatus.textContent = "Bitte einen Uhrzeit-Slot auswählen.";
-        terminStatus.className = "form-status error";
-        return;
-      }
-
-      if (!servicesDraft.length) {
-        terminStatus.textContent = "Bitte mindestens eine Leistung auswählen.";
-        terminStatus.className = "form-status error";
-        return;
-      }
-
-      terminSubmit.disabled = true;
-      terminSubmit.textContent = "Wird gesendet…";
-      terminStatus.textContent = "Terminanfrage wird übermittelt …";
-
-      try {
-        const payload = {
-          name,
-          telefon,
-          email,
-          info,
-          datum,
-          uhrzeit,
-          services: servicesDraft.map(serviceToApi)
-        };
-
-        const apiRes = await fetch(`${API_URL}?action=public_appointment_create`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify(payload)
-        });
-
-        const apiJson = await apiRes.json().catch(() => null);
-
-        if (!apiRes.ok || !apiJson?.ok) {
-          throw new Error(apiJson?.error || "Terminanfrage konnte nicht gespeichert werden.");
-        }
-
-        const embed = {
-          title: "Neue Terminanfrage",
-          description: "Ein neuer Termin wurde über die Website angefragt.",
-          color: 0xe11d48,
-          fields: [
-            { name: "Name", value: name || "–", inline: false },
-            { name: "Telefon", value: telefon || "–", inline: false },
-            { name: "E-Mail", value: email || "–", inline: false },
-            { name: "Datum", value: datum || "–", inline: true },
-            { name: "Uhrzeit", value: uhrzeit || "–", inline: true },
-            { name: "Leistungen", value: servicesDraft.map(getServiceSummaryLine).join("\n") || "–", inline: false },
-            { name: "Info", value: info || "–", inline: false }
-          ],
-          timestamp: new Date().toISOString(),
-          footer: { text: "Fischer Weinfabrik – Terminanfrage" }
-        };
-
-        fetch(WEBHOOK_URL, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            content: "📅 **Neue Terminanfrage eingegangen**",
-            embeds: [embed]
-          })
-        }).catch(console.error);
-
-        terminStatus.textContent = "Danke! Ihre Terminanfrage wurde gesendet.";
-        terminStatus.className = "form-status success";
-
-        terminForm.reset();
-        servicesDraft = [createEmptyService()];
-        renderServices();
-
-        selectedISO = "";
-        dateInput.value = "";
-        hiddenTimeInput.value = "";
-        buildSlotsForDate("");
-        renderCalendar(0);
-        loadPublicOverview();
-      } catch (err) {
-        console.error(err);
-        terminStatus.textContent = err.message || "Fehler beim Senden. Bitte später erneut versuchen.";
-        terminStatus.className = "form-status error";
-      } finally {
-        terminSubmit.disabled = false;
-        terminSubmit.textContent = "Termin anfragen";
-      }
+    el.querySelectorAll('select[data-role="type"]').forEach(sel => sel.addEventListener('change', () => {
+      service.type = sel.value; service.anzahl_faesser=''; service.tage=''; service.anzahl_stueck=''; service.km=''; renderServices();
+    }));
+    el.querySelectorAll('input[data-role]').forEach(input => {
+      const role = input.getAttribute('data-role');
+      input.addEventListener('input', () => { service[role] = input.value; updateServicesSummary(); });
+      input.addEventListener('change', () => { service[role] = input.value; updateServicesSummary(); });
     });
-  }
+    wrap.appendChild(el);
+  });
+  updateServicesSummary();
+}
 
-  servicesDraft = [createEmptyService()];
-  renderServices();
-  renderCalendar(0);
-  buildSlotsForDate('');
-  loadPublicSettings();
-  loadPublicOverview();
+function serviceToApi(service){
+  const base = { type: service.type };
+  if (service.type === 'verarbeitung_wein' || service.type === 'ankauf_faesser') return { ...base, anzahl_faesser: toNum(service.anzahl_faesser) };
+  if (service.type === 'lagerung_kunden_wein') return { ...base, anzahl_faesser: toNum(service.anzahl_faesser), tage: toNum(service.tage) };
+  if (service.type === 'ankauf_trauben' || service.type === 'ankauf_weinflaschen') return { ...base, anzahl_stueck: toNum(service.anzahl_stueck) };
+  if (service.type === 'lieferservice') return { ...base, km: toNum(service.km) };
+  return base;
+}
+
+const formKontakt = document.getElementById('kontakt-form');
+const kontaktSubmit = document.getElementById('kontakt-submit');
+const kontaktStatus = document.getElementById('form-status');
+if (formKontakt) {
+  formKontakt.addEventListener('submit', function(e){
+    e.preventDefault();
+    kontaktStatus.textContent = ''; kontaktStatus.className = 'form-status';
+    if (!formKontakt.checkValidity()) { formKontakt.reportValidity(); return; }
+    const name = document.getElementById('kontakt-name').value.trim();
+    const betreff = document.getElementById('kontakt-betreff').value.trim();
+    const nachricht = document.getElementById('kontakt-nachricht').value.trim();
+    kontaktSubmit.disabled = true; kontaktSubmit.textContent = 'Wird gesendet…'; kontaktStatus.textContent = 'Nachricht wird übermittelt …';
+    const payload = {
+      content: "📩 **Neue Kontaktanfrage eingegangen**",
+      embeds: [{
+        title:"Neue Kontaktanfrage",
+        description:"Eine neue Nachricht wurde über das Kontaktformular gesendet.",
+        color:0xe11d48,
+        fields:[
+          { name:"Name", value:name || "–", inline:false },
+          { name:"Betreff", value:betreff || "–", inline:false },
+          { name:"Nachricht", value:nachricht || "–", inline:false }
+        ],
+        timestamp:new Date().toISOString(),
+        footer:{ text:"Fischer Weinfabrik – Kontaktformular" }
+      }]
+    };
+    fetch(WEBHOOK_URL, { method:"POST", headers:{ "Content-Type":"application/json" }, body:JSON.stringify(payload) })
+      .then(response => { if (!response.ok) throw new Error("HTTP " + response.status); kontaktStatus.textContent = "Vielen Dank! Ihre Nachricht wurde übermittelt."; kontaktStatus.className = "form-status success"; formKontakt.reset(); })
+      .catch(err => { console.error(err); kontaktStatus.textContent = "Fehler beim Senden. Bitte später erneut versuchen."; kontaktStatus.className = "form-status error"; })
+      .finally(() => { kontaktSubmit.disabled = false; kontaktSubmit.textContent = "Nachricht senden"; });
+  });
+}
+
+const terminForm = document.getElementById('termin-form');
+const terminSubmit = document.getElementById('termin-submit');
+const terminStatus = document.getElementById('termin-status');
+const dateInput = document.getElementById('termin-datum');
+const hiddenTimeInput = document.getElementById('termin-uhrzeit');
+const slotsGrid = document.getElementById('slots-grid');
+const slotsNote = document.getElementById('slots-note');
+const calTitle = document.getElementById('bt-cal-title');
+const calGrid = document.getElementById('bt-cal-grid');
+const calPrev = document.getElementById('bt-cal-prev');
+const calNext = document.getElementById('bt-cal-next');
+const calTodayBtn = document.getElementById('bt-cal-today');
+const MONTHS_DE = ["Januar","Februar","März","April","Mai","Juni","Juli","August","September","Oktober","November","Dezember"];
+function pad(n){ return String(n).padStart(2,'0'); }
+function toISODate(d){ return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`; }
+let viewDate = new Date(); viewDate.setDate(1); let selectedISO = '';
+
+function isSelectableDate(dateObj){
+  const now = new Date();
+  const startOfDayD = new Date(dateObj.getFullYear(), dateObj.getMonth(), dateObj.getDate()).getTime();
+  const startOfDayNow = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+  if (startOfDayD <= startOfDayNow) return false;
+  const rule = getAppointmentRule(dateObj.getDay());
+  return !!(rule && rule.enabled);
+}
+
+function renderCalendar(direction){
+  const now = new Date();
+  const year = viewDate.getFullYear();
+  const month = viewDate.getMonth();
+  calTitle.textContent = `${MONTHS_DE[month]} ${year}`;
+  calGrid.innerHTML = '';
+  const firstDay = new Date(year, month, 1);
+  let startWeekday = firstDay.getDay();
+  startWeekday = (startWeekday + 6) % 7;
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  for (let i=0;i<startWeekday;i++){
+    const cell = document.createElement('div');
+    cell.className = 'bt-cal-cell is-muted';
+    cell.textContent = '·';
+    calGrid.appendChild(cell);
+  }
+  for (let day=1; day<=daysInMonth; day++){
+    const d = new Date(year, month, day);
+    const iso = toISODate(d);
+    const cell = document.createElement('button');
+    cell.type = 'button'; cell.className = 'bt-cal-cell'; cell.textContent = day;
+    if (iso === toISODate(now)) cell.classList.add('is-today');
+    if (iso === selectedISO) cell.classList.add('is-selected');
+    if (!isSelectableDate(d)) {
+      cell.classList.add('is-disabled');
+    } else {
+      cell.addEventListener('click', () => {
+        selectedISO = iso; dateInput.value = iso; dateInput.dispatchEvent(new Event('change')); renderCalendar(0);
+        terminStatus.textContent = ''; terminStatus.className = 'form-status';
+      });
+    }
+    calGrid.appendChild(cell);
+  }
+}
+
+function buildSlotsForDate(dateStr){
+  slotsGrid.innerHTML = ''; hiddenTimeInput.value = '';
+  if (!dateStr) { slotsNote.textContent = 'Bitte zuerst ein Datum wählen.'; return; }
+  const d = new Date(dateStr + 'T00:00:00');
+  const rule = getAppointmentRule(d.getDay());
+  if (!rule || !rule.enabled) {
+    slotsNote.textContent = 'Für diesen Tag sind keine Termine verfügbar.';
+    slotsGrid.innerHTML = '<div class="slot-empty">Keine erlaubten Slots</div>'; return;
+  }
+  const startMins = parseTimeToMinutes(rule.start);
+  const endMins = parseTimeToMinutes(rule.end);
+  const slotMinutes = Math.max(5, Number(appointmentConfig?.slot_minutes || 15));
+  if (endMins <= startMins) {
+    slotsNote.textContent = 'Für diesen Tag sind keine Termine verfügbar.';
+    slotsGrid.innerHTML = '<div class="slot-empty">Keine erlaubten Slots</div>'; return;
+  }
+  slotsNote.textContent = `Wähle einen freien ${slotMinutes}-Minuten-Slot:`;
+  for (let m=startMins; m + slotMinutes <= endMins; m += slotMinutes){
+    const timeStr = formatMinutesToTime(m);
+    const btn = document.createElement('button');
+    btn.type = 'button'; btn.className = 'slot-btn'; btn.textContent = timeStr;
+    btn.addEventListener('click', () => {
+      slotsGrid.querySelectorAll('.slot-btn.active').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active'); hiddenTimeInput.value = timeStr;
+      terminStatus.textContent = ''; terminStatus.className = 'form-status';
+    });
+    slotsGrid.appendChild(btn);
+  }
+  if (!slotsGrid.children.length) slotsGrid.innerHTML = '<div class="slot-empty">Keine erlaubten Slots</div>';
+}
+
+if (calPrev) calPrev.addEventListener('click', () => { viewDate.setMonth(viewDate.getMonth()-1); renderCalendar(-1); });
+if (calNext) calNext.addEventListener('click', () => { viewDate.setMonth(viewDate.getMonth()+1); renderCalendar(1); });
+if (calTodayBtn) calTodayBtn.addEventListener('click', () => { const today = new Date(); viewDate = new Date(today.getFullYear(), today.getMonth(), 1); selectedISO=''; renderCalendar(0); buildSlotsForDate(''); });
+if (dateInput) dateInput.addEventListener('change', () => { selectedISO = dateInput.value || ''; buildSlotsForDate(dateInput.value); });
+
+document.getElementById('btnAddService').addEventListener('click', () => { servicesDraft.push(createEmptyService()); renderServices(); });
+
+if (terminForm) {
+  terminForm.addEventListener('submit', async function(e){
+    e.preventDefault();
+    terminStatus.textContent = ""; terminStatus.className = "form-status";
+    if (!terminForm.checkValidity()) { terminForm.reportValidity(); return; }
+    const name = document.getElementById("termin-name").value.trim();
+    const telefon = document.getElementById("termin-telefon").value.trim();
+    const email = document.getElementById("termin-email").value.trim();
+    const info = document.getElementById("termin-info").value.trim();
+    const datum = dateInput.value;
+    const uhrzeit = hiddenTimeInput.value;
+    if (!datum) { terminStatus.textContent = "Bitte ein Datum im Kalender wählen."; terminStatus.className = "form-status error"; return; }
+    if (!uhrzeit) { terminStatus.textContent = "Bitte einen Uhrzeit-Slot auswählen."; terminStatus.className = "form-status error"; return; }
+    if (!servicesDraft.length) { terminStatus.textContent = "Bitte mindestens eine Leistung auswählen."; terminStatus.className = "form-status error"; return; }
+    terminSubmit.disabled = true; terminSubmit.textContent = "Wird gesendet…"; terminStatus.textContent = "Terminanfrage wird übermittelt …";
+    try{
+      const payload = { name, telefon, email, info, datum, uhrzeit, services: servicesDraft.map(serviceToApi) };
+      const apiRes = await fetch(`${API_URL}?action=public_appointment_create`, { method:"POST", headers:{ "Content-Type":"application/json" }, body:JSON.stringify(payload) });
+      const apiJson = await apiRes.json().catch(() => null);
+      if (!apiRes.ok || !apiJson?.ok) throw new Error(apiJson?.error || "Terminanfrage konnte nicht gespeichert werden.");
+      fetch(WEBHOOK_URL, {
+        method:"POST",
+        headers:{ "Content-Type":"application/json" },
+        body:JSON.stringify({
+          content:"📅 **Neue Terminanfrage eingegangen**",
+          embeds:[{
+            title:"Neue Terminanfrage",
+            description:"Ein neuer Termin wurde über die Website angefragt.",
+            color:0xe11d48,
+            fields:[
+              { name:"Name", value:name || "–", inline:false },
+              { name:"Telefon", value:telefon || "–", inline:false },
+              { name:"E-Mail", value:email || "–", inline:false },
+              { name:"Datum", value:datum || "–", inline:true },
+              { name:"Uhrzeit", value:uhrzeit || "–", inline:true },
+              { name:"Leistungen", value:servicesDraft.map(getServiceSummaryLine).join("\n") || "–", inline:false },
+              { name:"Info", value:info || "–", inline:false }
+            ],
+            timestamp:new Date().toISOString(),
+            footer:{ text:"Fischer Weinfabrik – Terminanfrage" }
+          }]
+        })
+      }).catch(console.error);
+      terminStatus.textContent = "Danke! Ihre Terminanfrage wurde gesendet."; terminStatus.className = "form-status success";
+      terminForm.reset(); servicesDraft = [createEmptyService()]; renderServices();
+      selectedISO = ""; dateInput.value = ""; hiddenTimeInput.value = ""; buildSlotsForDate(""); renderCalendar(0); loadPublicOverview();
+    }catch(err){
+      console.error(err); terminStatus.textContent = err.message || "Fehler beim Senden. Bitte später erneut versuchen."; terminStatus.className = "form-status error";
+    }finally{
+      terminSubmit.disabled = false; terminSubmit.textContent = "Termin anfragen";
+    }
+  });
+}
+
+servicesDraft = [createEmptyService()];
+renderServices();
+renderCalendar(0);
+buildSlotsForDate('');
+loadPublicSettings();
+loadPublicOverview();
 </script>
 </body>
 </html>
