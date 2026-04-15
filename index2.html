@@ -601,14 +601,56 @@ Di–Fr: 18:30–22:00 · Sa–So: 11:00–22:00</div>
     return { type: service.type };
   }
 
+  function normalizeTimeHHMM(v) {
+    const s = String(v || '').trim();
+    return /^([01]\d|2[0-3]):([0-5]\d)$/.test(s) ? s : '';
+  }
+
+  function timeToMinutes(v) {
+    const parts = String(v || '').split(':').map(Number);
+    return (parts[0] || 0) * 60 + (parts[1] || 0);
+  }
+
+  function normalizeAppointmentConfig(raw) {
+    const src = raw && typeof raw === 'object' ? raw : {};
+    const duration = Math.max(5, Math.min(720, Math.trunc(toNum(src.duration_minutes || 15)))) || 15;
+    const defaults = appointmentConfig.availability;
+    const map = new Map();
+    (Array.isArray(src.availability) ? src.availability : []).forEach((row) => {
+      if (row && Number.isFinite(Number(row.weekday))) map.set(Number(row.weekday), row);
+    });
+    return {
+      duration_minutes: duration,
+      availability: defaults.map((d) => {
+        const row = map.get(d.weekday) || d;
+        const enabled = !!row.enabled;
+        const start = enabled ? normalizeTimeHHMM(row.start || d.start) : '';
+        const end = enabled ? normalizeTimeHHMM(row.end || d.end) : '';
+        return { weekday: d.weekday, enabled, start, end };
+      })
+    };
+  }
+
+  function getAppointmentRule(jsWeekday) {
+    return (appointmentConfig.availability || []).find((x) => Number(x.weekday) === Number(jsWeekday)) || null;
+  }
+
+  function getAppointmentHintText() {
+    const names = {1:'Mo',2:'Di',3:'Mi',4:'Do',5:'Fr',6:'Sa',0:'So'};
+    const duration = appointmentConfig.duration_minutes || 15;
+    const lines = (appointmentConfig.availability || [])
+      .filter((x) => x.enabled && x.start && x.end)
+      .map((x) => `${names[x.weekday]}: ${x.start}–${x.end}`);
+    return `Termine dauern ${duration} Minuten.\n${lines.length ? lines.join(' · ') : 'Aktuell keine Termine verfügbar.'}`;
+  }
+
   async function loadPublicSettings() {
     try {
       const out = await publicFetch('?action=public_settings_get');
-      const hint = out.appointment?.hint_text || '';
-      if (hint) {
-        $('appointmentHintHero').textContent = hint;
-        $('appointmentHintBox').textContent = hint;
-      }
+      appointmentConfig = normalizeAppointmentConfig(out.appointment || {});
+      const hint = getAppointmentHintText();
+      $('appointmentHintHero').textContent = hint;
+      $('appointmentHintBox').textContent = hint;
     } catch (e) {
       console.error(e);
     }
@@ -798,7 +840,9 @@ Di–Fr: 18:30–22:00 · Sa–So: 11:00–22:00</div>
 
         const startOfDayD = new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
         const startOfDayNow = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
-        if (startOfDayD <= startOfDayNow) {
+        const rule = getAppointmentRule(d.getDay());
+        const allowed = !!(rule && rule.enabled && rule.start && rule.end && timeToMinutes(rule.end) > timeToMinutes(rule.start));
+        if (startOfDayD <= startOfDayNow || !allowed) {
           cell.classList.add('is-disabled');
         } else {
           cell.addEventListener('click', () => {
@@ -821,27 +865,20 @@ Di–Fr: 18:30–22:00 · Sa–So: 11:00–22:00</div>
       }
 
       const d = new Date(dateStr + 'T00:00:00');
-      const day = d.getDay();
-      let startMins = null;
-      let endMins = null;
-
-      if (day >= 2 && day <= 5) {
-        startMins = 18 * 60 + 30;
-        endMins = 22 * 60;
-      } else if (day === 6 || day === 0) {
-        startMins = 11 * 60;
-        endMins = 22 * 60;
-      }
-
-      if (startMins === null) {
-        slotsNote.textContent = 'Für diesen Tag sind keine Termine verfügbar (Montag gesperrt).';
+      const rule = getAppointmentRule(d.getDay());
+      if (!rule || !rule.enabled || !rule.start || !rule.end || timeToMinutes(rule.end) <= timeToMinutes(rule.start)) {
+        slotsNote.textContent = 'Für diesen Tag sind keine Termine verfügbar.';
         slotsGrid.innerHTML = '<div class="slot-empty">Keine erlaubten Slots</div>';
         return;
       }
 
-      slotsNote.textContent = 'Wähle einen freien 15-Minuten-Slot:';
+      const startMins = timeToMinutes(rule.start);
+      const endMins = timeToMinutes(rule.end);
+      const duration = Math.max(5, Math.trunc(toNum(appointmentConfig.duration_minutes || 15)));
 
-      for (let m=startMins; m<=endMins; m+=15) {
+      slotsNote.textContent = `Wähle einen freien ${duration}-Minuten-Slot:`;
+
+      for (let m=startMins; m + duration <= endMins; m+=duration) {
         const hh = Math.floor(m/60);
         const mm = m%60;
         const timeStr = `${pad(hh)}:${pad(mm)}`;
