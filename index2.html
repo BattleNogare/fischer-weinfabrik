@@ -1010,18 +1010,7 @@
   const WEBHOOK_URL = "https://discord.com/api/webhooks/1493943863520530543/-bXM1A5hJ-ZW7AACXeckKdBsdtnoz7Sjwgl99lyuddCKQoOw9QjGolMwhnIjGxO6v3vx";
   const API_URL = "https://mtyaczfezilcnllnwgqq.supabase.co/functions/v1/auftraege-api";
 
-  let appointmentConfig = {
-    slot_minutes: 15,
-    days: {
-      0: { enabled: true,  start: "11:00", end: "22:00" },
-      1: { enabled: false, start: "00:00", end: "00:00" },
-      2: { enabled: true,  start: "18:30", end: "22:00" },
-      3: { enabled: true,  start: "18:30", end: "22:00" },
-      4: { enabled: true,  start: "18:30", end: "22:00" },
-      5: { enabled: true,  start: "18:30", end: "22:00" },
-      6: { enabled: true,  start: "11:00", end: "22:00" }
-    }
-  };
+let appointmentConfig = normalizeAppointmentConfig(null);
 
   let servicesDraft = [];
 
@@ -1305,24 +1294,81 @@
     return base;
   }
 
-  function buildAppointmentHintText() {
-    const names = {
-      1: "Mo",
-      2: "Di",
-      3: "Mi",
-      4: "Do",
-      5: "Fr",
-      6: "Sa",
-      0: "So"
+function normalizeAppointmentConfig(raw) {
+  const fallback = {
+    slot_minutes: 15,
+    days: {
+      0: { enabled: true,  start: "11:00", end: "22:00" },
+      1: { enabled: false, start: "00:00", end: "00:00" },
+      2: { enabled: true,  start: "18:30", end: "22:00" },
+      3: { enabled: true,  start: "18:30", end: "22:00" },
+      4: { enabled: true,  start: "18:30", end: "22:00" },
+      5: { enabled: true,  start: "18:30", end: "22:00" },
+      6: { enabled: true,  start: "11:00", end: "22:00" }
+    }
+  };
+
+  if (!raw || typeof raw !== 'object') return fallback;
+
+  // Neues Format: { slot_minutes, days }
+  if (raw.days && typeof raw.days === 'object') {
+    return {
+      slot_minutes: Math.max(5, Number(raw.slot_minutes || 15)),
+      days: raw.days
+    };
+  }
+
+  // Dein aktuelles Format: { duration_minutes, availability: [...] }
+  if (Array.isArray(raw.availability)) {
+    const days = {
+      0: { enabled: false, start: "00:00", end: "00:00" },
+      1: { enabled: false, start: "00:00", end: "00:00" },
+      2: { enabled: false, start: "00:00", end: "00:00" },
+      3: { enabled: false, start: "00:00", end: "00:00" },
+      4: { enabled: false, start: "00:00", end: "00:00" },
+      5: { enabled: false, start: "00:00", end: "00:00" },
+      6: { enabled: false, start: "00:00", end: "00:00" }
     };
 
-    const active = Object.keys(appointmentConfig.days)
-      .map(Number)
-      .filter(day => appointmentConfig.days[day]?.enabled)
-      .map(day => `${names[day]}: ${appointmentConfig.days[day].start}–${appointmentConfig.days[day].end}`);
+    raw.availability.forEach((item) => {
+      const weekday = Number(item.weekday);
+      if (Number.isInteger(weekday) && weekday >= 0 && weekday <= 6) {
+        days[weekday] = {
+          enabled: !!item.enabled,
+          start: String(item.start || "00:00"),
+          end: String(item.end || "00:00")
+        };
+      }
+    });
 
-    return `Termindauer: ${appointmentConfig.slot_minutes} Minuten · ${active.join(" · ")}`;
+    return {
+      slot_minutes: Math.max(5, Number(raw.duration_minutes || 15)),
+      days
+    };
   }
+
+  return fallback;
+}
+
+function buildAppointmentHintText() {
+  const names = {
+    1: "Mo",
+    2: "Di",
+    3: "Mi",
+    4: "Do",
+    5: "Fr",
+    6: "Sa",
+    0: "So"
+  };
+
+  const daysObj = appointmentConfig?.days || {};
+  const active = Object.keys(daysObj)
+    .map(Number)
+    .filter(day => daysObj[day]?.enabled)
+    .map(day => `${names[day]}: ${daysObj[day].start}–${daysObj[day].end}`);
+
+  return `Termindauer: ${appointmentConfig.slot_minutes} Minuten${active.length ? " · " + active.join(" · ") : ""}`;
+}
 
   function parseTimeToMinutes(t) {
     const [h, m] = String(t || '00:00').split(':').map(Number);
@@ -1340,44 +1386,48 @@
   }
 
   async function loadPublicSettings() {
-    try {
-      const res = await fetch(`${API_URL}?action=public_settings`);
-      const json = await res.json();
+  try {
+    const res = await fetch(`${API_URL}?action=public_settings`);
+    const json = await res.json();
 
-      if (!res.ok || !json?.ok) {
-        throw new Error(json?.error || "Public settings konnten nicht geladen werden.");
-      }
+    if (!res.ok || !json?.ok) {
+      throw new Error(json?.error || "Public settings konnten nicht geladen werden.");
+    }
 
-      if (json.appointment_config) {
-        appointmentConfig = json.appointment_config;
-        console.log("Geladene appointment_config:", appointmentConfig);
-      } else {
-        console.warn("Fallback appointmentConfig aktiv, API-Antwort:", json);
-      }
+    if (json.appointment_config) {
+      appointmentConfig = normalizeAppointmentConfig(json.appointment_config);
+      console.log("Geladene appointment_config:", appointmentConfig);
+    } else {
+      console.warn("Fallback appointmentConfig aktiv, API-Antwort:", json);
+      appointmentConfig = normalizeAppointmentConfig(null);
+    }
 
-      const hintEl = document.getElementById('appointmentHint');
-      if (hintEl) {
-        hintEl.textContent = buildAppointmentHintText();
-      }
+    const hintEl = document.getElementById('appointmentHint');
+    if (hintEl) {
+      hintEl.textContent = buildAppointmentHintText();
+    }
 
-      renderCalendar(0);
+    renderCalendar(0);
 
-      const dateEl = document.getElementById('termin-datum');
-      if (dateEl && dateEl.value) {
-        buildSlotsForDate(dateEl.value);
-      } else {
-        buildSlotsForDate('');
-      }
-    } catch (err) {
-      console.error(err);
-      const hintEl = document.getElementById('appointmentHint');
-      if (hintEl) {
-        hintEl.textContent = buildAppointmentHintText();
-      }
-      renderCalendar(0);
+    const dateEl = document.getElementById('termin-datum');
+    if (dateEl && dateEl.value) {
+      buildSlotsForDate(dateEl.value);
+    } else {
       buildSlotsForDate('');
     }
+  } catch (err) {
+    console.error(err);
+    appointmentConfig = normalizeAppointmentConfig(null);
+
+    const hintEl = document.getElementById('appointmentHint');
+    if (hintEl) {
+      hintEl.textContent = buildAppointmentHintText();
+    }
+
+    renderCalendar(0);
+    buildSlotsForDate('');
   }
+}
 
   async function loadPublicOverview() {
     const wrap = document.getElementById('overviewTableWrap');
