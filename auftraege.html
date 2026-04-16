@@ -2474,19 +2474,25 @@ $('appointmentNext').addEventListener('click', () => {
   renderAppointments();
 });
 
-$('contactSearch').addEventListener('input', () => {
-  contactState.search = $('contactSearch').value.trim();
-  contactState.page = 1;
-  renderContacts();
-});
-$('contactPrev').addEventListener('click', () => {
-  contactState.page = Math.max(1, contactState.page - 1);
-  renderContacts();
-});
-$('contactNext').addEventListener('click', () => {
-  contactState.page += 1;
-  renderContacts();
-});
+if ($('contactSearch')) {
+  $('contactSearch').addEventListener('input', () => {
+    contactState.search = $('contactSearch').value.trim();
+    contactState.page = 1;
+    renderContacts();
+  });
+}
+if ($('contactPrev')) {
+  $('contactPrev').addEventListener('click', () => {
+    contactState.page = Math.max(1, contactState.page - 1);
+    renderContacts();
+  });
+}
+if ($('contactNext')) {
+  $('contactNext').addEventListener('click', () => {
+    contactState.page += 1;
+    renderContacts();
+  });
+}
 
 $('btnReload').addEventListener('click', async () => {
   try {
