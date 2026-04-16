@@ -552,9 +552,10 @@ async function loadPublicOverview(){
         <thead><tr><th>Auftragsnummer</th><th>Name</th><th>Termin</th><th>Terminstatus</th><th>Auftragsstatus</th></tr></thead>
         <tbody>
           ${items.map(item => {
-            const terminStatus = String(item.status || 'offen');
+            const statusRaw = String(item.status || 'pending');
+            const terminStatus = statusRaw === 'accepted' ? 'Angenommen' : statusRaw === 'declined' ? 'Abgelehnt' : 'Offen';
             const orderStatus = String(item.auftragsstatus || '–');
-            const terminBadgeClass = terminStatus === 'angenommen' ? 'ok' : terminStatus === 'abgelehnt' ? 'err' : 'warn';
+            const terminBadgeClass = statusRaw === 'accepted' ? 'ok' : statusRaw === 'declined' ? 'err' : 'warn';
             const orderBadgeClass = orderStatus === 'fertig' ? 'ok' : orderStatus === 'offen' ? 'warn' : '';
             return `<tr>
               <td>${escapeHtml(item.auftrag_id ?? '–')}</td>
@@ -792,8 +793,6 @@ if (terminForm) {
     }
 
     const name = document.getElementById("termin-name").value.trim();
-    const telefon = document.getElementById("termin-telefon").value.trim();
-    const email = document.getElementById("termin-email").value.trim();
     const info = document.getElementById("termin-info").value.trim();
     const datum = dateInput.value;
     const uhrzeit = hiddenTimeInput.value;
@@ -823,8 +822,6 @@ if (terminForm) {
     try {
       const payload = {
         name,
-        telefon,
-        email,
         info,
         datum,
         uhrzeit,
@@ -851,8 +848,6 @@ if (terminForm) {
         color: 0xe11d48,
         fields: [
           { name: "Name", value: name || "–", inline: false },
-          { name: "Telefon", value: telefon || "–", inline: false },
-          { name: "E-Mail", value: email || "–", inline: false },
           { name: "Datum", value: datum || "–", inline: true },
           { name: "Uhrzeit", value: uhrzeit || "–", inline: true },
           { name: "Leistungen", value: servicesDraft.map(getServiceSummaryLine).join("\n") || "–", inline: false },
