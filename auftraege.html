@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="de"> 
+<html lang="de">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -556,7 +556,6 @@
       <div class="tabs">
         <button id="tab-create" class="tab active" type="button"><span class="dot"></span>Auftrag erstellen</button>
         <button id="tab-appointments" class="tab" type="button"><span class="dot"></span>Terminanfragen</button>
-        <button id="tab-contacts" class="tab" type="button"><span class="dot"></span>Kontaktanfragen</button>
         <button id="tab-open" class="tab" type="button"><span class="dot"></span>Offene Aufträge</button>
         <button id="tab-done" class="tab" type="button"><span class="dot"></span>Fertige Aufträge</button>
         <button id="tab-settings" class="tab hidden" type="button"><span class="dot"></span>Einstellungen</button>
@@ -602,7 +601,7 @@
                 <label>Custom Prozent / Multiplikator*
                   <input id="fCustomProzent" type="number" min="0" step="1" />
                 </label>
-                <div class="muted">Wird nur auf „Verarbeitung von Wein“ angewendet. 100 = normal, 108 = +8%.</div>
+                <div class="muted">Wird nur auf „Verarbeitung von Wein“ angewendet. 100 = Standardpreis, 90 = 10% Rabatt.</div>
               </div>
             </div>
 
@@ -688,25 +687,6 @@
         <div id="appointmentTableWrap" class="table-wrap"></div>
       </section>
 
-
-      <section id="view-contacts" class="card hidden">
-        <div class="card-hd">
-          <h3>Kontaktanfragen</h3>
-          <span class="pill">Eingang aus öffentlichem Formular</span>
-        </div>
-
-        <div class="toolbar">
-          <input id="contactSearch" type="text" placeholder="Suche Name / Betreff / Status…" />
-          <div class="pager">
-            <button id="contactPrev" class="btn tiny" type="button">◀</button>
-            <span id="contactPageInfo" class="pill"></span>
-            <button id="contactNext" class="btn tiny" type="button">▶</button>
-          </div>
-        </div>
-
-        <div id="contactTableWrap" class="table-wrap"></div>
-      </section>
-
 <section id="view-settings" class="card hidden">
         <div class="card-hd">
           <h3>Einstellungen</h3>
@@ -768,7 +748,7 @@
               <label style="margin-top:10px;">VIP (%)
                 <input id="s_vip_prozent" type="number" min="0" step="1" />
               </label>
-              <div class="muted" style="margin-top:10px;">Diese Prozentwerte wirken nur auf „Verarbeitung von Wein“. Beispiel: 108 = +8%.</div>
+              <div class="muted" style="margin-top:10px;">Diese Prozentwerte wirken nur auf „Verarbeitung von Wein“. Beispiel: 90 = 10% Rabatt auf den Standardpreis.</div>
             </div>
 
             <div class="settings-box" style="grid-column: 1 / -1;">
@@ -930,7 +910,7 @@ function setAuthMode(mode) {
 }
 
 function setTab(tab) {
-  const tabs = ['create','open','done','appointments','contacts','settings'];
+  const tabs = ['create','open','done','appointments','settings'];
   for (const t of tabs) {
     const tabBtn = $('tab-' + t);
     const view = $('view-' + t);
@@ -940,7 +920,6 @@ function setTab(tab) {
   if (tab === 'open') { loadAndRenderOpen().catch(e => showMsg('error', e.message)); }
   if (tab === 'done') { loadAndRenderDone().catch(e => showMsg('error', e.message)); }
   if (tab === 'appointments') { loadAndRenderAppointments().catch(e => showMsg('error', e.message)); }
-  if (tab === 'contacts') { loadAndRenderContacts().catch(e => showMsg('error', e.message)); }
   if (tab === 'settings') { loadSettings().catch(e => showMsg('error', e.message)); }
 }
 
@@ -1023,8 +1002,9 @@ function formatDateTimeDisplay(value) {
 }
 
 function formatMultiplierDelta(multiplier) {
-  const delta = roundMoney(multiplier) - 100;
-  return `${delta >= 0 ? '+' : ''}${delta}%`;
+  const delta = 100 - roundMoney(multiplier);
+  if (delta === 0) return 'kein Rabatt';
+  return `${delta > 0 ? delta : Math.abs(delta)}% ${delta > 0 ? 'Rabatt' : 'Aufschlag'}`;
 }
 
 function hasServices(row) {
@@ -1479,7 +1459,6 @@ async function loadAllForReload(){
   if ($('tab-open').classList.contains('active')) renderOpen();
   if ($('tab-done').classList.contains('active')) renderDone();
   if ($('tab-appointments').classList.contains('active')) renderAppointments();
-  if ($('tab-contacts').classList.contains('active')) renderContacts();
 }
 
 async function loadSettings(){
@@ -1705,7 +1684,7 @@ function renderServiceFields(service) {
         </label>
       </div>
       <div class="readonly-box">
-        Multiplikator: ${escapeHtml(formatMultiplierDelta(getKundenMultiplikator()))}
+        Kundenrabatt: ${escapeHtml(formatMultiplierDelta(getKundenMultiplikator()))}
 
 Preis für 800 Fässer: ${escapeHtml(moneyEUR(settingsState.pricing.verarbeitung_wein_preis_800_faesser))}
       </div>
@@ -2440,7 +2419,6 @@ $('tab-create').addEventListener('click', () => setTab('create'));
 $('tab-open').addEventListener('click', () => setTab('open'));
 $('tab-done').addEventListener('click', () => setTab('done'));
 $('tab-appointments').addEventListener('click', () => setTab('appointments'));
-$('tab-contacts').addEventListener('click', () => setTab('contacts'));
 $('tab-settings').addEventListener('click', () => setTab('settings'));
 
 $('btnCreate').addEventListener('click', createOrder);
