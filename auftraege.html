@@ -556,6 +556,7 @@
       <div class="tabs">
         <button id="tab-create" class="tab active" type="button"><span class="dot"></span>Auftrag erstellen</button>
         <button id="tab-appointments" class="tab" type="button"><span class="dot"></span>Terminanfragen</button>
+        <button id="tab-contacts" class="tab" type="button"><span class="dot"></span>Kontaktanfragen</button>
         <button id="tab-open" class="tab" type="button"><span class="dot"></span>Offene Aufträge</button>
         <button id="tab-done" class="tab" type="button"><span class="dot"></span>Fertige Aufträge</button>
         <button id="tab-settings" class="tab hidden" type="button"><span class="dot"></span>Einstellungen</button>
@@ -685,6 +686,25 @@
         </div>
 
         <div id="appointmentTableWrap" class="table-wrap"></div>
+      </section>
+
+
+      <section id="view-contacts" class="card hidden">
+        <div class="card-hd">
+          <h3>Kontaktanfragen</h3>
+          <span class="pill">Eingang aus öffentlichem Formular</span>
+        </div>
+
+        <div class="toolbar">
+          <input id="contactSearch" type="text" placeholder="Suche Name / Betreff / Status…" />
+          <div class="pager">
+            <button id="contactPrev" class="btn tiny" type="button">◀</button>
+            <span id="contactPageInfo" class="pill"></span>
+            <button id="contactNext" class="btn tiny" type="button">▶</button>
+          </div>
+        </div>
+
+        <div id="contactTableWrap" class="table-wrap"></div>
       </section>
 
 <section id="view-settings" class="card hidden">
@@ -828,11 +848,13 @@ let currentProfile = null;
 let allOpen = [];
 let allDone = [];
 let allAppointments = [];
+let allContacts = [];
 let lastSync = null;
 
 let openState = { page: 1, search: '' };
 let doneState = { page: 1, search: '' };
 let appointmentState = { page: 1, search: '' };
+let contactState = { page: 1, search: '' };
 
 let settingsState = {
   pricing: {
@@ -908,7 +930,7 @@ function setAuthMode(mode) {
 }
 
 function setTab(tab) {
-  const tabs = ['create','open','done','appointments','settings'];
+  const tabs = ['create','open','done','appointments','contacts','settings'];
   for (const t of tabs) {
     const tabBtn = $('tab-' + t);
     const view = $('view-' + t);
@@ -918,6 +940,7 @@ function setTab(tab) {
   if (tab === 'open') { loadAndRenderOpen().catch(e => showMsg('error', e.message)); }
   if (tab === 'done') { loadAndRenderDone().catch(e => showMsg('error', e.message)); }
   if (tab === 'appointments') { loadAndRenderAppointments().catch(e => showMsg('error', e.message)); }
+  if (tab === 'contacts') { loadAndRenderContacts().catch(e => showMsg('error', e.message)); }
   if (tab === 'settings') { loadSettings().catch(e => showMsg('error', e.message)); }
 }
 
@@ -1244,6 +1267,8 @@ async function handleLogout() {
     currentProfile = null;
     allOpen = [];
     allDone = [];
+    allAppointments = [];
+    allContacts = [];
     settingsState = {
       pricing: {
         verarbeitung_wein_preis_800_faesser: 0,
@@ -1397,6 +1422,12 @@ async function apiAppointmentList(){
 async function apiAppointmentDecide(payload){
   return apiFetch(`?action=appointment_decide`, { method:"POST", body: payload });
 }
+async function apiContactList(){
+  return apiFetch(`?action=contacts_list`);
+}
+async function apiContactUpdate(payload){
+  return apiFetch(`?action=contact_update`, { method:"POST", body: payload });
+}
 
 async function loadAndRenderOpen(){
   const out = await apiList('open', 1000, 0);
@@ -1422,22 +1453,33 @@ async function loadAndRenderAppointments(){
   renderAppointments();
 }
 
+async function loadAndRenderContacts(){
+  const out = await apiContactList();
+  allContacts = out.items || [];
+  lastSync = new Date();
+  setSyncPill();
+  renderContacts();
+}
+
 async function loadAllForReload(){
-  const [o, d, a] = await Promise.all([
+  const [o, d, a, c] = await Promise.all([
     apiList('open', 1000, 0),
     apiList('done', 1000, 0),
-    apiAppointmentList()
+    apiAppointmentList(),
+    apiContactList()
   ]);
 
   allOpen = o.items || [];
   allDone = d.items || [];
   allAppointments = a.items || [];
+  allContacts = c.items || [];
   lastSync = new Date();
   setSyncPill();
 
   if ($('tab-open').classList.contains('active')) renderOpen();
   if ($('tab-done').classList.contains('active')) renderDone();
   if ($('tab-appointments').classList.contains('active')) renderAppointments();
+  if ($('tab-contacts').classList.contains('active')) renderContacts();
 }
 
 async function loadSettings(){
@@ -2264,6 +2306,99 @@ function renderAppointments() {
 }
 
 
+function contactStatusLabel(status) {
+  if (status === 'erledigt') return 'Erledigt';
+  return 'Offen';
+}
+
+function renderContacts() {
+  const q = String(contactState.search || '').trim().toLowerCase();
+  let filtered = allContacts.slice();
+
+  if (q) {
+    filtered = filtered.filter(r =>
+      String(r.name || '').toLowerCase().includes(q) ||
+      String(r.betreff || '').toLowerCase().includes(q) ||
+      String(r.status || '').toLowerCase().includes(q)
+    );
+  }
+
+  const total = filtered.length;
+  const maxPage = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  if (contactState.page > maxPage) contactState.page = maxPage;
+
+  const start = (contactState.page - 1) * PAGE_SIZE;
+  const items = filtered.slice(start, start + PAGE_SIZE);
+
+  $('contactPageInfo').textContent = `Seite ${contactState.page} · ${total} Treffer`;
+  $('contactPrev').disabled = contactState.page <= 1;
+  $('contactNext').disabled = (contactState.page * PAGE_SIZE) >= total;
+
+  const wrap = $('contactTableWrap');
+  if (!items.length) {
+    wrap.innerHTML = '<div class="card-bd"><div class="muted">Keine Kontaktanfragen gefunden.</div></div>';
+    return;
+  }
+
+  wrap.innerHTML = `
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Anfrage</th>
+          <th>Betreff</th>
+          <th>Nachricht</th>
+          <th>Status</th>
+          <th>Aktion</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${items.map(r => `
+          <tr>
+            <td style="font-family:var(--mono);">${r.id}</td>
+            <td>
+              <strong>${escapeHtml(r.name || '')}</strong>
+              <div class="muted">Erstellt: ${escapeHtml(formatDateTimeDisplay(r.created_at))}</div>
+            </td>
+            <td style="white-space:pre-line;">${escapeHtml(r.betreff || '')}</td>
+            <td style="white-space:pre-line;">${escapeHtml(r.nachricht || '')}</td>
+            <td>
+              <strong>${escapeHtml(contactStatusLabel(r.status))}</strong>
+              <div class="muted">${escapeHtml(r.bearbeitet_username || '')}</div>
+            </td>
+            <td>
+              ${r.status === 'offen' ? `
+                <button class="btn tiny btn-primary contact-done" data-id="${r.id}" type="button">Als erledigt markieren</button>
+              ` : `<span class="muted">Bereits erledigt</span>`}
+            </td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+  `;
+
+  wrap.querySelectorAll('.contact-done').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const id = Number(btn.getAttribute('data-id'));
+      const old = btn.textContent;
+      btn.disabled = true;
+      btn.textContent = 'Speichert…';
+
+      try {
+        await apiContactUpdate({ id, status: 'erledigt' });
+        showMsg('ok', 'Kontaktanfrage als erledigt markiert.');
+        await loadAndRenderContacts();
+      } catch (e) {
+        showMsg('error', e.message);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = old;
+      }
+    });
+  });
+}
+
+
 async function createOrder() {
   const btn = $('btnCreate');
   btn.disabled = true;
@@ -2305,6 +2440,7 @@ $('tab-create').addEventListener('click', () => setTab('create'));
 $('tab-open').addEventListener('click', () => setTab('open'));
 $('tab-done').addEventListener('click', () => setTab('done'));
 $('tab-appointments').addEventListener('click', () => setTab('appointments'));
+$('tab-contacts').addEventListener('click', () => setTab('contacts'));
 $('tab-settings').addEventListener('click', () => setTab('settings'));
 
 $('btnCreate').addEventListener('click', createOrder);
@@ -2358,6 +2494,20 @@ $('appointmentPrev').addEventListener('click', () => {
 $('appointmentNext').addEventListener('click', () => {
   appointmentState.page += 1;
   renderAppointments();
+});
+
+$('contactSearch').addEventListener('input', () => {
+  contactState.search = $('contactSearch').value.trim();
+  contactState.page = 1;
+  renderContacts();
+});
+$('contactPrev').addEventListener('click', () => {
+  contactState.page = Math.max(1, contactState.page - 1);
+  renderContacts();
+});
+$('contactNext').addEventListener('click', () => {
+  contactState.page += 1;
+  renderContacts();
 });
 
 $('btnReload').addEventListener('click', async () => {
