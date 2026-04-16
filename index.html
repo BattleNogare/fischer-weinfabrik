@@ -567,7 +567,7 @@ async function loadPublicOverview(){
             const note = String(item.decision_reason || '').trim();
             const employee = String(item.decision_by_username || '').trim();
 
-            let terminStatusLabel = 'Offen';
+            let terminStatusLabel = 'Termin noch nicht bestätigt';
             if (terminStatusRaw === 'accepted' || terminStatusRaw === 'angenommen') terminStatusLabel = 'Angenommen';
             if (terminStatusRaw === 'declined' || terminStatusRaw === 'abgelehnt') terminStatusLabel = 'Abgelehnt';
 
