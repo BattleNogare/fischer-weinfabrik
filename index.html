@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Fischer Weinfabrik · Kontakt</title>
   <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/BattleNogare/h-h_weinfabrik/main/fischer_weinfabrik_logo.png">
-  <style> 
+  <style>
     :root{
       --bg0:#09070a;
       --bg1:#130b12;
@@ -451,7 +451,7 @@ let servicesDraft = [];
 
 function escapeHtml(s){ return String(s ?? '').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'","&#039;"); }
 function toNum(v){ const n = Number(String(v ?? '').replace(',','.')); return Number.isFinite(n) ? n : 0; }
-function moneyEUR(n){ return toNum(n).toLocaleString('de-DE', {minimumFractionDigits:2, maximumFractionDigits:2}) + ' €'; }
+function moneyEUR(n){ return Math.ceil(toNum(n)).toLocaleString('de-DE') + ' €'; }
 
 function createEmptyService(){ return { id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now() + Math.random()), type:'verarbeitung_wein', anzahl_faesser:'', tage:'', anzahl_stueck:'', km:'' }; }
 
@@ -507,7 +507,7 @@ function renderPricing(){
       <div class="price-tag">${escapeHtml(r.price)} · ${escapeHtml(r.tag)}</div>
     </div>
   `).join('');
-  note.textContent = `Kundenstufen für „Verarbeitung von Wein“: Standard ${toNum(kundenartenConfig.standard_prozent)}%, Stammkunden ${toNum(kundenartenConfig.stammkunden_prozent)}%, VIP ${toNum(kundenartenConfig.vip_prozent)}%.`;
+  note.textContent = `Kundenstufen für „Verarbeitung von Wein“: Standard ${toNum(kundenartenConfig.standard_prozent)}% vom Grundpreis, Stammkunden ${toNum(kundenartenConfig.stammkunden_prozent)}% vom Grundpreis, VIP ${toNum(kundenartenConfig.vip_prozent)}% vom Grundpreis.`;
 }
 
 function parseTimeToMinutes(t){ const [h,m] = String(t || '00:00').split(':').map(Number); return (Number.isFinite(h)?h:0) * 60 + (Number.isFinite(m)?m:0); }
