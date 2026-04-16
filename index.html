@@ -564,7 +564,8 @@ async function loadPublicOverview(){
           ${items.map(item => {
             const terminStatusRaw = String(item.status || 'offen').toLowerCase();
             const orderStatus = String(item.auftragsstatus || '–');
-            const note = String(item.decision_reason || item.note || '').trim();
+            const note = String(item.decision_reason || '').trim();
+            const employee = String(item.decision_by_username || '').trim();
 
             let terminStatusLabel = 'Offen';
             if (terminStatusRaw === 'accepted' || terminStatusRaw === 'angenommen') terminStatusLabel = 'Angenommen';
@@ -584,6 +585,22 @@ async function loadPublicOverview(){
                   ? 'warn'
                   : '';
 
+            let noteHtml = '';
+            if (note) {
+              const prefix =
+                (terminStatusRaw === 'declined' || terminStatusRaw === 'abgelehnt')
+                  ? 'Ablehnungsgrund'
+                  : 'Notiz';
+
+              const byText = employee ? ` von ${escapeHtml(employee)}` : '';
+              noteHtml = `
+                <div style="margin-top:6px; color:var(--muted); font-size:12px; line-height:1.45;">
+                  <strong>${prefix}${byText}:</strong><br>
+                  ${escapeHtml(note)}
+                </div>
+              `;
+            }
+
             return `
               <tr>
                 <td>${escapeHtml(item.auftrag_id ?? '–')}</td>
@@ -591,7 +608,7 @@ async function loadPublicOverview(){
                 <td>${escapeHtml(item.datum ?? '')} ${escapeHtml(item.uhrzeit ?? '')}</td>
                 <td>
                   <span class="badge ${terminBadgeClass}">${escapeHtml(terminStatusLabel)}</span>
-                  ${note ? `<div style="margin-top:6px; color:var(--muted); font-size:12px; line-height:1.45;">${escapeHtml(note)}</div>` : ''}
+                  ${noteHtml}
                 </td>
                 <td><span class="badge ${orderBadgeClass}">${escapeHtml(orderStatus)}</span></td>
               </tr>
