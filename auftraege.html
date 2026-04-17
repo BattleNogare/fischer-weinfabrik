@@ -1402,6 +1402,9 @@ async function apiAppointmentList(){
 async function apiAppointmentDecide(payload){
   return apiFetch(`?action=appointment_decide`, { method:"POST", body: payload });
 }
+async function apiAppointmentHide(id){
+  return apiFetch(`?action=appointment_hide`, { method:"POST", body: { id } });
+}
 async function apiContactList(){
   return apiFetch(`?action=contacts_list`);
 }
@@ -2211,21 +2214,27 @@ function renderAppointments() {
             <td>
               <strong>${escapeHtml(appointmentStatusLabel(r.status))}</strong>
               <div class="muted">${escapeHtml(r.ablehnungsgrund || r.decision_reason || '')}</div>
+              <div class="muted">${escapeHtml(r.decided_at ? formatDateTimeDisplay(r.decided_at) : '')}</div>
             </td>
             <td>
               ${r.confirmed_auftrag_id ? `#${r.confirmed_auftrag_id}` : '–'}
               <div class="muted">${escapeHtml(r.auftrag_status || '')}</div>
             </td>
             <td>
-              ${(r.status === 'pending' || r.status === 'offen') ? `
-                <div style="display:grid; gap:8px; min-width:220px;">
-                  <textarea class="appointment-reason" data-id="${r.id}" rows="3" placeholder="Ablehnungsgrund oder optionale Notiz"></textarea>
-                  <div style="display:flex; gap:8px; flex-wrap:wrap;">
-                    <button class="btn tiny btn-primary appointment-accept" data-id="${r.id}" type="button">Bestätigen</button>
-                    <button class="btn tiny btn-danger appointment-decline" data-id="${r.id}" type="button">Ablehnen</button>
-                  </div>
+              <div style="display:grid; gap:8px; min-width:220px;">
+                <textarea class="appointment-reason" data-id="${r.id}" rows="3" placeholder="Ablehnungsgrund oder optionale Notiz">${escapeHtml(r.decision_reason || r.ablehnungsgrund || '')}</textarea>
+                <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                  <button class="btn tiny btn-primary appointment-accept" data-id="${r.id}" type="button">${(r.status === 'accepted' || r.status === 'angenommen') ? 'Bestätigung ändern' : 'Bestätigen'}</button>
+                  <button class="btn tiny btn-danger appointment-decline" data-id="${r.id}" type="button">${(r.status === 'declined' || r.status === 'abgelehnt') ? 'Ablehnung ändern' : 'Ablehnen'}</button>
                 </div>
-              ` : `<span class="muted">Bereits entschieden</span>`}
+                <div class="muted">${escapeHtml(r.decided_at ? `Zuletzt geändert: ${formatDateTimeDisplay(r.decided_at)}` : 'Noch nicht bearbeitet')}</div>
+                ${
+                  requireManager()
+                    ? `<button class="btn tiny btn-danger appointment-hide" data-id="${r.id}" type="button">Ausblenden</button>
+                       <div class="muted">${r.confirmed_auftrag_id ? (r.auftrag_status === 'fertig' ? 'Mit Auftrag verknüpft · Ausblenden möglich' : 'Mit Auftrag verknüpft · Nur möglich wenn Auftrag abgeschlossen ist') : 'Ohne Auftrag sofort ausblendbar'}</div>`
+                    : ''
+                }
+              </div>
             </td>
           </tr>
         `).join('')}
@@ -2244,7 +2253,7 @@ function renderAppointments() {
 
       try {
         await apiAppointmentDecide({ id, decision: 'angenommen', reason });
-        showMsg('ok', 'Terminanfrage bestätigt. Auftrag wurde erstellt.');
+        showMsg('ok', 'Terminanfrage gespeichert bzw. aktualisiert.');
         await loadAndRenderAppointments();
         await loadAllForReload();
       } catch (e) {
@@ -2272,7 +2281,34 @@ function renderAppointments() {
 
       try {
         await apiAppointmentDecide({ id, decision: 'abgelehnt', reason });
-        showMsg('ok', 'Terminanfrage abgelehnt.');
+        showMsg('ok', 'Terminanfrage gespeichert bzw. aktualisiert.');
+        await loadAndRenderAppointments();
+      } catch (e) {
+        showMsg('error', e.message);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = old;
+      }
+    });
+  });
+
+  wrap.querySelectorAll('.appointment-hide').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      if (!requireManager()) {
+        showMsg('error', 'Ausblenden ist nur für Geschäftsführer erlaubt.');
+        return;
+      }
+
+      const id = Number(btn.getAttribute('data-id'));
+      if (!confirm('Terminanfrage ID ' + id + ' wirklich ausblenden?')) return;
+
+      btn.disabled = true;
+      const old = btn.textContent;
+      btn.textContent = 'Blendet aus…';
+
+      try {
+        await apiAppointmentHide(id);
+        showMsg('ok', 'Terminanfrage ausgeblendet. ID: ' + id);
         await loadAndRenderAppointments();
       } catch (e) {
         showMsg('error', e.message);
