@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="de">
-<head> 
+<head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Fischer Weinfabrik · Kontakt</title>
@@ -542,77 +542,41 @@ async function loadPublicOverview(){
     const res = await fetch(`${API_URL}?action=public_overview`);
     const json = await res.json();
     if (!res.ok || !json?.ok) throw new Error((json?.error || 'Übersicht konnte nicht geladen werden.') + (json?.detail ? ` | ${json.detail}` : ''));
-
     const items = Array.isArray(json.items) ? json.items : [];
     if (!items.length) {
       wrap.innerHTML = '<div class="section-copy" style="padding:14px;">Noch keine Terminanfragen vorhanden.</div>';
       return;
     }
-
     wrap.innerHTML = `
       <table>
-        <thead>
-          <tr>
-            <th>Auftragsnummer</th>
-            <th>Name</th>
-            <th>Termin</th>
-            <th>Terminstatus</th>
-            <th>Auftragsstatus</th>
-          </tr>
-        </thead>
+        <thead><tr><th>Auftragsnummer</th><th>Name</th><th>Termin</th><th>Terminstatus</th><th>Auftragsstatus</th></tr></thead>
         <tbody>
           ${items.map(item => {
-            const terminStatusRaw = String(item.status || 'offen').toLowerCase();
+            const statusRaw = String(item.status || 'pending').toLowerCase();
+            const terminStatus = statusRaw === 'accepted' ? 'Angenommen' : statusRaw === 'declined' ? 'Abgelehnt' : 'Termin noch nicht bestätigt';
             const orderStatus = String(item.auftragsstatus || '–');
+            const terminBadgeClass = statusRaw === 'accepted' ? 'ok' : statusRaw === 'declined' ? 'err' : 'warn';
+            const orderBadgeClass = orderStatus === 'fertig' ? 'ok' : orderStatus === 'offen' ? 'warn' : '';
             const note = String(item.decision_reason || '').trim();
             const employee = String(item.decision_by_username || '').trim();
-
-            let terminStatusLabel = 'Termin noch nicht bestätigt';
-            if (terminStatusRaw === 'accepted' || terminStatusRaw === 'angenommen') terminStatusLabel = 'Angenommen';
-            if (terminStatusRaw === 'declined' || terminStatusRaw === 'abgelehnt') terminStatusLabel = 'Abgelehnt';
-
-            const terminBadgeClass =
-              (terminStatusRaw === 'accepted' || terminStatusRaw === 'angenommen')
-                ? 'ok'
-                : (terminStatusRaw === 'declined' || terminStatusRaw === 'abgelehnt')
-                  ? 'err'
-                  : 'warn';
-
-            const orderBadgeClass =
-              orderStatus === 'fertig'
-                ? 'ok'
-                : orderStatus === 'offen'
-                  ? 'warn'
-                  : '';
-
+            const changedAt = item.decided_at ? formatDateTimeDisplay(item.decided_at) : '';
             let noteHtml = '';
             if (note) {
-              const prefix =
-                (terminStatusRaw === 'declined' || terminStatusRaw === 'abgelehnt')
-                  ? 'Ablehnungsgrund'
-                  : 'Notiz';
-
-              const byText = employee ? ` von ${escapeHtml(employee)}` : '';
-              noteHtml = `
-                <div style="margin-top:6px; color:var(--muted); font-size:12px; line-height:1.45;">
-                  <strong>${prefix}${byText}:</strong><br>
-                  ${escapeHtml(note)}
-                </div>
-              `;
+              const prefix = statusRaw === 'declined' ? 'Ablehnungsgrund' : 'Notiz';
+              noteHtml += `<div style="margin-top:6px; color:var(--muted); font-size:12px; line-height:1.45;"><strong>${escapeHtml(prefix)}${employee ? ` von ${escapeHtml(employee)}` : ''}:</strong><br>${escapeHtml(note)}</div>`;
+            } else if (employee) {
+              noteHtml += `<div style="margin-top:6px; color:var(--muted); font-size:12px; line-height:1.45;"><strong>Bearbeitet von ${escapeHtml(employee)}</strong></div>`;
             }
-
-            return `
-              <tr>
-                <td>${escapeHtml(item.auftrag_id ?? '–')}</td>
-                <td>${escapeHtml(item.name ?? '')}</td>
-                <td>${escapeHtml(item.datum ?? '')} ${escapeHtml(item.uhrzeit ?? '')}</td>
-                <td>
-                  <span class="badge ${terminBadgeClass}">${escapeHtml(terminStatusLabel)}</span>
-                  ${noteHtml}
-                </td>
-                <td><span class="badge ${orderBadgeClass}">${escapeHtml(orderStatus)}</span></td>
-              </tr>
-            `;
+            if (changedAt) {
+              noteHtml += `<div style="margin-top:6px; color:var(--muted); font-size:12px; line-height:1.45;">${escapeHtml(changedAt)}</div>`;
+            }
+            return `<tr>
+              <td>${escapeHtml(item.auftrag_id ?? '–')}</td>
+              <td>${escapeHtml(item.name ?? '')}</td>
+              <td>${escapeHtml(item.datum ?? '')} ${escapeHtml(item.uhrzeit ?? '')}</td>
+              <td><span class="badge ${terminBadgeClass}">${escapeHtml(terminStatus)}</span>${noteHtml}</td>
+              <td><span class="badge ${orderBadgeClass}">${escapeHtml(orderStatus)}</span></td>
+            </tr>`;
           }).join('')}
         </tbody>
       </table>
