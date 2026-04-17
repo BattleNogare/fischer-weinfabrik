@@ -453,6 +453,21 @@ function escapeHtml(s){ return String(s ?? '').replaceAll('&','&amp;').replaceAl
 function toNum(v){ const n = Number(String(v ?? '').replace(',','.')); return Number.isFinite(n) ? n : 0; }
 function moneyEUR(n){ return Math.ceil(toNum(n)).toLocaleString('de-DE') + ' €'; }
 
+function formatDateTimeDisplay(value) {
+  if (!value) return '';
+
+  const date = new Date(value);
+  if (isNaN(date.getTime())) return String(value);
+
+  const d = String(date.getDate()).padStart(2, '0');
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const y = date.getFullYear();
+  const hh = String(date.getHours()).padStart(2, '0');
+  const mm = String(date.getMinutes()).padStart(2, '0');
+
+  return `${d}.${m}.${y} ${hh}:${mm}`;
+}
+
 function createEmptyService(){ return { id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now() + Math.random()), type:'verarbeitung_wein', anzahl_faesser:'', tage:'', anzahl_stueck:'', km:'' }; }
 
 function getServiceSummaryLine(service){
