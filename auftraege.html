@@ -1402,6 +1402,9 @@ async function apiAppointmentList(){
 async function apiAppointmentDecide(payload){
   return apiFetch(`?action=appointment_decide`, { method:"POST", body: payload });
 }
+async function apiAppointmentUpdate(payload){
+  return apiFetch(`?action=appointment_update`, { method:"POST", body: payload });
+}
 async function apiAppointmentHide(id){
   return apiFetch(`?action=appointment_hide`, { method:"POST", body: { id } });
 }
@@ -1964,7 +1967,7 @@ function renderOpen() {
           <th>Abholdatum</th>
           <th>Erhalten?</th>
           <th>Info</th>
-          <th></th>
+          <th>Aktionen</th>
         </tr>
       </thead>
       <tbody>
@@ -1993,7 +1996,12 @@ function renderOpen() {
                 <div class="muted">Ja nur mit Abholdatum</div>
               </td>
               <td><textarea data-id="${r.id}" class="open-info" rows="2">${escapeHtml(r.info || '')}</textarea></td>
-              <td><button data-id="${r.id}" class="btn tiny btn-primary open-save" type="button">Speichern</button></td>
+              <td>
+                <div style="display:grid; gap:8px; min-width:170px;">
+                  <button data-id="${r.id}" class="btn tiny btn-primary open-save" type="button">Speichern</button>
+                  <button data-id="${r.id}" class="btn tiny btn-danger open-cancel" type="button">Auftrag stornieren</button>
+                </div>
+              </td>
             </tr>
           `;
         }).join('')}
@@ -2039,8 +2047,35 @@ function renderOpen() {
       }
     });
   });
-}
 
+  wrap.querySelectorAll('.open-cancel').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const id = Number(btn.getAttribute('data-id'));
+      if (!confirm('Auftrag ID ' + id + ' wirklich stornieren?\nDer Auftrag wird als fertig markiert und Info wird auf "Storniert" gesetzt.')) return;
+
+      btn.disabled = true;
+      const old = btn.textContent;
+      btn.textContent = 'Storniert…';
+
+      try {
+        await apiPatch({
+          id,
+          info: 'Storniert',
+          abhol_datum: todayISO(),
+          erhalten: true,
+          hidden: false
+        });
+        showMsg('ok', 'Auftrag storniert und nach fertige Aufträge verschoben. ID: ' + id);
+        await loadAllForReload();
+      } catch (e) {
+        showMsg('error', e.message);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = old;
+      }
+    });
+  });
+}
 function renderDone() {
   const { total, items } = applySearchAndPage(allDone, doneState);
 
@@ -2210,10 +2245,12 @@ function renderAppointments() {
               <span class="muted">${escapeHtml(r.termin_uhrzeit || '')}</span>
             </td>
             <td style="white-space:pre-line;">${escapeHtml(renderAppointmentServices(r))}</td>
-            <td style="white-space:pre-line;">${escapeHtml(r.info || '')}</td>
+            <td>
+              <textarea class="appointment-info" data-id="${r.id}" rows="3" placeholder="Zusatzinfo zur Terminanfrage">${escapeHtml(r.info || '')}</textarea>
+            </td>
             <td>
               <strong>${escapeHtml(appointmentStatusLabel(r.status))}</strong>
-              <div class="muted">${escapeHtml(r.ablehnungsgrund || r.decision_reason || '')}</div>
+              <div class="muted" style="white-space:pre-line;">${escapeHtml(r.ablehnungsgrund || r.decision_reason || '')}</div>
               <div class="muted">${escapeHtml(r.decided_at ? formatDateTimeDisplay(r.decided_at) : '')}</div>
             </td>
             <td>
@@ -2221,11 +2258,12 @@ function renderAppointments() {
               <div class="muted">${escapeHtml(r.auftrag_status || '')}</div>
             </td>
             <td>
-              <div style="display:grid; gap:8px; min-width:220px;">
+              <div style="display:grid; gap:8px; min-width:240px;">
                 <textarea class="appointment-reason" data-id="${r.id}" rows="3" placeholder="Ablehnungsgrund oder optionale Notiz">${escapeHtml(r.decision_reason || r.ablehnungsgrund || '')}</textarea>
                 <div style="display:flex; gap:8px; flex-wrap:wrap;">
                   <button class="btn tiny btn-primary appointment-accept" data-id="${r.id}" type="button">${(r.status === 'accepted' || r.status === 'angenommen') ? 'Bestätigung ändern' : 'Bestätigen'}</button>
                   <button class="btn tiny btn-danger appointment-decline" data-id="${r.id}" type="button">${(r.status === 'declined' || r.status === 'abgelehnt') ? 'Ablehnung ändern' : 'Ablehnen'}</button>
+                  <button class="btn tiny appointment-save-info" data-id="${r.id}" type="button">Info speichern</button>
                 </div>
                 <div class="muted">${escapeHtml(r.decided_at ? `Zuletzt geändert: ${formatDateTimeDisplay(r.decided_at)}` : 'Noch nicht bearbeitet')}</div>
                 ${
@@ -2242,19 +2280,46 @@ function renderAppointments() {
     </table>
   `;
 
+  const getAppointmentEditPayload = (id) => ({
+    id,
+    info: wrap.querySelector('.appointment-info[data-id="' + id + '"]').value,
+    reason: wrap.querySelector('.appointment-reason[data-id="' + id + '"]').value.trim()
+  });
+
+  wrap.querySelectorAll('.appointment-save-info').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const id = Number(btn.getAttribute('data-id'));
+      const payload = getAppointmentEditPayload(id);
+
+      btn.disabled = true;
+      const old = btn.textContent;
+      btn.textContent = 'Speichert…';
+
+      try {
+        await apiAppointmentUpdate(payload);
+        showMsg('ok', 'Termin-Info gespeichert. ID: ' + id);
+        await loadAndRenderAppointments();
+      } catch (e) {
+        showMsg('error', e.message);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = old;
+      }
+    });
+  });
+
   wrap.querySelectorAll('.appointment-accept').forEach(btn => {
     btn.addEventListener('click', async () => {
       const id = Number(btn.getAttribute('data-id'));
-      const reason = wrap.querySelector('.appointment-reason[data-id="' + id + '"]').value.trim();
+      const payload = getAppointmentEditPayload(id);
 
       btn.disabled = true;
       const old = btn.textContent;
       btn.textContent = 'Bestätigt…';
 
       try {
-        await apiAppointmentDecide({ id, decision: 'angenommen', reason });
+        await apiAppointmentDecide({ ...payload, decision: 'angenommen' });
         showMsg('ok', 'Terminanfrage gespeichert bzw. aktualisiert.');
-        await loadAndRenderAppointments();
         await loadAllForReload();
       } catch (e) {
         showMsg('error', e.message);
@@ -2268,9 +2333,9 @@ function renderAppointments() {
   wrap.querySelectorAll('.appointment-decline').forEach(btn => {
     btn.addEventListener('click', async () => {
       const id = Number(btn.getAttribute('data-id'));
-      const reason = wrap.querySelector('.appointment-reason[data-id="' + id + '"]').value.trim();
+      const payload = getAppointmentEditPayload(id);
 
-      if (!reason) {
+      if (!payload.reason) {
         showMsg('error', 'Beim Ablehnen ist ein Grund Pflicht.');
         return;
       }
@@ -2280,9 +2345,9 @@ function renderAppointments() {
       btn.textContent = 'Lehnt ab…';
 
       try {
-        await apiAppointmentDecide({ id, decision: 'abgelehnt', reason });
+        await apiAppointmentDecide({ ...payload, decision: 'abgelehnt' });
         showMsg('ok', 'Terminanfrage gespeichert bzw. aktualisiert.');
-        await loadAndRenderAppointments();
+        await loadAllForReload();
       } catch (e) {
         showMsg('error', e.message);
       } finally {
@@ -2319,7 +2384,6 @@ function renderAppointments() {
     });
   });
 }
-
 
 function contactStatusLabel(status) {
   if (status === 'erledigt') return 'Erledigt';
