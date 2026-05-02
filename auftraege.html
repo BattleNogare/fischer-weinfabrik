@@ -496,6 +496,39 @@
         grid-template-columns: 1fr;
       }
     }
+    .total-badge{
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+
+  padding: 6px 12px;
+  border-radius: 999px;
+
+  background: linear-gradient(135deg, rgba(0,255,170,0.15), rgba(0,200,255,0.15));
+  border: 1px solid rgba(0,255,170,0.25);
+
+  font-size: 13px;
+  font-weight: 600;
+  color: #b6ffe6;
+
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+
+  box-shadow: 0 0 10px rgba(0,255,170,0.15);
+  transition: all 0.2s ease;
+}
+
+.total-badge::before{
+  content: "💰";
+  font-size: 14px;
+}
+
+.total-badge:hover{
+  transform: translateY(-1px);
+  box-shadow: 0 0 14px rgba(0,255,170,0.25);
+}
+
+    
   </style>
 </head>
 
@@ -658,7 +691,7 @@
 
         <div class="toolbar">
           <input id="doneSearch" type="text" placeholder="Suche Kunde/Mitarbeiter…" />
-          <span id="doneTotalKosten" class="pill hidden">Summe: 0 €</span>
+          <span id="doneTotalKosten" class="total-badge hidden"></span>
           <div class="pager">
             <button id="donePrev" class="btn tiny" type="button">◀</button>
             <span id="donePageInfo" class="pill"></span>
@@ -2083,7 +2116,7 @@ function renderDone() {
   const totalEl = $('doneTotalKosten');
 
   if (totalEl) {
-    totalEl.textContent = `Summe: ${moneyEUR(totalKosten)}`;
+    totalEl.textContent = `${moneyEUR(totalKosten)} Gesamtumsatz`;
     totalEl.classList.toggle('hidden', !requireManager());
   }
   
