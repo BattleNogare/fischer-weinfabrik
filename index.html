@@ -572,10 +572,14 @@ async function loadPublicOverview(){
             const orderStatus = String(item.auftragsstatus || '–');
             const terminBadgeClass = statusRaw === 'accepted' ? 'ok' : statusRaw === 'declined' ? 'err' : 'warn';
             const orderBadgeClass = orderStatus === 'fertig' ? 'ok' : orderStatus === 'offen' ? 'warn' : '';
+            const info = String(item.info || '').trim();
             const note = String(item.decision_reason || '').trim();
             const employee = String(item.decision_by_username || '').trim();
             const changedAt = item.decided_at ? formatDateTimeDisplay(item.decided_at) : '';
             let noteHtml = '';
+            if (info) {
+              noteHtml += `<div style="margin-top:6px; color:var(--muted); font-size:12px; line-height:1.45;"><strong>Info:</strong><br>${escapeHtml(info)}</div>`;
+            }
             if (note) {
               const prefix = statusRaw === 'declined' ? 'Ablehnungsgrund' : 'Notiz';
               noteHtml += `<div style="margin-top:6px; color:var(--muted); font-size:12px; line-height:1.45;"><strong>${escapeHtml(prefix)}${employee ? ` von ${escapeHtml(employee)}` : ''}:</strong><br>${escapeHtml(note)}</div>`;
