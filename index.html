@@ -557,7 +557,16 @@ async function loadPublicOverview(){
     const res = await fetch(`${API_URL}?action=public_overview`);
     const json = await res.json();
     if (!res.ok || !json?.ok) throw new Error((json?.error || 'Übersicht konnte nicht geladen werden.') + (json?.detail ? ` | ${json.detail}` : ''));
-    const items = Array.isArray(json.items) ? json.items : [];
+
+    const today = new Date();
+    const yyyy = today.getFullYear();
+    const mm = String(today.getMonth() + 1).padStart(2, '0');
+    const dd = String(today.getDate()).padStart(2, '0');
+    const todayISO = `${yyyy}-${mm}-${dd}`;
+
+    const items = (Array.isArray(json.items) ? json.items : [])
+      .filter(item => String(item.datum || '') >= todayISO);
+    
     if (!items.length) {
       wrap.innerHTML = '<div class="section-copy" style="padding:14px;">Noch keine Terminanfragen vorhanden.</div>';
       return;
