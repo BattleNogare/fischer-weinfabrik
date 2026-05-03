@@ -2110,9 +2110,31 @@ function renderOpen() {
     });
   });
 }
+
+function getRowProfitValue(row) {
+  if (hasServices(row)) {
+    return row.services.reduce((sum, s) => {
+      const type = String(s?.type || '');
+      const value = toNum(s?.einzelpreis);
+
+      if (
+        type === 'ankauf_faesser' ||
+        type === 'ankauf_trauben' ||
+        type === 'ankauf_weinflaschen'
+      ) {
+        return sum - value;
+      }
+
+      return sum + value;
+    }, 0);
+  }
+
+  return getRowDisplayKosten(row);
+}
+  
 function renderDone() {
   const { total, items } = applySearchAndPage(allDone, doneState);
-  const totalKosten = allDone.reduce((sum, r) => sum + getRowDisplayKosten(r), 0);
+  const totalKosten = allDone.reduce((sum, r) => sum + getRowProfitValue(r), 0);
   const totalEl = $('doneTotalKosten');
 
   if (totalEl) {
